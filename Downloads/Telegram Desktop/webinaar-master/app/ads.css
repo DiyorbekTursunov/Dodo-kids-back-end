@@ -1,0 +1,574 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: cofosans;
+  src: url(../public/fonts/cofo-sans.ttf);
+}
+
+.home {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: top right;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  overflow: hidden;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  background-color: black;
+}
+
+.homeContainer {
+  max-width: 1199px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.homeCard {
+  max-width: 379px;
+  width: 100%;
+  background-color: #000000;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.homeCardTop {
+  display: flex;
+  position: relative;
+  padding-bottom: 93px;
+  margin-top: -15px;
+
+}
+
+.homeCardTop:nth-child(2) {
+  padding-bottom: 70px;
+}
+
+.homeCardTopImgBig {
+  object-fit: cover;
+  max-width: 270px;
+  border-radius: 10px;
+  transform: rotate(-10deg);
+  height: 320px;
+  max-height: 320px;
+  object-position: top;
+
+}
+
+.homeCardTopImgMini {
+  position: absolute;
+  right: 0;
+  bottom: 15px;
+  transform: rotate(8deg) translateX(42px);
+  border-radius: 10px;
+
+}
+
+.homeCardText {
+  color: white;
+  font-weight: 500;
+  object-fit: cover;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.homeCardText>b {
+  font-weight: 700;
+}
+
+.homeCenter {
+  max-width: 362px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.homeCenterTop {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.homeCenterTopText {
+  border: 1px solid white;
+  border-radius: 100px;
+  padding: 4px 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.homeCenterTopTextRound {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #EE404D;
+  animation: fadeInOut 1.5s infinite;
+
+}
+
+.homeCenterText {
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+  line-height: 20px;
+  text-align: center;
+  margin-bottom: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.homeCenterTopTextInfo {
+  width: 20px;
+  height: 20px;
+  background-color: #FFFFFF;
+  box-shadow: 0px 0px 20px 0px #0000004D;
+  border-radius: 50%;
+  color: #EE404D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+}
+
+
+.homeCenterTitle {
+  max-width: 291px;
+  font-weight: 700;
+  font-size: 48px;
+  color: white;
+  line-height: 48px;
+  margin-bottom: 41px;
+  font-family: cofosans, sans-serif;
+  text-transform: uppercase;
+  text-align: center;
+
+}
+
+.homeCenterInfoText {
+  font-weight: 700;
+  font-size: 16;
+  color: white;
+  max-width: 301px;
+  text-align: center;
+  line-height: 23px;
+  margin-bottom: 48px;
+}
+
+.homeCenterInfoTextBottom {
+  max-width: 297px;
+  font-weight: 400;
+  font-size: 13px;
+  color: white;
+  line-height: 20px;
+  text-align: center;
+  margin-bottom: 27px;
+}
+
+.homeCenterBtn {
+  background-color: #EE404D;
+  min-height: 70px;
+  width: 100%;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.homeRightList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: white;
+  padding-left: 20px;
+  max-width: 305px;
+}
+
+.arrow {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-60%) rotate(-155deg);
+
+}
+
+.homeRightListItem {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.homeCardTopImgRightBig {
+  margin-left: auto;
+  object-fit: cover;
+  border-radius: 10px;
+  transform: rotate(15deg) translateX(30px);
+  margin-top: -10px;
+  max-width: 306px;
+  height: 320px;
+}
+
+.homeCardTopImgRightMini {
+  position: absolute;
+  bottom: 30px;
+  transform: rotate(-10deg) translateX(-40px);
+  left: 0;
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.homeCenterText_md {
+  display: none;
+}
+
+.mobileCenterCenter {
+  display: none;
+}
+
+.logo {
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+@media(max-width: 1040px) {
+  .maxLgHidden {
+    display: none;
+  }
+
+  .homeCenter {
+    max-width: none;
+  }
+
+  .homeCenterTitle {
+    max-width: none;
+    margin-bottom: 20px;
+    font-size: 40px;
+
+  }
+
+  .homeCenterTitle br {
+    display: none;
+  }
+
+  .home {
+    background-position: center center;
+  }
+
+  .homeCenterInfoText {
+    max-width: 375px;
+    font-size: 14px;
+    font-family: cofosans, sans-serif;
+    margin-bottom: 20px;
+  }
+
+  .homeCard {
+    max-width: 305px;
+    min-height: auto;
+  }
+
+  .homeCardTopImgBig,
+  .homeCardTopImgRightBig {
+    max-width: 171px;
+    height: 218px;
+  }
+
+  .homeCardText {
+    font-size: 11px;
+    line-height: 14px;
+  }
+
+  .mobileCenterCenter {
+    display: flex;
+    gap: 20px;
+  }
+
+  .homeCardTopImgRightBig {
+    margin-top: -0px;
+  }
+
+  .homeCardTopImgMini,
+  .homeCardTopImgRightMini {
+    max-width: 135px;
+    height: 145px;
+    transform: translateX(0) rotate(10deg);
+  }
+
+  .homeCardTopImgRightMini {
+    transform: translateX(0) rotate(-10deg) translateY(-5px);
+  }
+
+  .homeCenterText_md {
+    margin-bottom: 0;
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    color: white;
+    line-height: 20px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .homeCenterText {
+    display: none;
+  }
+
+  .homeCardTop {
+    padding-bottom: 30px;
+  }
+
+  .homeRightListItem {
+    font-size: 11px;
+    line-height: 11px;
+  }
+
+  .homeCenterInfoTextBottom {
+    max-width: 453px;
+  }
+
+  .homeCenterBtn {
+    max-width: 600px;
+  }
+}
+
+
+@media(max-width: 768px) {
+  .arrow {
+    width: 70px;
+    height: 90px;
+    left: 70%;
+    top: 15%;
+    transform: rotate(25deg);
+  }
+
+  .logo {
+    text-wrap: nowrap;
+    font-size: 14px;
+  }
+
+  .homeCard {
+    display: flex;
+    max-width: none;
+    align-items: center;
+  }
+
+  .mobileCenterCenter {
+    display: flex;
+  }
+
+  .homeCardText {
+    font-size: 18px;
+    line-height: 22px;
+    padding-left: 50px;
+  }
+
+  .homeCardTop {
+    padding-bottom: 0;
+  }
+
+  .maxLgHidden {
+    display: none;
+  }
+
+  .homeCardTopImgMini,
+  .homeCardTopImgRightMini {
+    max-width: 135px;
+    height: 145px;
+    bottom: -35px;
+    right: -30px;
+  }
+
+  .mobileCenterCenter {
+    flex-direction: column;
+  }
+
+  .homeCard:nth-child(2) {
+    flex-direction: row-reverse;
+  }
+
+  .homeRightList {
+    max-width: none;
+  }
+
+  .homeRightListItem {
+    font-size: 18px;
+    line-height: 22px;
+    padding-right: 50px;
+  }
+
+  .homeCardTopImgBig,
+  .homeCardTopImgRightBig {
+    max-width: 141px;
+    height: 177px;
+  }
+}
+
+@media(max-width:520px) {
+  .home{
+    align-items: start;
+  }
+  .arrow {
+    width: 60px;
+    height: 70px;
+    left: 80px;
+    top: -40px;
+    transform: rotate(15deg);
+    z-index: 40;
+  }
+
+  .home {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .homeCenterTopText {
+    min-width: 118px;
+  }
+
+  .homeCenterText_md {
+    text-align: left;
+    font-size: 8px;
+  }
+
+  .homeCenterTitle {
+    margin-bottom: 0px;
+    font-size: 28px;
+    line-height: 30px;
+    margin-bottom: 5px;
+    max-width: none;
+  }
+
+  .homeCenterInfoText {
+    line-height: 110%;
+    margin-bottom: 30px;
+  }
+
+  .logo {
+    font-size: 12px;
+  }
+
+  .homeCardText {
+    font-size: 10px;
+    line-height: 16px;
+    line-height: 16px;
+    padding-left: 150px;
+    margin-left: auto;
+  }
+
+  .homeCenterText_md {
+    font-size: 8px;
+    line-height: 12px;
+    line-height: 12px;
+  }
+
+  .homeCardTopImgBig {
+    max-width: 110px;
+    height: 142px;
+  }
+
+  .homeCardTopImgBig {
+    object-fit: cover;
+    object-position: -2px -33px;
+    position: absolute;
+    left: -20px;
+    top: -70px;
+  }
+
+  .homeCardTopImgRightBig {
+    max-width: 108px;
+    height: 131px;
+    margin-top: -40px;
+  }
+
+  .homeCardTopImgMini {
+    max-width: 84px;
+    height: 100px;
+    bottom: -95px;
+    left: 100%;
+    transform: translateX(30px) rotate(10deg);
+  }
+  .homeCenterInfoText {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: normal;
+  }
+
+  .homeCenterInfoTextBottom {
+    font-size: 11px;
+    line-height: 16px;
+  }
+  .homeCardTopImgRightMini {
+    left: -40px;
+    max-width: 84px;
+    height: 100px;
+    bottom: -35px;
+    width: 100%;
+  }
+
+  .homeCard {
+    justify-content: space-between;
+    padding: 20px;
+    width: 100%;
+  }
+
+  .homeRightList {
+    max-width: 130px;
+    padding-right: 0px;
+    padding-left: 10px;
+  }
+
+  .homeRightListItem {
+    font-size: 11px;
+    line-height: 12px;
+    padding-right: 0;
+  }
+
+  .mobileCenterCenter {
+    margin-bottom: 20px;
+  }
+}
+
+img {
+  object-fit: cover;
+}
