@@ -1,21 +1,45 @@
-import express, { Request, Response } from "express";
-import Auth from "./routes/auth.routes";
-import { setupSwagger } from "./lib/swagger";
-const app = express();
-const PORT = process.env.PORT || 3000;
+import express, { Express, Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes';
+import employeeRoutes from './routes/employeeRoutes';
 
-app.get("/", (req: Request, res: Response) => {
-  res.json({ status: res.statusCode, message: "Server is running" });
-});
+// Load environment variables
+dotenv.config();
 
+// Initialize Prisma client
+const prisma = new PrismaClient();
+
+// Create Express application
+const app: Express = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/", Auth);
+// Health check route
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
 
-setupSwagger(app);
+// Root route
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'Welcome to the Dodo kids API' });
+});
 
-app.listen(PORT, () => {
-  console.log(`⚡️ Server running at http://localhost:${PORT}/`);
-  console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
+// Register routes
+app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
+
+// Start the server
+app.listen(port, () => {
+  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+});
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  console.log('Disconnected from database');
+  process.exit(0);
 });
