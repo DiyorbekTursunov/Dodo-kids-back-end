@@ -1,0 +1,85 @@
+generator client {
+    provider = "prisma-client-js"
+    url      = DATABASE_URL
+}
+
+enum PhoneCondition {
+    New
+    Used
+}
+
+enum PhoneStatus {
+    inStorage
+    sold
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id        String    @id @default(uuid())
+    login     String    @unique
+    password  String
+    createdAt DateTime  @default(now())
+    storage   Storage[] // Relation field to Storage model
+    sales     Sales[]   // Relation field to Sales model
+}
+
+/// `Storage` modeli telefonlar uchun CRM tizimidagi saqlash entitetini ifodalaydi.
+/// Bu model telefonning holati, xarid ma'lumotlari va foydalanuvchi bilan bog'liqligini o'z ichiga oladi.
+///
+/// Maydonlar:
+/// - `id`: UUID sifatida yaratilgan saqlash yozuvi uchun noyob identifikator.
+/// - `company`: Telefonning kompaniyasi yoki brendi.
+/// - `model`: Telefonning modeli.
+/// - `condition`: Telefonning holati, standart qiymati `New`.
+/// - `imei`: Telefonning noyob IMEI raqami, takrorlanmas bo'lishi kerak.
+/// - `purchaseId`: Xarid tranzaksiyasi uchun noyob identifikator.
+/// - `purchasePrice`: Telefon xarid qilingan narx.
+/// - `purchaseDate`: Telefon xarid qilingan sana.
+/// - `status`: Telefonning joriy holati, standart qiymati `inStorage`.
+/// - `fullName`: Telefon bilan bog'liq shaxsning to'liq ismi.
+/// - `phoneNumber`: Telefon bilan bog'liq shaxsning telefon raqami.
+/// - `createdAt`: Saqlash yozuvi yaratilgan vaqt, standart qiymati joriy vaqt.
+/// - `userId`: `User` modeliga xorijiy kalit.
+/// - `user`: Saqlash yozuvini ma'lum bir foydalanuvchi bilan bog'laydigan `User` modeliga bog'lanish.
+
+model Storage {
+    id            String         @id @default(uuid())
+    company      String
+    model         String
+    condition     PhoneCondition @default(New)
+    imei          String         @unique
+    purchaseId    String         @unique
+    purchasePrice Float
+    purchaseDate  DateTime
+    status        PhoneStatus    @default(inStorage)
+    fullName      String
+    phoneNumber   String
+    createdAt     DateTime       @default(now())
+
+    // Foydalanuvchi bilan bog'lanish
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+}
+model Sales {
+    id            String         @id @default(uuid()) // ID (Sotuv)
+    company       String         // Kompaniya
+    model         String         // Model
+    condition     PhoneCondition @default(New) // Holati
+    imei          String         @unique // IMEI
+    purchaseId    String         @unique // ID (Sotuv)
+    purchasePrice Float          // Tan narhi
+    salePrice     Float          // Sotilgan narhi
+    profit        Float          // Farq
+    saleDate      DateTime       // Sana
+    fullName      String         // Ism
+    phoneNumber   String         // Telefon Raqam
+    createdAt     DateTime       @default(now())
+
+    // Add reference to user
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+}
