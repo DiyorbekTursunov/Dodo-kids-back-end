@@ -36,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
+app.use("/api/employeeType", employeeRoutes);
 
 // Start the server
 app.listen(port, () => {
