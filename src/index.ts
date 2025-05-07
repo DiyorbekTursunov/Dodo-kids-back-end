@@ -6,6 +6,7 @@ import employeeRoutes from "./routes/employeeRoutes";
 import colorRoutes from "./routes/colorRoute";
 import sizeRoutes from "./routes/sizeRoutes";
 import employeeTypeRoutes from "./routes/employeeTypeRoutes";
+import mainLineProgressRoutes from "./routes/mainLineProgressRoutes";
 import "module-alias/register";
 
 // Load environment variables
@@ -38,6 +39,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
 app.use("/api/employeeType", employeeTypeRoutes);
+app.use("/api/mainLineProgress", mainLineProgressRoutes);
 
 // Start the server
 app.listen(port, () => {

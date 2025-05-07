@@ -24,10 +24,7 @@
       {
         "name": "Ombor",
         "protsesIsOver": true,
-        "qo'shilganlarSoni": {
-          "id": "uuid",
-          "soni": 1500
-        },
+        "qo'shilganlarSoni": 1500,
         "yuborilganSoni": [
           {
             "id": "uuid",
