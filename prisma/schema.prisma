@@ -1,36 +1,53 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Color model for CRUD operations
+model Color {
+    id        String   @id @default(uuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Size model for CRUD operations
+model Size {
+    id        String   @id @default(uuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Employee type model for CRUD operations
+model EmployeeType {
+    id        String     @id @default(uuid())
+    name      String     @unique
+    employees Employee[]
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
 }
 
 // Employee model
 model Employee {
-  id        String    @id @default(uuid())
-  login     String    @unique
-  password  String
-  type      EmployeeType
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+    id        String       @id @default(uuid())
+    login     String       @unique
+    password  String
+    typeId    String
+    type      EmployeeType @relation(fields: [typeId], references: [id])
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
 }
 
 // Admin model
 model Admin {
-  id        String    @id @default(uuid())
-  login     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-// Employee types enum
-enum EmployeeType {
-  ombor
-  bichuv
-  tikuv
-  skaner
-  qadoqlash
+    id        String   @id @default(uuid())
+    login     String   @unique
+    password  String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

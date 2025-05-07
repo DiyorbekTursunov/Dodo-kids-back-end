@@ -1,0 +1,39 @@
+{
+  "A1": [
+    {
+      "name": "Ombor",
+      "qo'shilganlar": 1500,
+      "yuborilgan": 1300,
+      "yuborilmaganlar": 150,
+      "yaroqsizlar": 50
+    },
+    {
+      "name": "Bichuv",
+      "qabulqilinganlar": 1500,
+      "yuborilgan": 1300,
+      "yuborilmaganlar": 150,
+      "yaroqsizlar": 50
+    },
+    {
+      "name": "Tukuv",
+      "qabulqilinganlar": 1500,
+      "yuborilgan": 1300,
+      "yuborilmaganlar": 150,
+      "yaroqsizlar": 50
+    },
+    {
+      "name": "Skaner",
+      "qabulqilinganlar": 1500,
+      "yuborilgan": 1300,
+      "yuborilmaganlar": 150,
+      "yaroqsizlar": 50
+    },
+    {
+      "name": "Qadoqlash",
+      "qabulqilinganlar": 1500,
+      "yuborilgan": 1300,
+      "yuborilmaganlar": 150,
+      "yaroqsizlar": 50
+    }
+  ]
+}

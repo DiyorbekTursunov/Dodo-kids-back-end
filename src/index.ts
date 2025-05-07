@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import employeeRoutes from './routes/employeeRoutes';
+import 'module-alias/register';
+
 
 // Load environment variables
 dotenv.config();

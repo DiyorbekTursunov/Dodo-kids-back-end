@@ -1,6 +1,9 @@
 // src/routes/authRoutes.ts
+import { adminLogin } from "../controller/auth/admin/adminLogin";
+import { createAdminHandler } from "../controller/auth/admin/createAdmin";
+import { employeeLogin } from "../controller/auth/employee/exployeeLogin";
 import express, { Request, Response, NextFunction } from "express";
-import { employeeLogin, adminLogin, createAdminHandler } from '../controller/authController';
+
 
 const router = express.Router();
 

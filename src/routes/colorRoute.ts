@@ -1,52 +1,54 @@
-// src/routes/employeeRoutes.ts
+// src/routes/colorRoutes.ts
 import express, { Request, Response, NextFunction } from "express";
 import { authenticate, isAdmin } from "../middleware/authMiddleware";
-import { getAllEmployees } from "../controller/emplyee/getAllEmployees";
-import { getEmployeeById } from "../controller/emplyee/getEmployeeById";
-import { createEmployeeHandler } from "../controller/emplyee/createEmployee";
-import { updateEmployee } from "../controller/emplyee/updateEmployee";
-import { deleteEmployee } from "../controller/emplyee/deleteEmployee";
+import { getAllColors } from "../controller/color/getAllColors";
+import { getColorById } from "../controller/color/getColorsById";
+import { createColor } from "../controller/color/createColor";
+import { updateColor } from "../controller/color/updateColor";
+import { deleteColor } from "../controller/color/deleteColor";
 
 const router = express.Router();
 
+// Public route - anyone can get all colors
 router.get(
   "/",
-  authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
-    getAllEmployees(req, res).catch(next);
+    getAllColors(req, res).catch(next);
   }
 );
+
 router.get(
   "/:id",
-  authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
-    getEmployeeById(req, res).catch(next);
+    getColorById(req, res).catch(next);
   }
 );
+
+// Admin-only routes for managing colors
 router.post(
   "/",
   authenticate,
   isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
-    createEmployeeHandler(req, res).catch(next);
+    createColor(req, res).catch(next);
   }
 );
+
 router.put(
   "/:id",
   authenticate,
   isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
-    updateEmployee(req, res).catch(next);
+    updateColor(req, res).catch(next);
   }
 );
+
 router.delete(
   "/:id",
   authenticate,
   isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
-    deleteEmployee(req, res).catch(next);
+    deleteColor(req, res).catch(next);
   }
 );
 
