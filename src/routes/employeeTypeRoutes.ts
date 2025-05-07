@@ -49,3 +49,5 @@ router.delete(
     deleteEmployeeType(req, res).catch(next);
   }
 );
+
+export default router;
