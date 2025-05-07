@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Get all employee types
 export const getAllEmployeeTypes = async (req: Request, res: Response) => {
     try {
-      const types = await prisma.employeeType.findMany();
+      const types = await prisma.department.findMany();
       return res.status(200).json(types);
     } catch (error) {
       console.error("Get employee types error:", error);

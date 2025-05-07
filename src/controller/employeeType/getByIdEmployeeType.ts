@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const getEmployeeTypeById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const type = await prisma.employeeType.findUnique({ where: { id } });
+      const type = await prisma.department.findUnique({ where: { id } });
       if (!type) return res.status(404).json({ error: "Not found" });
       return res.status(200).json(type);
     } catch (error) {

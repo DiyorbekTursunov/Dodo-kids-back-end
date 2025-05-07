@@ -16,11 +16,11 @@ export const createEmployeeHandler = async (req: Request, res: Response) => {
     }
 
     // Verify the employee type exists
-    const employeeType = await prisma.employeeType.findUnique({
+    const department = await prisma.department.findUnique({
       where: { id: typeId },
     });
 
-    if (!employeeType) {
+    if (!department) {
       return res.status(400).json({ error: "Invalid employee type ID" });
     }
 
@@ -31,13 +31,14 @@ export const createEmployeeHandler = async (req: Request, res: Response) => {
       data: {
         login,
         password: hashedPassword,
-        typeId,
+        departmentId: typeId,
+        name: department.name,
       },
       select: {
         id: true,
         login: true,
-        typeId: true,
-        type: {
+        departmentId: true,
+        department: {
           select: {
             id: true,
             name: true,

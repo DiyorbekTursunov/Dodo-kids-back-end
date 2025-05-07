@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const deleteEmployeeType = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const deletedType = await prisma.employeeType.delete({ where: { id } });
+      const deletedType = await prisma.department.delete({ where: { id } });
       return res.status(200).json(deletedType);
     } catch (error) {
       console.error("Delete employee type error:", error);

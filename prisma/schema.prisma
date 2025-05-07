@@ -9,38 +9,47 @@ datasource db {
 
 // Color model for CRUD operations
 model Color {
-    id        String   @id @default(uuid())
-    name      String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id        String      @id @default(uuid())
+    name      String      @unique
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    materials Material[]  // Relation to materials
 }
 
 // Size model for CRUD operations
 model Size {
-    id        String   @id @default(uuid())
-    name      String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id        String      @id @default(uuid())
+    name      String      @unique
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    materials Material[]  // Relation to materials
 }
 
-// Employee type model for CRUD operations
-model EmployeeType {
-    id        String     @id @default(uuid())
-    name      String     @unique
-    employees Employee[]
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
+// Department/EmployeeType model (represents both employee types and departments)
+model Department {
+    id                String           @id @default(uuid())
+    name              String           @unique
+    employees         Employee[]
+    processesFrom     ProductProcess[] @relation("FromDepartment")
+    processesTo       ProductProcess[] @relation("ToDepartment")
+    transfersFrom     Transfer[]       @relation("FromDepartment")
+    transfersTo       Transfer[]       @relation("ToDepartment")
+    createdAt         DateTime         @default(now())
+    updatedAt         DateTime         @updatedAt
 }
 
 // Employee model
 model Employee {
-    id        String       @id @default(uuid())
-    login     String       @unique
-    password  String
-    typeId    String
-    type      EmployeeType @relation(fields: [typeId], references: [id])
-    createdAt DateTime     @default(now())
-    updatedAt DateTime     @updatedAt
+    id                String        @id @default(uuid())
+    name              String        // Employee name
+    login             String        @unique
+    password          String
+    departmentId      String
+    department        Department    @relation(fields: [departmentId], references: [id])
+    sentTransfers     Transfer[]    @relation("SenderEmployee")  // Transfers sent by employee
+    receivedTransfers Transfer[]    @relation("ReceiverEmployee") // Transfers received by employee
+    createdAt         DateTime      @default(now())
+    updatedAt         DateTime      @updatedAt
 }
 
 // Admin model
@@ -50,4 +59,94 @@ model Admin {
     password  String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+// Material Type model
+model MaterialType {
+    id        String     @id @default(uuid())
+    name      String     @unique
+    materials Material[]
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+}
+
+// Material model
+model Material {
+    id            String       @id @default(uuid())
+    materialTypeId String
+    materialType  MaterialType @relation(fields: [materialTypeId], references: [id])
+    colorId       String?
+    color         Color?       @relation(fields: [colorId], references: [id])
+    sizeId        String?
+    size          Size?        @relation(fields: [sizeId], references: [id])
+    transfers     Transfer[]
+    createdAt     DateTime     @default(now())
+    updatedAt     DateTime     @updatedAt
+}
+
+// ProductModel - represents models like SM52, LG43
+model ProductModel {
+    id            String           @id @default(uuid())
+    name          String           @unique
+    processes     ProductProcess[]
+    isCompleted   Boolean          @default(false)
+    completedAt   DateTime?
+    createdAt     DateTime         @default(now())
+    updatedAt     DateTime         @updatedAt
+}
+
+
+
+// ProductProcess - connects models with departments and tracks progress
+model ProductProcess {
+    id                String        @id @default(uuid())
+    productModelId    String
+    productModel      ProductModel  @relation(fields: [productModelId], references: [id])
+    departmentId      String
+    department        Department    @relation("FromDepartment", fields: [departmentId], references: [id])
+    nextDepartmentId  String?
+    nextDepartment    Department?   @relation("ToDepartment", fields: [nextDepartmentId], references: [id])
+    totalQuantity     Int           @default(0)
+    sentQuantity      Int           @default(0)
+    defectiveQuantity Int           @default(0)
+    isCompleted       Boolean       @default(false)
+    transfers         Transfer[]
+    defects           Defect[]
+    createdAt         DateTime      @default(now())
+    updatedAt         DateTime      @updatedAt
+}
+
+// Transfer - records movement of items between departments
+model Transfer {
+    id                String         @id @default(uuid())
+    processId         String
+    process           ProductProcess @relation(fields: [processId], references: [id])
+    materialId        String?
+    material          Material?      @relation(fields: [materialId], references: [id])
+    quantity          Int
+    senderId          String
+    sender            Employee       @relation("SenderEmployee", fields: [senderId], references: [id])
+    receiverId        String?
+    receiver          Employee?      @relation("ReceiverEmployee", fields: [receiverId], references: [id])
+    fromDepartmentId  String
+    fromDepartment    Department     @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
+    toDepartmentId    String
+    toDepartment      Department     @relation("ToDepartment", fields: [toDepartmentId], references: [id])
+    additionalNotes   String?        @db.Text
+    defects           Defect[]
+    createdAt         DateTime       @default(now())
+    updatedAt         DateTime       @updatedAt
+}
+
+// Defect - tracks defective items
+model Defect {
+    id              String         @id @default(uuid())
+    processId       String
+    process         ProductProcess @relation(fields: [processId], references: [id])
+    transferId      String?
+    transfer        Transfer?      @relation(fields: [transferId], references: [id])
+    quantity        Int
+    reason          String         @db.Text
+    createdAt       DateTime       @default(now())
+    updatedAt       DateTime       @updatedAt
 }

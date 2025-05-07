@@ -9,7 +9,7 @@ export const createEmployeeType = async (req: Request, res: Response) => {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: "Name is required" });
 
-      const newType = await prisma.employeeType.create({ data: { name } });
+      const newType = await prisma.department.create({ data: { name } });
       return res.status(201).json(newType);
     } catch (error) {
       console.error("Create employee type error:", error);

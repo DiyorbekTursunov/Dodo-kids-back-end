@@ -20,7 +20,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
 
     // Check if typeId is valid when provided
     if (typeId) {
-      const employeeType = await prisma.employeeType.findUnique({
+      const employeeType = await prisma.department.findUnique({
         where: { id: typeId },
       });
 
@@ -42,8 +42,8 @@ export const updateEmployee = async (req: Request, res: Response) => {
       select: {
         id: true,
         login: true,
-        typeId: true,
-        type: {
+        departmentId: true,
+        department: {
           select: {
             id: true,
             name: true,

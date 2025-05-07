@@ -13,8 +13,8 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       select: {
         id: true,
         login: true,
-        typeId: true,
-        type: {
+        departmentId: true,
+        department: {
           select: {
             id: true,
             name: true,

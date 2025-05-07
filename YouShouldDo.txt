@@ -4,8 +4,8 @@
 2. Add CRUD for Color, EmployeeType, Size[x]
 
 3. Think how to create Schema for main Lines content[x]
-3.5 Full inplement your thots[]
-4. Create One peace and test all is good[]
+3.5 Full inplement your thots[x]
+4. Create One peace and test all is good[x]
 5. Create all Schema for Main Line work[]
 6. need to do Create for all[]
 7. need to do Update for all[]

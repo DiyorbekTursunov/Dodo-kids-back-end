@@ -9,7 +9,7 @@ export const updateEmployeeType = async (req: Request, res: Response) => {
       const { id } = req.params;
       const { name } = req.body;
 
-      const updatedType = await prisma.employeeType.update({
+      const updatedType = await prisma.department.update({
         where: { id },
         data: { name },
       });

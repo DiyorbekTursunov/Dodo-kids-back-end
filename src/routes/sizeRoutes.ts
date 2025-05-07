@@ -1,6 +1,6 @@
 // src/routes/colorRoutes.ts
 import express, { Request, Response, NextFunction } from "express";
-import { authenticate, isAdmin } from "../middleware/authMiddleware";
+import { authenticate } from "../middleware/authMiddleware";
 import { getAllSizes } from "../controller/size/getAllSizes";
 import { getSizeById } from "../controller/size/getSizesById";
 import { createSize } from "../controller/size/createSizes";

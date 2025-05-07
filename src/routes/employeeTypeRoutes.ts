@@ -1,6 +1,6 @@
 // src/routes/colorRoutes.ts
 import express, { Request, Response, NextFunction } from "express";
-import { authenticate, isAdmin } from "../middleware/authMiddleware";
+import { authenticate } from "../middleware/authMiddleware";
 import { getAllEmployeeTypes } from "../controller/employeeType/getAllEmployeeType";
 import { getEmployeeTypeById } from "../controller/employeeType/getByIdEmployeeType";
 import { createEmployeeType } from "../controller/employeeType/createEmployeeType";
