@@ -1,11 +1,11 @@
 // src/routes/colorRoutes.ts
 import express, { Request, Response, NextFunction } from "express";
 import { authenticate, isAdmin } from "../middleware/authMiddleware";
-import { getAllEmployeeTypes } from "@/controller/employeeType/getAllEmployeeType";
-import { getEmployeeTypeById } from "@/controller/employeeType/getByIdEmployeeType";
-import { createEmployeeType } from "@/controller/employeeType/createEmployeeType";
-import { updateEmployeeType } from "@/controller/employeeType/updateEmployeeType";
-import { deleteEmployeeType } from "@/controller/employeeType/deleteEmployeeType";
+import { getAllEmployeeTypes } from "../controller/employeeType/getAllEmployeeType";
+import { getEmployeeTypeById } from "../controller/employeeType/getByIdEmployeeType";
+import { createEmployeeType } from "../controller/employeeType/createEmployeeType";
+import { updateEmployeeType } from "../controller/employeeType/updateEmployeeType";
+import { deleteEmployeeType } from "../controller/employeeType/deleteEmployeeType";
 
 const router = express.Router();
 
