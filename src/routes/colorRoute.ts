@@ -22,7 +22,6 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
 router.post(
   "/",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     createColor(req, res).catch(next);
   }
@@ -31,7 +30,6 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     updateColor(req, res).catch(next);
   }
@@ -40,7 +38,6 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     deleteColor(req, res).catch(next);
   }

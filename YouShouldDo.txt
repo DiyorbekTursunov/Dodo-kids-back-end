@@ -1,8 +1,10 @@
 1. Clear project[x]
 1. correct Prisma schema for AUTH[x]
 1.5 Correct types[x]
-2. Add CRUD for Color, EmployeeType, Size[]
-3. Think how to create Schema for main Lines content[]
+2. Add CRUD for Color, EmployeeType, Size[x]
+
+3. Think how to create Schema for main Lines content[x]
+3.5 Full inplement your thots[]
 4. Create One peace and test all is good[]
 5. Create all Schema for Main Line work[]
 6. need to do Create for all[]
@@ -11,3 +13,7 @@
 9. think how to do Analytics and dashbort
 10. think how to create schema
 11. create chemschema schema
+
+
+
+Omborga kerate qilganida Yangli line boshlanishi kerak !!

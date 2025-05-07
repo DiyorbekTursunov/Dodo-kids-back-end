@@ -24,7 +24,6 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
 router.post(
   "/",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     createEmployeeType(req, res).catch(next);
   }
@@ -34,7 +33,6 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     updateEmployeeType(req, res).catch(next);
   }
@@ -44,7 +42,6 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     deleteEmployeeType(req, res).catch(next);
   }

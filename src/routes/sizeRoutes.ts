@@ -21,7 +21,6 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
 router.post(
   "/",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     createSize(req, res).catch(next);
   }
@@ -30,7 +29,6 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     updateSize(req, res).catch(next);
   }
@@ -39,7 +37,6 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     deleteSize(req, res).catch(next);
   }

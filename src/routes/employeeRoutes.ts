@@ -12,7 +12,6 @@ const router = express.Router();
 router.get(
   "/",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     getAllEmployees(req, res).catch(next);
   }
@@ -20,7 +19,6 @@ router.get(
 router.get(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     getEmployeeById(req, res).catch(next);
   }
@@ -28,7 +26,6 @@ router.get(
 router.post(
   "/",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     createEmployeeHandler(req, res).catch(next);
   }
@@ -36,7 +33,6 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     updateEmployee(req, res).catch(next);
   }
@@ -44,7 +40,6 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  isAdmin,
   (req: Request, res: Response, next: NextFunction) => {
     deleteEmployee(req, res).catch(next);
   }

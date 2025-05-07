@@ -1,39 +1,102 @@
-{
-  "A1": [
-    {
-      "name": "Ombor",
-      "qo'shilganlar": 1500,
-      "yuborilgan": 1300,
-      "yuborilmaganlar": 150,
-      "yaroqsizlar": 50
-    },
-    {
-      "name": "Bichuv",
-      "qabulqilinganlar": 1500,
-      "yuborilgan": 1300,
-      "yuborilmaganlar": 150,
-      "yaroqsizlar": 50
-    },
-    {
-      "name": "Tukuv",
-      "qabulqilinganlar": 1500,
-      "yuborilgan": 1300,
-      "yuborilmaganlar": 150,
-      "yaroqsizlar": 50
-    },
-    {
-      "name": "Skaner",
-      "qabulqilinganlar": 1500,
-      "yuborilgan": 1300,
-      "yuborilmaganlar": 150,
-      "yaroqsizlar": 50
-    },
-    {
-      "name": "Qadoqlash",
-      "qabulqilinganlar": 1500,
-      "yuborilgan": 1300,
-      "yuborilmaganlar": 150,
-      "yaroqsizlar": 50
-    }
-  ]
-}
+[
+  {
+    "protsesIsOver": true,
+    "protsesIsOverTime": "2023-10-01T12:00:00Z",
+    "protsesIsOverTimeString": "2023-10-01T12:00:00Z",
+    "name":"SM52",
+    "id": "uuid",
+    "SM52": [
+      {
+        "name": "Ombor",
+        "qo'shilganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50,
+        "yuborish": [
+          {
+            "Ismi": "",
+            "qabulQiluvchi": ""
+          },
+          {}
+        ],
+        "qalubqilish": [
+          {
+            "Ismi": "",
+            "qabulQiluvchi": ""
+          }
+        ]
+      },
+      {
+        "name": "Bichuv",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Tukuv",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Skaner",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Qadoqlash",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      }
+    ]
+  },
+  {
+    "protsesIsOver": false,
+    "protsesIsOverTime": "",
+    "protsesIsOverTimeString": "",
+    "id": "uuid",
+    "A1": [
+      {
+        "name": "Ombor",
+        "qo'shilganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Bichuv",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Tukuv",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Skaner",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      },
+      {
+        "name": "Qadoqlash",
+        "qabulqilinganlar": 1500,
+        "yuborilgan": 1300,
+        "yuborilmaganlar": 150,
+        "yaroqsizlar": 50
+      }
+    ]
+  }
+]
