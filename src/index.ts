@@ -1,10 +1,11 @@
-import express, { Express, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes';
-import employeeRoutes from './routes/employeeRoutes';
-import 'module-alias/register';
-
+import express, { Express, Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes";
+import employeeRoutes from "./routes/employeeRoutes";
+import colorRoutes from "./routes/colorRoute";
+import sizeRoutes from "./routes/sizeRoutes";
+import "module-alias/register";
 
 // Load environment variables
 dotenv.config();
@@ -21,18 +22,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check route
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', message: 'Server is running' });
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ status: "OK", message: "Server is running" });
 });
 
 // Root route
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Welcome to the Dodo kids API' });
+app.get("/", (req: Request, res: Response) => {
+  res.json({ message: "Welcome to the Dodo kids API" });
 });
 
 // Register routes
-app.use('/api/auth', authRoutes);
-app.use('/api/employees', employeeRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/employees", employeeRoutes);
+app.use("/api/color", colorRoutes);
+app.use("/api/size", sizeRoutes);
 
 // Start the server
 app.listen(port, () => {
@@ -40,8 +43,8 @@ app.listen(port, () => {
 });
 
 // Handle graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await prisma.$disconnect();
-  console.log('Disconnected from database');
+  console.log("Disconnected from database");
   process.exit(0);
 });
