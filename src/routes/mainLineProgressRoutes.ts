@@ -2,14 +2,32 @@ import { addProductForWarehouseHandler } from "../controller/mainLine/createProd
 import { authenticate } from "../middleware/authMiddleware";
 import express, { Request, Response, NextFunction } from "express";
 import { acceptanceProduct } from "../controller/mainLine/acceptanceProduct";
+import { completeProductTransferHandler } from "../controller/mainLine/sendProduct";
+import { getAllProductsController } from "../controller/mainLine/getAllProducts";
 
 const router = express.Router();
+
+router.get(
+  "/",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    getAllProductsController(req, res).catch(next);
+  }
+);
 
 router.post(
   "/acceptance",
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     acceptanceProduct(req, res).catch(next);
+  }
+);
+
+router.post(
+  "/complete",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    completeProductTransferHandler(req, res).catch(next);
   }
 );
 

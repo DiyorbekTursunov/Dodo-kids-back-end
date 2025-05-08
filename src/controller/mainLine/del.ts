@@ -5,29 +5,25 @@ const prisma = new PrismaClient();
 
 export const deleteAllMainProtsess = async (req: Request, res: Response) => {
   try {
-    // Fetch all MainProtsess IDs
-    const mainProtsessList = await prisma.mainProtsess.findMany({
-      select: { id: true },
-    });
+    // Delete related Useless records first (since they are dependent on Line)
+    await prisma.useless.deleteMany();
 
-    if (mainProtsessList.length === 0) {
-      return res.status(404).json({ error: "No MainProtsess found to delete" });
-    }
+    // Delete related Line records next (since they are dependent on MainProtsess and Useless)
+    await prisma.line.deleteMany();
 
-    // Delete all associated records and MainProtsess
-    await prisma.mainProtsess.deleteMany({
-      where: {
-        id: {
-          in: mainProtsessList.map((item) => item.id),
-        },
-      },
-    });
+    // Delete related CompletedSection records (since they are dependent on MainProtsess)
+    await prisma.completedSection.deleteMany();
+
+    // Finally, delete all MainProtsess records
+    await prisma.mainProtsess.deleteMany();
 
     return res.status(200).json({
       message: "All MainProtsess and related records deleted successfully",
     });
   } catch (error) {
     console.error("Error in deleting MainProtsess:", error);
-    return res.status(500).json({ error: "Server error while deleting MainProtsess" });
+    return res
+      .status(500)
+      .json({ error: "Server error while deleting MainProtsess" });
   }
 };

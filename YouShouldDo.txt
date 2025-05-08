@@ -6,10 +6,10 @@
 3. Think how to create Schema for main Lines content[x]
 3.5 Full inplement your thots[x]
 4. Create One peace and test all is good[x]
-5. Create all Schema for Main Line work[]
-6. need to do Create for all[]
-7. need to do Update for all[]
-8. need to do GetAll for all[]
+5. Create all Schema for Main Line work[x]
+6. need to do Create for all[x]
+7. need to do Update for all[x]
+8. need to do GetAll for all[x]
 9. think how to do Analytics and dashbort
 10. think how to create schema
 11. create chemschema schema
