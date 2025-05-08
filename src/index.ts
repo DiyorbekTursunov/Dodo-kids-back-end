@@ -9,6 +9,7 @@ import employeeTypeRoutes from "./routes/employeeTypeRoutes";
 import mainLineProgressRoutes from "./routes/mainLineProgressRoutes";
 import "module-alias/register";
 
+import { deleteAllMainProtsess } from "./controller/mainLine/del";
 // Load environment variables
 dotenv.config();
 
@@ -40,6 +41,10 @@ app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
 app.use("/api/employeeType", employeeTypeRoutes);
 app.use("/api/mainLineProgress", mainLineProgressRoutes);
+
+// app.delete("/delete", (req: Request, res: Response) => {
+//   deleteAllMainProtsess(req, res);
+// });
 
 // Start the server
 app.listen(port, () => {
