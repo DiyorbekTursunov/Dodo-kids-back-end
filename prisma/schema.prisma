@@ -78,6 +78,7 @@ model CompletedSection {
 model Line {
     id             String   @id @default(uuid())
     protsessIsOver Boolean  @default(false)
+    departmentId   String
     department     String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt

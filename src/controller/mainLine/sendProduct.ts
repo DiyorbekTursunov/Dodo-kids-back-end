@@ -1,5 +1,5 @@
-import { PrismaClient, Line, Department } from '@prisma/client';
-import { Request, Response } from 'express';
+import { PrismaClient, Line, Department } from "@prisma/client";
+import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
@@ -36,14 +36,15 @@ export const completeProductTransferHandler = async (
     if (!id) {
       return res.status(400).json({
         success: false,
-        message: "ID is required"
+        message: "ID is required",
       });
     }
 
     if (yuborilganSoni === undefined || yuborilganSoni < 0) {
       return res.status(400).json({
         success: false,
-        message: "Valid yuborilganSoni (number of products to send) is required"
+        message:
+          "Valid yuborilganSoni (number of products to send) is required",
       });
     }
 
@@ -64,7 +65,8 @@ export const completeProductTransferHandler = async (
         if (isNaN(soni) || soni < 0 || !yaroqsiz.sababi) {
           return res.status(400).json({
             success: false,
-            message: "Each yaroqsiz item must have a valid soni (quantity) and sababi (reason)"
+            message:
+              "Each yaroqsiz item must have a valid soni (quantity) and sababi (reason)",
           });
         }
       }
@@ -77,37 +79,53 @@ export const completeProductTransferHandler = async (
         include: {
           color: true,
           size: true,
-          yaroqsizlarSoni: true
-        }
+          yaroqsizlarSoni: true,
+        },
       });
 
       if (!line) {
         return res.status(404).json({
           success: false,
-          message: "Line not found"
+          message: "Line not found",
         });
       }
 
       // Calculate totals from the existing data
-      const existingYuborilganlarSoni = line.yuborilganlarSoni.reduce((sum, current) => sum + current, 0);
-      const existingYaroqsizlarSoni = line.yaroqsizlarSoni.reduce((sum, item) => sum + item.soni, 0);
+      const existingYuborilganlarSoni = line.yuborilganlarSoni.reduce(
+        (sum, current) => sum + current,
+        0
+      );
+      const existingYaroqsizlarSoni = line.yaroqsizlarSoni.reduce(
+        (sum, item) => sum + item.soni,
+        0
+      );
 
       // Calculate new yaroqsizlar total from the request - convert string to number if needed
-      const newYaroqsizlarSoni = yaroqsizlarArray.reduce((sum, item) => sum + Number(item.soni), 0);
+      const newYaroqsizlarSoni = yaroqsizlarArray.reduce(
+        (sum, item) => sum + Number(item.soni),
+        0
+      );
 
       // Add the new yuborilganSoni to the array
-      const updatedYuborilganlarSoni = [...line.yuborilganlarSoni, yuborilganSoni];
+      const updatedYuborilganlarSoni = [
+        ...line.yuborilganlarSoni,
+        yuborilganSoni,
+      ];
 
       // Calculate the new total after adding current sent and defective amounts
-      const newTotalYuborilganlarSoni = existingYuborilganlarSoni + yuborilganSoni;
-      const newTotalYaroqsizlarSoni = existingYaroqsizlarSoni + newYaroqsizlarSoni;
-      const totalProcessed = newTotalYuborilganlarSoni + newTotalYaroqsizlarSoni;
+      const newTotalYuborilganlarSoni =
+        existingYuborilganlarSoni + yuborilganSoni;
+      const newTotalYaroqsizlarSoni =
+        existingYaroqsizlarSoni + newYaroqsizlarSoni;
+      const totalProcessed =
+        newTotalYuborilganlarSoni + newTotalYaroqsizlarSoni;
 
       // Validate that we're not processing more than what's available
       if (totalProcessed > line.qoshilganlarSoni) {
         return res.status(400).json({
           success: false,
-          message: "The total of sent and defective products cannot exceed the added products (qoshilganlarSoni)"
+          message:
+            "The total of sent and defective products cannot exceed the added products (qoshilganlarSoni)",
         });
       }
 
@@ -120,20 +138,20 @@ export const completeProductTransferHandler = async (
               data: {
                 soni: Number(yaroqsiz.soni),
                 sabali: yaroqsiz.sababi, // Using sababi from input, but database field is sabali
-                lineId: id
-              }
+                lineId: id,
+              },
             });
           }
         }
 
         // Step 2: Process the sending status
         let updateData: {
-          status: string[],
-          protsessIsOver?: boolean,
-          yuborilganlarSoni: number[]
+          status: string[];
+          protsessIsOver?: boolean;
+          yuborilganlarSoni: number[];
         } = {
           status: [...line.status],
-          yuborilganlarSoni: updatedYuborilganlarSoni
+          yuborilganlarSoni: updatedYuborilganlarSoni,
         };
 
         let statusMessage = "";
@@ -142,9 +160,9 @@ export const completeProductTransferHandler = async (
         if (totalProcessed === line.qoshilganlarSoni) {
           // Condition 1: All products processed
           updateData = {
-            status: [...line.status, "yuborilmagan"],
+            status: ["yuborilmagan"],
             yuborilganlarSoni: updatedYuborilganlarSoni,
-            protsessIsOver: true
+            protsessIsOver: true,
           };
           statusMessage = "All products processed successfully";
           transferType = "yuborilmagan";
@@ -152,7 +170,7 @@ export const completeProductTransferHandler = async (
           // Condition 3: Not all products processed
           updateData = {
             status: [...line.status, "to'liq yuborilmagan"],
-            yuborilganlarSoni: updatedYuborilganlarSoni
+            yuborilganlarSoni: updatedYuborilganlarSoni,
           };
           statusMessage = "Products partially processed";
           transferType = "to'liq yuborilmagan";
@@ -163,8 +181,8 @@ export const completeProductTransferHandler = async (
           where: { id },
           data: updateData,
           include: {
-            yaroqsizlarSoni: true
-          }
+            yaroqsizlarSoni: true,
+          },
         });
 
         // Step 3: Create a new line for the receiving department if qabulQiluvchiBolimId is provided
@@ -172,7 +190,7 @@ export const completeProductTransferHandler = async (
         if (qabulQiluvchiBolimId && yuborilganSoni > 0) {
           // Get department info
           const department = await prisma.department.findUnique({
-            where: { id: qabulQiluvchiBolimId }
+            where: { id: qabulQiluvchiBolimId },
           });
 
           if (!department) {
@@ -182,12 +200,13 @@ export const completeProductTransferHandler = async (
           // Create a new line for the receiving department
           newLine = await prisma.line.create({
             data: {
+              departmentId: qabulQiluvchiBolimId,
               department: department.name,
               color: {
-                connect: line.color.map(c => ({ id: c.id }))
+                connect: line.color.map((c) => ({ id: c.id })),
               },
               size: {
-                connect: line.size.map(s => ({ id: s.id }))
+                connect: line.size.map((s) => ({ id: s.id })),
               },
               umumiySoni: line.umumiySoni,
               qabulQiluvchiBolim: department.name,
@@ -196,8 +215,8 @@ export const completeProductTransferHandler = async (
               yuborilganlarSoni: [],
               status: ["Pending"],
               qoshimchaMalumotlar: `Transferred from ${line.department}`,
-              mainProtsessId: line.mainProtsessId
-            }
+              mainProtsessId: line.mainProtsessId,
+            },
           });
         }
 
@@ -207,7 +226,7 @@ export const completeProductTransferHandler = async (
           type: transferType,
           protsessIsOver: updatedLine.protsessIsOver,
           updatedLine,
-          newLine
+          newLine,
         });
       });
     } catch (dbError) {
@@ -215,7 +234,8 @@ export const completeProductTransferHandler = async (
       return res.status(500).json({
         success: false,
         message: "Database connection error",
-        error: dbError instanceof Error ? dbError.message : 'Unknown database error'
+        error:
+          dbError instanceof Error ? dbError.message : "Unknown database error",
       });
     }
   } catch (error) {
@@ -223,7 +243,7 @@ export const completeProductTransferHandler = async (
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

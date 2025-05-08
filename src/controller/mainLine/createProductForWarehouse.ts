@@ -62,15 +62,16 @@ export const addProductForWarehouseHandler = async (
           create: [
             {
               protsessIsOver: false,
+              departmentId: yuboruvchiBolimId,
               department: departments[0].name,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               umumiySoni: parseInt(umumiySoni),
               qabulQiluvchiBolim: departments[1].name,
               model: model,
-              qoshilganlarSoni: 0,
+              qoshilganlarSoni: umumiySoni,
               yuborilganlarSoni: [],
-              status: ["Pending"],
+              status: ["qabul qilingan"],
               qoshimchaMalumotlar: qoshimchaIzoh,
               color: {
                 connectOrCreate: {
