@@ -3,11 +3,11 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getProductsByDepartmentController = async (
+export const getLinesByDepartmentController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const departmentId = String(req.query);
+  const { departmentId } = req.params;
 
   try {
     if (!departmentId || typeof departmentId !== "string") {
@@ -15,25 +15,21 @@ export const getProductsByDepartmentController = async (
       return;
     }
 
-    const products = await prisma.mainProtsess.findMany({
-      include: {
-        line: {
-          where: {
-            departmentId: departmentId,
-          },
-        },
+    const lines = await prisma.line.findMany({
+      where: {
+        departmentId: departmentId, // using the string name like "ombor"
       },
     });
 
     res.status(200).json({
       success: true,
-      data: products,
+      data: lines,
     });
   } catch (error) {
-    console.error("Error fetching products by department:", error);
+    console.error("Error fetching lines by department:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch products by department",
+      message: "Failed to fetch lines by department",
     });
   }
 };

@@ -4,7 +4,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { acceptanceProduct } from "../controller/mainLine/acceptanceProduct";
 import { completeProductTransferHandler } from "../controller/mainLine/sendProduct";
 import { getAllProductsController } from "../controller/mainLine/getAllProducts";
-import { getProductsByDepartmentController } from "../controller/mainLine/getAllProductDpId";
+import { getLinesByDepartmentController } from "../controller/mainLine/getAllProductDpId";
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get(
   "/:departmentId",
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
-    getProductsByDepartmentController(req, res).catch(next);
+    getLinesByDepartmentController(req, res).catch(next);
   }
 );
 

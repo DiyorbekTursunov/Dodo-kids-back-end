@@ -169,7 +169,7 @@ export const completeProductTransferHandler = async (
         } else {
           // Condition 3: Not all products processed
           updateData = {
-            status: [...line.status, "to'liq yuborilmagan"],
+            status: ["to'liq yuborilmagan"],
             yuborilganlarSoni: updatedYuborilganlarSoni,
           };
           statusMessage = "Products partially processed";
