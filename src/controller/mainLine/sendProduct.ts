@@ -72,6 +72,14 @@ export const completeProductTransferHandler = async (
       }
     }
 
+    const qabulQiluvchiBolimIdPrisma = await prisma.department.findUnique({
+      where: { id: qabulQiluvchiBolimId },
+    });
+
+    if (qabulQiluvchiBolimId === qabulQiluvchiBolimIdPrisma?.id) {
+
+    }
+
     try {
       // Get the line data
       const line = await prisma.line.findUnique({

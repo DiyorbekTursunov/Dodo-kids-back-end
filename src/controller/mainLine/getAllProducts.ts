@@ -3,28 +3,34 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAllProductsController = async (
+export const getLinesByDepartmentController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const { departmentId } = req.params;
+
   try {
-    // Fetch all products if no department filter is provided
-    // Fetch all MainProtsess with related Line data
-    const products = await prisma.mainProtsess.findMany({
-      include: {
-        line: true, // Include related lines for each MainProtsess
+    if (!departmentId || typeof departmentId !== "string") {
+      res.status(400).json({ success: false, message: "Missing departmentId" });
+      return;
+    }
+
+    const lines = await prisma.line.findMany({
+      where: {
+        departmentId: departmentId, // using the string name like "ombor"
+        status: { hasSome: ["qabul qilingan"] }, // Filter by status
       },
     });
 
     res.status(200).json({
       success: true,
-      data: products,
+      data: lines,
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error fetching lines by department:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch products",
+      message: "Failed to fetch lines by department",
     });
   }
 };

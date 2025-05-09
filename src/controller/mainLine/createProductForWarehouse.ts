@@ -17,6 +17,7 @@ export const addProductForWarehouseHandler = async (
     rangId,
     olchamId,
     qoshimchaIzoh,
+    userId,
   } = req.body;
 
   if (
@@ -27,7 +28,8 @@ export const addProductForWarehouseHandler = async (
     !MatoTuri ||
     !umumiySoni ||
     !rangId ||
-    !olchamId
+    !olchamId ||
+    !userId
   ) {
     return res.status(400).json({ error: "Required fields are missing" });
   }
@@ -55,9 +57,6 @@ export const addProductForWarehouseHandler = async (
         protsesIsOver: false,
         protsesIsStartedTime: new Date().toISOString(),
         protsesIsOverTime: "",
-        completedSections: {
-          create: [],
-        },
         line: {
           create: [
             {
@@ -71,7 +70,24 @@ export const addProductForWarehouseHandler = async (
               model: model,
               qoshilganlarSoni: umumiySoni,
               yuborilganlarSoni: [],
-              status: ["qabul qilingan"],
+              status: {
+                create: {
+                  status: "qabul qilingan",
+                  userId: userId,
+                  size: {
+                    connectOrCreate: {
+                      where: { id: olchamId },
+                      create: { name: olchamId },
+                    },
+                  },
+                  color: {
+                    connectOrCreate: {
+                      where: { id: rangId },
+                      create: { name: rangId },
+                    },
+                  },
+                },
+              },
               qoshimchaMalumotlar: qoshimchaIzoh,
               color: {
                 connectOrCreate: {

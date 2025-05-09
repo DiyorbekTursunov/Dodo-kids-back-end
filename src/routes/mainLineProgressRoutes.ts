@@ -3,8 +3,9 @@ import { authenticate } from "../middleware/authMiddleware";
 import express, { Request, Response, NextFunction } from "express";
 import { acceptanceProduct } from "../controller/mainLine/acceptanceProduct";
 import { completeProductTransferHandler } from "../controller/mainLine/sendProduct";
-import { getAllProductsController } from "../controller/mainLine/getAllProducts";
-import { getLinesByDepartmentController } from "../controller/mainLine/getAllProductDpId";
+import { getLinesByDepartmentController } from "../controller/mainLine/getAllProducts";
+import { getAllProductsController } from "../controller/mainLine/getAllProductDpId";
+import {acceptanceProductByDpId } from "../controller/mainLine/acceptanceProductByDpId";
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.get(
   "/:departmentId",
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
-    getLinesByDepartmentController(req, res).catch(next);
+    getAllProductsController(req, res).catch(next);
   }
 );
 
@@ -31,6 +32,16 @@ router.post(
     acceptanceProduct(req, res).catch(next);
   }
 );
+
+
+router.get(
+    "/acceptance/:id",
+    authenticate,
+    (req: Request, res: Response, next: NextFunction) => {
+        acceptanceProduct(req, res).catch(next);
+    }
+)
+
 
 router.post(
   "/complete",

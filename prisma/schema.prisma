@@ -14,6 +14,8 @@ model Color {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     materials Line[] // Relation to materials
+    Status    Status?  @relation(fields: [statusId], references: [id])
+    statusId  String?
 }
 
 // Size model for CRUD operations
@@ -23,6 +25,8 @@ model Size {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     Line      Line[] // Relation to materials
+    Status    Status?  @relation(fields: [statusId], references: [id])
+    statusId  String?
 }
 
 // Department/EmployeeType model (represents both employee types and departments)
@@ -96,10 +100,22 @@ model Line {
     model               String
     qoshilganlarSoni    Int
     yuborilganlarSoni   Int[]
-    status              String[]
     qoshimchaMalumotlar String
+    yaroqsizlarSoni     Useless[]
 
-    yaroqsizlarSoni Useless[]
+    status Status[]
+}
+
+model Status {
+    id        String   @id @default(uuid())
+    date      DateTime @default(now())
+    status    String
+    userId    String
+    color     Color[]
+    size      Size[]
+
+    product   Line     @relation(fields: [productId], references: [id])
+    productId String
 }
 
 model Useless {

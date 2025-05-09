@@ -3,7 +3,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAllProductsController = async (
+const status = ["yuborilmagan", "to'liq yuborilmagan"];
+
+export const acceptanceProductByDpId = async (
   req: Request,
   res: Response
 ): Promise<void> => {
