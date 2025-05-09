@@ -66,17 +66,8 @@ model MainProtsess {
     protsesIsStartedTime DateTime @default(now())
     protsesIsOverTime    String   @default("")
 
-    completedSections CompletedSection[]
-    line              Line[]
-    completedLines    Line[]             @relation("CompletedLines")
-}
-
-model CompletedSection {
-    id             String       @id @default(uuid())
-    departmentId   String
-    department     String
-    mainProtsessId String
-    mainProtsess   MainProtsess @relation(fields: [mainProtsessId], references: [id])
+    line           Line[]
+    completedLines Line[] @relation("CompletedLines")
 }
 
 model Line {
@@ -100,6 +91,7 @@ model Line {
     model               String
     qoshilganlarSoni    Int
     yuborilganlarSoni   Int[]
+    qoldiqSolni         Int
     qoshimchaMalumotlar String
     yaroqsizlarSoni     Useless[]
 
@@ -107,14 +99,14 @@ model Line {
 }
 
 model Status {
-    id        String   @id @default(uuid())
-    date      DateTime @default(now())
-    status    String
-    userId    String
-    color     Color[]
-    size      Size[]
+    id     String   @id @default(uuid())
+    date   DateTime @default(now())
+    status String
+    userId String
+    color  Color[]
+    size   Size[]
 
-    product   Line     @relation(fields: [productId], references: [id])
+    product   Line   @relation(fields: [productId], references: [id])
     productId String
 }
 

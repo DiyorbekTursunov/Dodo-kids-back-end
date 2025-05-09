@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAllProductsController = async (
+export const getLinesByDepartmentController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -18,7 +18,13 @@ export const getAllProductsController = async (
     const lines = await prisma.line.findMany({
       where: {
         departmentId: departmentId, // using the string name like "ombor"
-        status: { hasSome: ["qabul qilingan"] }, // Filter by status
+      },
+      include: {
+        status: true, // Include related lines and their statuses for each MainProtsess
+        yaroqsizlarSoni: true,
+        size: true,
+        color: true,
+        // completedBy: true,
       },
     });
 

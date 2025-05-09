@@ -42,9 +42,9 @@ app.use("/api/size", sizeRoutes);
 app.use("/api/employeeType", employeeTypeRoutes);
 app.use("/api/mainLineProgress", mainLineProgressRoutes);
 
-// app.delete("/delete", (req: Request, res: Response) => {
-//   deleteAllMainProtsess(req, res);
-// });
+app.delete("/delete", (req: Request, res: Response) => {
+  deleteAllMainProtsess(req, res);
+});
 
 // Start the server
 app.listen(port, () => {

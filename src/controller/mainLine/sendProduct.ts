@@ -1,19 +1,19 @@
-import { PrismaClient, Line, Department } from "@prisma/client";
+import { PrismaClient, Line } from "@prisma/client";
 import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
-// Interface for defective products
 interface YaroqsizProduct {
   soni: number;
-  sababi: string; // Note: Changed from sabali to sababi to match your request
+  sababi: string;
 }
 
 interface CompleteProductTransferRequest {
   id: string;
   qabulQiluvchiBolimId?: string;
-  yuborilganSoni: number; // Number of products to be sent
-  yaroqsizlar?: YaroqsizProduct | YaroqsizProduct[]; // Can be single object or array
+  yuborilganSoni: number;
+  yaroqsizlar?: YaroqsizProduct | YaroqsizProduct[];
+  userId: string;
 }
 
 interface CompleteProductTransferResponse {
@@ -31,197 +31,173 @@ export const completeProductTransferHandler = async (
   res: Response<CompleteProductTransferResponse>
 ): Promise<Response<CompleteProductTransferResponse>> => {
   try {
-    const { id, qabulQiluvchiBolimId, yuborilganSoni, yaroqsizlar } = req.body;
+    const { id, userId, qabulQiluvchiBolimId } = req.body;
+    // Ensure yuborilganSoni is parsed as a number
+    const yuborilganSoni = Number(req.body.yuborilganSoni);
+    const yaroqsizlar = req.body.yaroqsizlar;
 
-    if (!id) {
+    if (!id || !userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "ID and userID are required" });
+    }
+
+    if (isNaN(yuborilganSoni) || yuborilganSoni < 0) {
       return res.status(400).json({
         success: false,
-        message: "ID is required",
+        message: "Valid yuborilganSoni (>= 0) is required",
       });
     }
 
-    if (yuborilganSoni === undefined || yuborilganSoni < 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Valid yuborilganSoni (number of products to send) is required",
-      });
-    }
+    // Normalize yaroqsizlar to array
+    const yaroqsizlarArray: YaroqsizProduct[] = Array.isArray(yaroqsizlar)
+      ? yaroqsizlar
+      : yaroqsizlar
+      ? [yaroqsizlar]
+      : [];
 
-    // Process yaroqsizlar - handle both object and array formats
-    let yaroqsizlarArray: YaroqsizProduct[] = [];
-
-    if (yaroqsizlar) {
-      // If it's a single object, convert to array
-      if (!Array.isArray(yaroqsizlar)) {
-        yaroqsizlarArray = [yaroqsizlar];
-      } else {
-        yaroqsizlarArray = yaroqsizlar;
-      }
-
-      // Validate each item
-      for (const yaroqsiz of yaroqsizlarArray) {
-        const soni = Number(yaroqsiz.soni); // Convert to number if string
-        if (isNaN(soni) || soni < 0 || !yaroqsiz.sababi) {
-          return res.status(400).json({
-            success: false,
-            message:
-              "Each yaroqsiz item must have a valid soni (quantity) and sababi (reason)",
-          });
-        }
-      }
-    }
-
-    const qabulQiluvchiBolimIdPrisma = await prisma.department.findUnique({
-      where: { id: qabulQiluvchiBolimId },
-    });
-
-    if (qabulQiluvchiBolimId === qabulQiluvchiBolimIdPrisma?.id) {
-
-    }
-
-    try {
-      // Get the line data
-      const line = await prisma.line.findUnique({
-        where: { id },
-        include: {
-          color: true,
-          size: true,
-          yaroqsizlarSoni: true,
-        },
-      });
-
-      if (!line) {
-        return res.status(404).json({
-          success: false,
-          message: "Line not found",
-        });
-      }
-
-      // Calculate totals from the existing data
-      const existingYuborilganlarSoni = line.yuborilganlarSoni.reduce(
-        (sum, current) => sum + current,
-        0
-      );
-      const existingYaroqsizlarSoni = line.yaroqsizlarSoni.reduce(
-        (sum, item) => sum + item.soni,
-        0
-      );
-
-      // Calculate new yaroqsizlar total from the request - convert string to number if needed
-      const newYaroqsizlarSoni = yaroqsizlarArray.reduce(
-        (sum, item) => sum + Number(item.soni),
-        0
-      );
-
-      // Add the new yuborilganSoni to the array
-      const updatedYuborilganlarSoni = [
-        ...line.yuborilganlarSoni,
-        yuborilganSoni,
-      ];
-
-      // Calculate the new total after adding current sent and defective amounts
-      const newTotalYuborilganlarSoni =
-        existingYuborilganlarSoni + yuborilganSoni;
-      const newTotalYaroqsizlarSoni =
-        existingYaroqsizlarSoni + newYaroqsizlarSoni;
-      const totalProcessed =
-        newTotalYuborilganlarSoni + newTotalYaroqsizlarSoni;
-
-      // Validate that we're not processing more than what's available
-      if (totalProcessed > line.qoshilganlarSoni) {
+    for (const item of yaroqsizlarArray) {
+      const soni = Number(item.soni);
+      if (isNaN(soni) || soni < 0 || !item.sababi?.trim()) {
         return res.status(400).json({
           success: false,
-          message:
-            "The total of sent and defective products cannot exceed the added products (qoshilganlarSoni)",
+          message: "Each yaroqsiz item must have a valid soni and sababi",
         });
       }
+    }
 
-      // Begin a transaction to ensure all operations succeed or fail together
-      return await prisma.$transaction(async (prisma) => {
-        // Step 1: Add new yaroqsizlar if provided
-        if (yaroqsizlarArray.length > 0) {
-          for (const yaroqsiz of yaroqsizlarArray) {
-            await prisma.useless.create({
-              data: {
-                soni: Number(yaroqsiz.soni),
-                sabali: yaroqsiz.sababi, // Using sababi from input, but database field is sabali
-                lineId: id,
-              },
-            });
-          }
-        }
+    const line = await prisma.line.findUnique({
+      where: { id },
+      include: { color: true, size: true, yaroqsizlarSoni: true },
+    });
 
-        // Step 2: Process the sending status
-        let updateData: {
-          status: string[];
-          protsessIsOver?: boolean;
-          yuborilganlarSoni: number[];
-        } = {
-          status: [...line.status],
-          yuborilganlarSoni: updatedYuborilganlarSoni,
-        };
+    if (!line) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Line not found" });
+    }
 
-        let statusMessage = "";
-        let transferType = "";
+    // Calculate existing values correctly
+    const existingYuborilganSoni = line.yuborilganlarSoni.reduce(
+      (sum, val) => sum + Number(val),
+      0
+    );
 
-        if (totalProcessed === line.qoshilganlarSoni) {
-          // Condition 1: All products processed
-          updateData = {
-            status: ["yuborilmagan"],
-            yuborilganlarSoni: updatedYuborilganlarSoni,
-            protsessIsOver: true,
-          };
-          statusMessage = "All products processed successfully";
-          transferType = "yuborilmagan";
-        } else {
-          // Condition 3: Not all products processed
-          updateData = {
-            status: ["to'liq yuborilmagan"],
-            yuborilganlarSoni: updatedYuborilganlarSoni,
-          };
-          statusMessage = "Products partially processed";
-          transferType = "to'liq yuborilmagan";
-        }
+    const existingYaroqsizSoni = line.yaroqsizlarSoni.reduce(
+      (sum, val) => sum + Number(val.soni),
+      0
+    );
 
-        // Update the source line
-        const updatedLine = await prisma.line.update({
-          where: { id },
-          data: updateData,
-          include: {
-            yaroqsizlarSoni: true,
-          },
+    const newYaroqsizSoni = yaroqsizlarArray.reduce(
+      (sum, val) => sum + Number(val.soni),
+      0
+    );
+
+    const updatedYuborilganlarSoni = [
+      ...line.yuborilganlarSoni,
+      yuborilganSoni,
+    ];
+
+    // Calculate the total processed, ensuring all values are proper numbers
+    const totalProcessed =
+      existingYuborilganSoni +
+      yuborilganSoni +
+      existingYaroqsizSoni +
+      newYaroqsizSoni;
+
+    // Debug logging
+    console.log(
+      "Total processed:",
+      totalProcessed,
+      "Available:",
+      line.qoshilganlarSoni
+    );
+
+    const qoldiqSon = line.umumiySoni - totalProcessed;
+
+    if (totalProcessed > Number(line.qoshilganlarSoni)) {
+      return res.status(400).json({
+        success: false,
+        message: "Total processed exceeds qoshilganlarSoni",
+      });
+    }
+
+    // Increase transaction timeout to 15 seconds (15000ms)
+    return await prisma.$transaction(
+      async (tx) => {
+        // Save yaroqsizlar - do this first to avoid the line creation timing out
+        const yaroqsizPromises = yaroqsizlarArray.map((item) => {
+          return tx.useless.create({
+            data: {
+              soni: Number(item.soni),
+              sabali: item.sababi, // Note: database field is sabali but input is sababi
+              lineId: id,
+            },
+          });
         });
 
-        // Step 3: Create a new line for the receiving department if qabulQiluvchiBolimId is provided
+        if (yaroqsizlarArray.length > 0) {
+          await Promise.all(yaroqsizPromises);
+        }
+
+        // Check if process is completed
+        const protsessIsOver = totalProcessed === Number(line.qoshilganlarSoni);
+        const type = protsessIsOver ? "yuborilgan" : "to'liq yuborilmagan";
+        const message = protsessIsOver
+          ? "All products processed successfully"
+          : "Products partially processed";
+
+        // Update the line first
+        const updatedLine = await tx.line.update({
+          where: { id },
+          data: {
+            yuborilganlarSoni: updatedYuborilganlarSoni,
+            status: {
+              create: [
+                {
+                  status: type,
+                  userId,
+                },
+              ],
+            },
+            protsessIsOver,
+          },
+          include: { yaroqsizlarSoni: true },
+        });
+
         let newLine: Line | null = null;
+
+        // Only try to create a new line if receiving department is specified
         if (qabulQiluvchiBolimId && yuborilganSoni > 0) {
-          // Get department info
-          const department = await prisma.department.findUnique({
+          const receiver = await tx.department.findUnique({
             where: { id: qabulQiluvchiBolimId },
           });
 
-          if (!department) {
+          if (!receiver) {
             throw new Error("Receiving department not found");
           }
 
-          // Create a new line for the receiving department
-          newLine = await prisma.line.create({
+          // Create a new line for the receiving department with minimal data
+          newLine = await tx.line.create({
             data: {
-              departmentId: qabulQiluvchiBolimId,
-              department: department.name,
-              color: {
-                connect: line.color.map((c) => ({ id: c.id })),
-              },
-              size: {
-                connect: line.size.map((s) => ({ id: s.id })),
-              },
+              departmentId: receiver.id,
+              department: receiver.name,
+              color: { connect: line.color.map((c) => ({ id: c.id })) },
+              size: { connect: line.size.map((s) => ({ id: s.id })) },
               umumiySoni: line.umumiySoni,
-              qabulQiluvchiBolim: department.name,
+              qoshilganlarSoni: yuborilganSoni,
+              qabulQiluvchiBolim: receiver.name,
+              qoldiqSolni: qoldiqSon,
               model: line.model,
-              qoshilganlarSoni: yuborilganSoni, // Use the current sent amount, not the total
               yuborilganlarSoni: [],
-              status: ["Pending"],
+              status: {
+                create: [
+                  {
+                    status: "Pending",
+                    userId,
+                  },
+                ],
+              },
               qoshimchaMalumotlar: `Transferred from ${line.department}`,
               mainProtsessId: line.mainProtsessId,
             },
@@ -230,24 +206,20 @@ export const completeProductTransferHandler = async (
 
         return res.status(200).json({
           success: true,
-          message: statusMessage,
-          type: transferType,
-          protsessIsOver: updatedLine.protsessIsOver,
+          message,
+          type,
+          protsessIsOver,
           updatedLine,
           newLine,
         });
-      });
-    } catch (dbError) {
-      console.error("Database error:", dbError);
-      return res.status(500).json({
-        success: false,
-        message: "Database connection error",
-        error:
-          dbError instanceof Error ? dbError.message : "Unknown database error",
-      });
-    }
+      },
+      {
+        timeout: 15000, // 15 seconds timeout instead of default 5 seconds
+        maxWait: 5000, // Maximum amount of time to wait to acquire the initial lock
+      }
+    );
   } catch (error) {
-    console.error("Error in completeProductTransferHandler:", error);
+    console.error("Error completing transfer:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

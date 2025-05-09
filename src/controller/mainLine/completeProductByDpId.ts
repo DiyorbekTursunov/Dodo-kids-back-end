@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAcceptedProductsController = async (
+export const getCompletedProductsController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -20,7 +20,9 @@ export const getAcceptedProductsController = async (
         departmentId,
         status: {
           some: {
-            status: "qabul qilingan", // Filter by the specific status
+            status: {
+              in: ["yuborilgan", "to'liq yuborilmagan"], // Filter by the specific statuses
+            },
           },
         },
       },
@@ -35,7 +37,7 @@ export const getAcceptedProductsController = async (
     // Filter the status array to only include "qabul qilingan" entries
     const filteredLines = lines.map(line => ({
       ...line,
-      status: line.status.filter(statusItem => statusItem.status === "qabul qilingan")
+      status: line.status.filter(statusItem => statusItem.status === "yuborilgan" || statusItem.status === "to'liq yuborilmagan")
     }));
 
     res.status(200).json({

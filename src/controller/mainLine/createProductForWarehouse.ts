@@ -44,10 +44,13 @@ export const addProductForWarehouseHandler = async (
       },
     });
 
-    if (departments.length < 2) {
+    const sender = departments.find((d) => d.id === yuboruvchiBolimId);
+    const receiver = departments.find((d) => d.id === qabulQiluvchiBolimId);
+
+    if (!sender || !receiver) {
       return res
         .status(404)
-        .json({ error: "One or more departments not found" });
+        .json({ error: "Sender or receiver department not found" });
     }
 
     // ✅ Create main process with line
@@ -62,13 +65,14 @@ export const addProductForWarehouseHandler = async (
             {
               protsessIsOver: false,
               departmentId: yuboruvchiBolimId,
-              department: departments[0].name,
+              department: sender.name,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-              umumiySoni: parseInt(umumiySoni),
-              qabulQiluvchiBolim: departments[1].name,
+              umumiySoni: isNaN(Number(umumiySoni)) ? 0 : Number(umumiySoni),
+              qabulQiluvchiBolim: receiver.name,
               model: model,
               qoshilganlarSoni: umumiySoni,
+              qoldiqSolni: 0,
               yuborilganlarSoni: [],
               status: {
                 create: {
@@ -104,7 +108,7 @@ export const addProductForWarehouseHandler = async (
               yaroqsizlarSoni: {
                 create: [
                   {
-                    sabali: "",
+                    sabali: "initial",
                     soni: 0,
                   },
                 ],
@@ -122,6 +126,11 @@ export const addProductForWarehouseHandler = async (
         },
       },
     });
+
+    console.log("Creating main process with payload:");
+    console.log(JSON.stringify(req.body, null, 2));
+
+    console.log("Created main process:", mainProtsess);
 
     return res.status(201).json({
       message: "Product and lines created successfully",
