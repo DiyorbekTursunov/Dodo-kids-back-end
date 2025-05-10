@@ -53,12 +53,15 @@ export const addProductForWarehouseHandler = async (
         .json({ error: "Sender or receiver department not found" });
     }
 
+    // Generate a unique model identifier to avoid name conflicts
+    const uniqueModelIdentifier = `${model}-${new Date().getTime()}`;
+
     // ✅ Create main process with line
     const mainProtsess = await prisma.mainProtsess.create({
       data: {
-        modelName: model,
+        modelName: uniqueModelIdentifier, // Use a unique identifier to avoid conflicts
         protsesIsOver: false,
-        protsesIsStartedTime: new Date().toISOString(),
+        protsesIsStartedTime: new Date(),
         protsesIsOverTime: "",
         line: {
           create: [
@@ -66,8 +69,8 @@ export const addProductForWarehouseHandler = async (
               protsessIsOver: false,
               departmentId: yuboruvchiBolimId,
               department: sender.name,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
               umumiySoni: isNaN(Number(umumiySoni)) ? 0 : Number(umumiySoni),
               qabulQiluvchiBolim: receiver.name,
               model: model,
@@ -95,7 +98,7 @@ export const addProductForWarehouseHandler = async (
                   },
                 },
               },
-              qoshimchaMalumotlar: qoshimchaIzoh,
+              qoshimchaMalumotlar: qoshimchaIzoh || "",
               color: {
                 connectOrCreate: {
                   where: { id: rangId },
@@ -129,9 +132,6 @@ export const addProductForWarehouseHandler = async (
         },
       },
     });
-
-    console.log("Creating main process with payload:");
-    console.log(JSON.stringify(req.body, null, 2));
 
     console.log("Created main process:", mainProtsess);
 
