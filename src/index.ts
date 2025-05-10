@@ -1,23 +1,15 @@
 import express, { Express, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes";
-import employeeRoutes from "./routes/employeeRoutes";
-import colorRoutes from "./routes/colorRoute";
-import sizeRoutes from "./routes/sizeRoutes";
-import employeeTypeRoutes from "./routes/employeeTypeRoutes";
-import mainLineProgressRoutes from "./routes/mainLineProgressRoutes";
 import "module-alias/register";
 
-import { deleteAllMainProtsess } from "./controller/mainLine/del";
-import { authenticate } from "./middleware/authMiddleware";
+import authRoutes from "./routes/auth.routes";
+import departmentRoutes from "./routes/department.routes";
+import colorRoutes from "./routes/color.routes";
+import sizeRoutes from "./routes/size.routes";
+import productRoutes from "./routes/product.routes";
+import productPackRoutes from "./routes/product_pack.routes"
 
-import getFullStats from "./routes/dashboardRoute";
-// Load environment variables
 dotenv.config();
-
-// Initialize Prisma client
-const prisma = new PrismaClient();
 
 // Create Express application
 const app: Express = express();
@@ -39,47 +31,34 @@ app.get("/", (req: Request, res: Response) => {
 
 // Register routes
 app.use("/api/auth", authRoutes);
-app.use("/api/employees", employeeRoutes);
+app.use("/api/department", departmentRoutes);
 app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
-app.use("/api/employeeType", employeeTypeRoutes);
-app.use("/api/mainLineProgress", mainLineProgressRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/product_pack", productPackRoutes);
 
-// Mount the route
-app.use("/api/statistics", getFullStats);
 
-app.post(
-  "/check_token",
-  authenticate,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      if (!req.user) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
-      }
+// app.post(
+//   "/check_token",
+//   authenticate,
+//   async (req: Request, res: Response): Promise<void> => {
+//     try {
+//       if (!req.user) {
+//         res.status(401).json({ message: "Unauthorized" });
+//         return;
+//       }
 
-      res.status(200).json({ user: req.user });
-    } catch (error) {
-      res.status(500).json({
-        message: "Internal Server Error",
-        error: (error as Error).message,
-      });
-    }
-  }
-);
-
-app.delete("/delete", (req: Request, res: Response) => {
-  deleteAllMainProtsess(req, res);
-});
+//       res.status(200).json({ user: req.user });
+//     } catch (error) {
+//       res.status(500).json({
+//         message: "Internal Server Error",
+//         error: (error as Error).message,
+//       });
+//     }
+//   }
+// );
 
 // Start the server
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
-
-// Handle graceful shutdown
-process.on("SIGINT", async () => {
-  await prisma.$disconnect();
-  console.log("Disconnected from database");
-  process.exit(0);
 });

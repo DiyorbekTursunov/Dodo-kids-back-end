@@ -7,113 +7,95 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-// Color model for CRUD operations
 model Color {
-    id        String   @id @default(uuid())
-    name      String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    materials Line[] // Relation to materials
-    Status    Status?  @relation(fields: [statusId], references: [id])
-    statusId  String?
+    id        String    @id @default(uuid())
+    name      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    Product   Product[] @relation("ColorToProduct")
 }
 
-// Size model for CRUD operations
 model Size {
-    id        String   @id @default(uuid())
-    name      String   @unique
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    Line      Line[] // Relation to materials
-    Status    Status?  @relation(fields: [statusId], references: [id])
-    statusId  String?
+    id        String    @id @default(uuid())
+    name      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    Product   Product[] @relation("ProductToSize")
 }
 
-// Department/EmployeeType model (represents both employee types and departments)
 model Department {
-    id        String     @id @default(uuid())
-    name      String     @unique
-    employees Employee[]
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
+    id              String            @id @default(uuid())
+    name            String            @unique
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    Employee        Employee[]
+    ProductProtsess ProductProtsess[]
 }
 
-// Employee model
 model Employee {
     id           String     @id @default(uuid())
-    name         String // Employee name
-    login        String     @unique
-    password     String
+    name         String
+    userId       String
     departmentId String
-    department   Department @relation(fields: [departmentId], references: [id])
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
+    department   Department @relation(fields: [departmentId], references: [id])
+    user         User       @relation(fields: [userId], references: [id])
 }
 
-// Admin model
-model Admin {
-    id        String   @id @default(uuid())
-    login     String   @unique
+model User {
+    id        String     @id @default(uuid())
+    login     String     @unique
     password  String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    role      userRole
+    Employee  Employee[]
 }
 
-model MainProtsess {
-    id                   String   @id @default(uuid())
-    modelName            String
-    protsesIsOver        Boolean  @default(false)
-    protsesIsStartedTime DateTime @default(now())
-    protsesIsOverTime    String   @default("")
-
-    line           Line[]
-    completedLines Line[] @relation("CompletedLines")
-}
-
-model Line {
-    id             String   @id @default(uuid())
-    protsessIsOver Boolean  @default(false)
+model ProductPack {
+    id             String            @id @default(uuid())
+    name           String
+    protsessIsOver Boolean           @default(false)
     departmentId   String
     department     String
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
-    color          Color[]
-    size           Size[]
-
-    mainProtsessId String?
-    mainProtsess   MainProtsess? @relation(fields: [mainProtsessId], references: [id])
-
-    completedBy MainProtsess[] @relation("CompletedLines")
-
-    umumiySoni Int
-
-    qabulQiluvchiBolim  String
-    model               String
-    qoshilganlarSoni    Int
-    yuborilganlarSoni   Int[]
-    qoldiqSolni         Int
-    qoshimchaMalumotlar String
-    yaroqsizlarSoni     Useless[]
-
-    status Status[]
+    createdAt      DateTime          @default(now())
+    updatedAt      DateTime          @updatedAt
+    productId      String
+    totalCount     Int
+    Product        Product           @relation(fields: [productId], references: [id])
+    status         ProductProtsess[]
 }
 
-model Status {
-    id     String   @id @default(uuid())
-    date   DateTime @default(now())
-    status String
-    userId String
-    color  Color[]
-    size   Size[]
-
-    product   Line   @relation(fields: [productId], references: [id])
-    productId String
+model Product {
+    createdAt   DateTime      @default(now()) // Added timestamp
+    updatedAt   DateTime      @updatedAt // Added timestamp
+    id          String        @id @default(uuid())
+    model       String
+    ProductPack ProductPack[]
+    color       Color[]       @relation("ColorToProduct")
+    size        Size[]        @relation("ProductToSize")
 }
 
-model Useless {
-    id     String @id @default(uuid())
-    soni   Int
-    sabali String
-    lineId String
-    line   Line   @relation(fields: [lineId], references: [id])
+model ProductProtsess {
+    createdAt      DateTime    @default(now()) // Added timestamp
+    updatedAt      DateTime    @updatedAt // Added timestamp
+    id             String      @id @default(uuid())
+    date           DateTime    @default(now())
+    protsessIsOver Boolean     @default(false)
+    status         String
+    employeeId     String
+    departmentId   String
+    productpackId  String
+    acceptCount    Int
+    sendedCount    Int
+    invalidCount   Int
+    invalidReason  String
+    department     Department  @relation(fields: [departmentId], references: [id])
+    productPack    ProductPack @relation(fields: [productpackId], references: [id])
+}
+
+enum userRole {
+    ADMIN
+    USER
 }
