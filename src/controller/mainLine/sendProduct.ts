@@ -32,7 +32,7 @@ export const completeProductTransferHandler = async (
   res: Response<CompleteProductTransferResponse>
 ): Promise<Response<CompleteProductTransferResponse>> => {
   try {
-    const { id, userId, userName, qabulQiluvchiBolimId } = req.body;
+    const { id, userId, qabulQiluvchiBolimId } = req.body;
     // Ensure yuborilganSoni is parsed as a number
     const yuborilganSoni = Number(req.body.yuborilganSoni);
     const yaroqsizlar = req.body.yaroqsizlar;
@@ -158,7 +158,7 @@ export const completeProductTransferHandler = async (
                 {
                   status: type,
                   userId,
-                  userName,
+                //   userName,
                 },
               ],
             },
@@ -192,14 +192,14 @@ export const completeProductTransferHandler = async (
               qoldiqSolni: qoldiqSon,
               model: line.model,
               yuborilganlarSoni: [],
-              umomiyYaroqsizlarSoni: 0,
-              umumiyYuborilganlarSoni: 0,
+            //   umomiyYaroqsizlarSoni: 0,
+            //   umumiyYuborilganlarSoni: 0,
               status: {
                 create: [
                   {
                     status: "Pending",
                     userId,
-                    userName,
+                    // userName,
                   },
                 ],
               },

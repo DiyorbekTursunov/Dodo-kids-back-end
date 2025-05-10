@@ -87,27 +87,24 @@ model Line {
 
     umumiySoni Int
 
-    qabulQiluvchiBolim      String
-    model                   String
-    qoshilganlarSoni        Int
-    yuborilganlarSoni       Int[]
-    umumiyYuborilganlarSoni Int
-    qoldiqSolni             Int
-    qoshimchaMalumotlar     String
-    yaroqsizlarSoni         Useless[]
-    umomiyYaroqsizlarSoni   Int
+    qabulQiluvchiBolim  String
+    model               String
+    qoshilganlarSoni    Int
+    yuborilganlarSoni   Int[]
+    qoldiqSolni         Int
+    qoshimchaMalumotlar String
+    yaroqsizlarSoni     Useless[]
 
     status Status[]
 }
 
 model Status {
-    id       String   @id @default(uuid())
-    date     DateTime @default(now())
-    status   String
-    userId   String
-    userName String
-    color    Color[]
-    size     Size[]
+    id     String   @id @default(uuid())
+    date   DateTime @default(now())
+    status String
+    userId String
+    color  Color[]
+    size   Size[]
 
     product   Line   @relation(fields: [productId], references: [id])
     productId String

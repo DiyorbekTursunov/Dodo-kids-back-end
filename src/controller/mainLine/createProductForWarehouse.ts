@@ -53,15 +53,12 @@ export const addProductForWarehouseHandler = async (
         .json({ error: "Sender or receiver department not found" });
     }
 
-    // Generate a unique model identifier to avoid name conflicts
-    const uniqueModelIdentifier = `${model}-${new Date().getTime()}`;
-
     // ✅ Create main process with line
     const mainProtsess = await prisma.mainProtsess.create({
       data: {
-        modelName: uniqueModelIdentifier, // Use a unique identifier to avoid conflicts
+        modelName: model,
         protsesIsOver: false,
-        protsesIsStartedTime: new Date(),
+        protsesIsStartedTime: new Date().toISOString(),
         protsesIsOverTime: "",
         line: {
           create: [
@@ -69,21 +66,18 @@ export const addProductForWarehouseHandler = async (
               protsessIsOver: false,
               departmentId: yuboruvchiBolimId,
               department: sender.name,
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
               umumiySoni: isNaN(Number(umumiySoni)) ? 0 : Number(umumiySoni),
               qabulQiluvchiBolim: receiver.name,
               model: model,
               qoshilganlarSoni: umumiySoni,
               qoldiqSolni: 0,
               yuborilganlarSoni: [],
-              umumiyYuborilganlarSoni: 0,
-              umomiyYaroqsizlarSoni: 0,
               status: {
                 create: {
                   status: "qabul qilingan",
                   userId: userId,
-                  userName: userName,
                   size: {
                     connectOrCreate: {
                       where: { id: olchamId },
@@ -98,7 +92,7 @@ export const addProductForWarehouseHandler = async (
                   },
                 },
               },
-              qoshimchaMalumotlar: qoshimchaIzoh || "",
+              qoshimchaMalumotlar: qoshimchaIzoh,
               color: {
                 connectOrCreate: {
                   where: { id: rangId },
@@ -132,6 +126,9 @@ export const addProductForWarehouseHandler = async (
         },
       },
     });
+
+    console.log("Creating main process with payload:");
+    console.log(JSON.stringify(req.body, null, 2));
 
     console.log("Created main process:", mainProtsess);
 

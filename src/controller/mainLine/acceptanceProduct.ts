@@ -68,7 +68,7 @@ export const acceptanceProduct = async (
         await tx.status.deleteMany({
           where: {
             productId: lineId,
-            userName: userName,
+            // userName: userName,
             status: "Pending",
           },
         });
