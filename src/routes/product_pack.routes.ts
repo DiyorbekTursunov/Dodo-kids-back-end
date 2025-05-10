@@ -1,4 +1,4 @@
-import { createProductPack } from "../controller/ProductPack/product_pack.create.controller";
+import { createProductPack } from "../controller/productPack/product_pack.create.controller";
 import express, { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
