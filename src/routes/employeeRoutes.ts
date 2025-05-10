@@ -16,6 +16,7 @@ router.get(
     getAllEmployees(req, res).catch(next);
   }
 );
+
 router.get(
   "/:id",
   authenticate,

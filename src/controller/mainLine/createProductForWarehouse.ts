@@ -74,10 +74,13 @@ export const addProductForWarehouseHandler = async (
               qoshilganlarSoni: umumiySoni,
               qoldiqSolni: 0,
               yuborilganlarSoni: [],
+              umumiyYuborilganlarSoni: 0,
+              umomiyYaroqsizlarSoni: 0,
               status: {
                 create: {
                   status: "qabul qilingan",
                   userId: userId,
+                  userName: userName,
                   size: {
                     connectOrCreate: {
                       where: { id: olchamId },

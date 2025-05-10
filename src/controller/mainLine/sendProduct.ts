@@ -14,6 +14,7 @@ interface CompleteProductTransferRequest {
   yuborilganSoni: number;
   yaroqsizlar?: YaroqsizProduct | YaroqsizProduct[];
   userId: string;
+  userName: string;
 }
 
 interface CompleteProductTransferResponse {
@@ -31,7 +32,7 @@ export const completeProductTransferHandler = async (
   res: Response<CompleteProductTransferResponse>
 ): Promise<Response<CompleteProductTransferResponse>> => {
   try {
-    const { id, userId, qabulQiluvchiBolimId } = req.body;
+    const { id, userId, userName, qabulQiluvchiBolimId } = req.body;
     // Ensure yuborilganSoni is parsed as a number
     const yuborilganSoni = Number(req.body.yuborilganSoni);
     const yaroqsizlar = req.body.yaroqsizlar;
@@ -157,6 +158,7 @@ export const completeProductTransferHandler = async (
                 {
                   status: type,
                   userId,
+                  userName,
                 },
               ],
             },
@@ -190,11 +192,14 @@ export const completeProductTransferHandler = async (
               qoldiqSolni: qoldiqSon,
               model: line.model,
               yuborilganlarSoni: [],
+              umomiyYaroqsizlarSoni: 0,
+              umumiyYuborilganlarSoni: 0,
               status: {
                 create: [
                   {
                     status: "Pending",
                     userId,
+                    userName,
                   },
                 ],
               },

@@ -7,6 +7,7 @@ interface AcceptanceProductRequest {
   mainProtsessId: string;
   lineId: string;
   userId: string;
+  userName: string;
   olchamId: string; // Size ID field
   rangId: string; // Color ID field
   yaroqsizlar?: {
@@ -19,10 +20,10 @@ export const acceptanceProduct = async (
   req: Request<{}, {}, AcceptanceProductRequest>,
   res: Response
 ) => {
-  const { mainProtsessId, lineId, userId, yaroqsizlar } = req.body;
+  const { mainProtsessId, lineId, userId, userName, yaroqsizlar } = req.body;
 
   // Validate required fields
-  if (!mainProtsessId || !lineId || !userId) {
+  if (!mainProtsessId || !lineId || !userId || !userName) {
     return res.status(400).json({
       success: false,
       message:
@@ -67,6 +68,7 @@ export const acceptanceProduct = async (
         await tx.status.deleteMany({
           where: {
             productId: lineId,
+            userName: userName,
             status: "Pending",
           },
         });
@@ -79,6 +81,7 @@ export const acceptanceProduct = async (
             create: {
               status: "qabul qilingan",
               userId: userId,
+              userName: userName,
             },
           },
         };
@@ -114,7 +117,6 @@ export const acceptanceProduct = async (
             },
           },
         });
-
         return updatedLine;
       },
       {
@@ -148,7 +150,6 @@ export const acceptanceProduct = async (
         },
       });
     }
-
   } catch (error) {
     console.error("Error in acceptanceProduct:", error);
     return res.status(500).json({

@@ -10,6 +10,9 @@ import mainLineProgressRoutes from "./routes/mainLineProgressRoutes";
 import "module-alias/register";
 
 import { deleteAllMainProtsess } from "./controller/mainLine/del";
+import { authenticate } from "./middleware/authMiddleware";
+
+import getFullStats from "./routes/dashboardRoute";
 // Load environment variables
 dotenv.config();
 
@@ -41,6 +44,29 @@ app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
 app.use("/api/employeeType", employeeTypeRoutes);
 app.use("/api/mainLineProgress", mainLineProgressRoutes);
+
+// Mount the route
+app.use("/api/statistics", getFullStats);
+
+app.post(
+  "/check_token",
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      res.status(200).json({ user: req.user });
+    } catch (error) {
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
+    }
+  }
+);
 
 app.delete("/delete", (req: Request, res: Response) => {
   deleteAllMainProtsess(req, res);
