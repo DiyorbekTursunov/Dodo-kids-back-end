@@ -8,6 +8,7 @@ import { getSentProductPacks } from "../controller/productPack/sendToDepartment/
 import { getAccesltenceProductPacks } from "../controller/productPack/acceptanceToDepartment/product_pack.get_all_by_dp_id.controller";
 import { getPandingProductPacks } from "../controller/productPack/get/getPanding.controller";
 import { getProductPackById } from "../controller/productPack/get/getDetailPage.controller";
+import { getCaseTrackerStatus } from "../controller/productPack/get/getMapPage.controller";
 
 const router = express.Router();
 
@@ -16,6 +17,14 @@ router.get(
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     getProductPackById(req, res).catch(next);
+  }
+);
+
+router.get(
+  "/status-map",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    getCaseTrackerStatus(req, res).catch(next);
   }
 );
 

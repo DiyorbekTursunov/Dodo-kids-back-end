@@ -3,27 +3,59 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Get detailed stats for a specific department
-export const getDepartmentStats = async (req: Request, res: Response) => {
+// Get detailed stats for a specific employee
+export const getEmployeeStats = async (req: Request, res: Response) => {
   try {
-    const { departmentId } = req.params;
+    const { employeeId } = req.params;
 
-    // Check if the department exists
-    const departmentExists = await prisma.department.findFirst({
-      where: { id: departmentId },
-    });
+    // Log the employeeId for debugging
+    console.log("Employee ID from params:", employeeId);
 
-    if (!departmentExists) {
-      return res.status(404).json({
+    // Validate that employeeId exists and is not undefined
+    if (!employeeId) {
+      return res.status(400).json({
         success: false,
-        message: "Department not found",
+        message: "Employee ID is required",
       });
     }
 
-    // Get all ProductPacks for this department
+    // Check if the employee exists
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: {
+        department: true,
+      },
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    // Get all processes handled by this employee
+    const employeeProcesses = await prisma.productProtsess.findMany({
+      where: {
+        employeeId,
+      },
+      select: {
+        productpackId: true,
+      },
+      distinct: ["productpackId"],
+    });
+
+    // Get the IDs of all ProductPacks handled by this employee
+    const productPackIds = employeeProcesses.map(
+      (process) => process.productpackId
+    );
+
+    // Get all ProductPacks this employee has worked on
     const productPacks = await prisma.productPack.findMany({
       where: {
-        departmentId,
+        id: {
+          in: productPackIds,
+        },
       },
       select: {
         id: true,
@@ -39,15 +71,10 @@ export const getDepartmentStats = async (req: Request, res: Response) => {
       },
     });
 
-    // Get the IDs of all ProductPacks in this department
-    const productPackIds = productPacks.map((pack) => pack.id);
-
-    // Get aggregated stats for all ProductPacks in this department
+    // Get aggregated stats for all processes handled by this employee
     const stats = await prisma.productProtsess.aggregate({
       where: {
-        productpackId: {
-          in: productPackIds,
-        },
+        employeeId,
       },
       _sum: {
         sendedCount: true,
@@ -57,12 +84,10 @@ export const getDepartmentStats = async (req: Request, res: Response) => {
       },
     });
 
-    // Get individual process records for all ProductPacks in this department
+    // Get detailed process records for this employee
     const processes = await prisma.productProtsess.findMany({
       where: {
-        productpackId: {
-          in: productPackIds,
-        },
+        employeeId,
       },
       select: {
         id: true,
@@ -89,7 +114,7 @@ export const getDepartmentStats = async (req: Request, res: Response) => {
       },
     });
 
-    // Calculate the total count of all products in this department
+    // Calculate the total count of all products this employee has worked on
     const totalProductCount = productPacks.reduce(
       (sum, pack) => sum + pack.totalCount,
       0
@@ -98,7 +123,11 @@ export const getDepartmentStats = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       data: {
-        departmentId,
+        employee: {
+          id: employee.id,
+          name: employee.name,
+          department: employee.department.name,
+        },
         totalProductCount,
         productPackCount: productPacks.length,
         stats: {
@@ -112,10 +141,10 @@ export const getDepartmentStats = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching department stats:", error);
+    console.error("Error fetching employee stats:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch department statistics",
+      message: "Failed to fetch employee statistics",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

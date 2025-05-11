@@ -2,7 +2,7 @@
 import { getDashboardStats } from "../controller/dashboardController/dashboard.all_stats.controller";
 import { getDashboardStatsByDateRange } from "../controller/dashboardController/dashboard.all_stats_date.controller";
 import { getProductPackStats } from "../controller/dashboardController/dashboard.product_pack_id.controller";
-import { getDepartmentStats } from "../controller/dashboardController/dashboard.stats_dp_id.controller";
+import { getEmployeeStats } from "../controller/dashboardController/dashboard.stats_dp_id.controller";
 import express, { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
@@ -17,9 +17,9 @@ router.post("/stats-by-date", (req: Request, res: Response, next: NextFunction) 
 
 
 router.get(
-  "/stats/:departmentId",
+  "/stats/:employeeId",
   (req: Request, res: Response, next: NextFunction) => {
-    getDepartmentStats(req, res).catch(next);
+    getEmployeeStats(req, res).catch(next);
   }
 );
 

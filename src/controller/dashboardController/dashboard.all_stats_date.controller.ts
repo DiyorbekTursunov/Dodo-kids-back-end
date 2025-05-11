@@ -48,7 +48,7 @@ export const getDashboardStatsByDateRange = async (req: Request, res: Response) 
       _sum: {
         sendedCount: true,
         invalidCount: true,
-        residueCount: true,
+        acceptCount: true,
       },
     });
 
@@ -94,7 +94,7 @@ export const getDashboardStatsByDateRange = async (req: Request, res: Response) 
           _sum: {
             sendedCount: true,
             invalidCount: true,
-            residueCount: true,
+            acceptCount: true,
           },
         });
 
@@ -106,7 +106,7 @@ export const getDashboardStatsByDateRange = async (req: Request, res: Response) 
           protsessIsOver: false, // This doesn't make sense at department level
           sendedCount: processStats._sum.sendedCount || 0,
           invalidCount: processStats._sum.invalidCount || 0,
-          residueCount: processStats._sum.residueCount || 0,
+          acceptCount: processStats._sum.acceptCount || 0,
         };
       })
     );
@@ -121,7 +121,7 @@ export const getDashboardStatsByDateRange = async (req: Request, res: Response) 
       overallStats: {
         sendedCount: overallStats._sum.sendedCount || 0,
         invalidCount: overallStats._sum.invalidCount || 0,
-        residueCount: overallStats._sum.residueCount || 0,
+        acceptCount: overallStats._sum.acceptCount || 0,
       },
       productPackStats: formattedProductPackStats,
     };
