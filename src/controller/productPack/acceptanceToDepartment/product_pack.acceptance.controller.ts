@@ -38,7 +38,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
     }
 
     // Validate the employee exists
-    const employee = await prisma.user.findUnique({
+    const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
     });
 
