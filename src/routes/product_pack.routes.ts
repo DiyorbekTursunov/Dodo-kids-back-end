@@ -7,8 +7,17 @@ import { acceptProductPack } from "../controller/productPack/acceptanceToDepartm
 import { getSentProductPacks } from "../controller/productPack/sendToDepartment/product_pack.get_all_send_by_db_id.controller";
 import { getAccesltenceProductPacks } from "../controller/productPack/acceptanceToDepartment/product_pack.get_all_by_dp_id.controller";
 import { getPandingProductPacks } from "../controller/productPack/get/getPanding.controller";
+import { getProductPackById } from "../controller/productPack/get/getDetailPage.controller";
 
 const router = express.Router();
+
+router.get(
+  "/details/:id",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    getProductPackById(req, res).catch(next);
+  }
+);
 
 router.post(
   "/add-warehouse",
