@@ -3,9 +3,37 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// Define interfaces for our data structures
+interface FormattedProductPack {
+  id: string;
+  name: string | null;
+  department: string;
+  protsessIsOver: boolean;
+  perentId?: string; // Make this optional
+  Product: {
+    id: string;
+    model: string;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  totalCount: number;
+  isSent: boolean;
+  status: string;
+}
+
+interface GroupedProductPacks {
+  perentId: string;
+  data: FormattedProductPack[];
+}
+
+// Define a type for our grouping object
+interface GroupByParentMap {
+  [parentId: string]: GroupedProductPacks;
+}
+
 /**
  * Get case tracker status for product packs
- * Returns status information with isSent flag and Product details
+ * Returns status information grouped by parentIds
  */
 export const getCaseTrackerStatus = async (req: Request, res: Response) => {
   try {
@@ -29,8 +57,8 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
       },
     });
 
-    // Format the response for the case tracker
-    const formattedData = productPacks.map(pack => {
+    // Format individual product packs
+    const formattedPacks = productPacks.map(pack => {
       const latestStatus = pack.status[0]?.status || "";
 
       return {
@@ -38,6 +66,7 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
         name: pack.name,
         department: pack.department,
         protsessIsOver: pack.protsessIsOver,
+        perentId: pack.perentId, // Include the parentId in each item
         Product: {
           id: pack.Product.id,
           model: pack.Product.model,
@@ -50,10 +79,29 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
       };
     });
 
+    // Group by parentId with proper TypeScript typing
+    const groupedByParent: GroupByParentMap = {};
+
+    formattedPacks.forEach(pack => {
+      const parentId = pack.perentId || ""; // Use empty string if parentId is null/undefined
+
+      if (!groupedByParent[parentId]) {
+        groupedByParent[parentId] = {
+          perentId: parentId,
+          data: []
+        };
+      }
+
+      groupedByParent[parentId].data.push(pack);
+    });
+
+    // Convert to array format
+    const result = Object.values(groupedByParent);
+
     return res.status(200).json({
       success: true,
-      count: formattedData.length,
-      data: formattedData,
+      count: formattedPacks.length,
+      data: result,
     });
   } catch (error) {
     console.error("Error fetching case tracker status:", error);

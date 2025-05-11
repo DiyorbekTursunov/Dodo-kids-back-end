@@ -50,11 +50,13 @@ export const addWareHouse = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
+    // Generate a parent ID
+    const perentId = uuidv4();
+
     // Create the product pack
     const productPack = await prisma.productPack.create({
       data: {
-        perentId: uuidv4(),
-        productId: productId,
+        perentId: perentId,
         name,
         departmentId,
         department,
@@ -87,6 +89,9 @@ export const addWareHouse = async (req: Request, res: Response) => {
     res.status(201).json(productPack);
   } catch (err) {
     console.error("Error creating Product Pack:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      details: (err as Error).message
+    });
   }
 };
