@@ -14,9 +14,22 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       _sum: {
         sendedCount: true,
         invalidCount: true,
-        residueCount: true,
+        acceptCount: true,
       },
     });
+
+    // Get sum of all totalCount from ProductPacks for overall count
+    const overallTotalCount = await prisma.productPack.aggregate({
+      _sum: {
+        totalCount: true,
+      },
+    });
+
+    // Calculate overall residueCount using the new formula
+    const overallSendedCount = overallStats._sum.sendedCount || 0;
+    const overallInvalidCount = overallStats._sum.invalidCount || 0;
+    const overallAcceptCount = overallStats._sum.acceptCount || 0;
+    const overallResidueCount = overallAcceptCount - (overallSendedCount + overallInvalidCount);
 
     // Get all unique departments from ProductPacks
     const uniqueDepartments = await prisma.productPack.findMany({
@@ -59,19 +72,29 @@ export const getDashboardStats = async (req: Request, res: Response) => {
           _sum: {
             sendedCount: true,
             invalidCount: true,
-            residueCount: true,
+            acceptCount: true,
           },
         });
+
+        // Calculate residueCount for this department using the new formula
+        const sendedCount = processStats._sum.sendedCount || 0;
+        const invalidCount = processStats._sum.invalidCount || 0;
+        const acceptCount = processStats._sum.acceptCount || 0;
+
+        // New formula: residueCount = acceptCount - (sendedCount + invalidCount)
+        const residueCount = acceptCount - (sendedCount + invalidCount);
 
         return {
           id: department, // Using department as the ID for grouping
           name: department, // Using department name as the display name
           department,
           totalCount,
-          protsessIsOver: false, // This doesn't make sense at department level
-          sendedCount: processStats._sum.sendedCount || 0,
-          invalidCount: processStats._sum.invalidCount || 0,
-          residueCount: processStats._sum.residueCount || 0,
+          // Process is over when acceptCount equals the sum of sendedCount and invalidCount
+          protsessIsOver: acceptCount === (sendedCount + invalidCount),
+          sendedCount,
+          invalidCount,
+          acceptCount,
+          residueCount,
         };
       })
     );
@@ -82,7 +105,8 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       overallStats: {
         sendedCount: overallStats._sum.sendedCount || 0,
         invalidCount: overallStats._sum.invalidCount || 0,
-        residueCount: overallStats._sum.residueCount || 0,
+        acceptCount: overallStats._sum.acceptCount || 0,
+        residueCount: overallResidueCount,
       },
       productPackStats: formattedProductPackStats,
     };
@@ -100,3 +124,15 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     });
   }
 };
+
+interface DateRangeBody {
+  startDate?: string;
+  endDate?: string;
+}
+
+interface DateFilter {
+  createdAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+}

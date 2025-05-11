@@ -17,7 +17,7 @@ router.post("/stats-by-date", (req: Request, res: Response, next: NextFunction) 
 
 
 router.get(
-  "/stats/:employeeId",
+  "/stats/:departmentId",
   (req: Request, res: Response, next: NextFunction) => {
     getEmployeeStats(req, res).catch(next);
   }
