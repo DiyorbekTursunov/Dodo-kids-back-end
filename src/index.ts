@@ -8,7 +8,6 @@ import colorRoutes from "./routes/color.routes";
 import sizeRoutes from "./routes/size.routes";
 import productRoutes from "./routes/product.routes";
 import productPackRoutes from "./routes/product_pack.routes"
-import productProtsessRoutes from "./routes/product_protsess.routes"
 
 dotenv.config();
 
@@ -37,7 +36,6 @@ app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/product_pack", productPackRoutes);
-app.use("/api/product_protsess", productProtsessRoutes)
 
 // app.post(
 //   "/check_token",

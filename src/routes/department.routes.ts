@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post(
   "/",
-  //   authenticate,
+    authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     createDepartment(req, res).catch(next);
   }

@@ -1,3 +1,4 @@
+import { authenticate } from "../middleware/authMiddleware";
 import { getSizeById } from "../controller/size/size.by_id.controller";
 import { createSize } from "../controller/size/size.create.controller";
 import { deleteSize } from "../controller/size/size.delete.controller";
@@ -19,12 +20,20 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
   getSizeById(req, res).catch(next);
 });
 
-router.put("/:id", (req: Request, res: Response, next: NextFunction) => {
-  updateSize(req, res).catch(next);
-});
+router.put(
+  "/:id",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    updateSize(req, res).catch(next);
+  }
+);
 
-router.delete("/:id", (req: Request, res: Response, next: NextFunction) => {
-  deleteSize(req, res).catch(next);
-});
+router.delete(
+  "/:id",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    deleteSize(req, res).catch(next);
+  }
+);
 
 export default router;

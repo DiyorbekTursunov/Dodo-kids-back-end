@@ -90,6 +90,7 @@ model ProductProtsess {
     acceptCount    Int
     sendedCount    Int
     invalidCount   Int
+    residueCount   Int
     invalidReason  String
     department     Department  @relation(fields: [departmentId], references: [id])
     productPack    ProductPack @relation(fields: [productpackId], references: [id])
