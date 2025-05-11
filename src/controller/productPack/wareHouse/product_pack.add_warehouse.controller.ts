@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
@@ -52,6 +53,8 @@ export const addWareHouse = async (req: Request, res: Response) => {
     // Create the product pack
     const productPack = await prisma.productPack.create({
       data: {
+        perentId: uuidv4(),
+        productId: productId,
         name,
         departmentId,
         department,

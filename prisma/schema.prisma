@@ -55,7 +55,8 @@ model User {
 
 model ProductPack {
     id             String            @id @default(uuid())
-    name           String
+    name           String?
+    perentId       String
     protsessIsOver Boolean           @default(false)
     departmentId   String
     department     String
