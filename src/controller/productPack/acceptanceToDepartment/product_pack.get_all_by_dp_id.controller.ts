@@ -45,7 +45,6 @@ export const getAccesltenceProductPacks = async (
           orderBy: {
             date: "desc",
           },
-          take: 1,
           where: {
             status: "Qabul qilingan",
           },

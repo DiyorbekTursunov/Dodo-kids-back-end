@@ -44,7 +44,6 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
           orderBy: {
             date: 'desc'
           },
-          take: 1,
           where: {
             status: {
               in: ["Yuborilgan", "To'liq yuborilmagan"]
