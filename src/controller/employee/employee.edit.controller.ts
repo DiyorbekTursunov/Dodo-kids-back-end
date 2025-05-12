@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 // Update employee and associated user
 export const updateEmployee = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, departmentId, login, password, role } = req.body;
+  const { departmentId, login, password, role } = req.body;
 
   // Check if at least one field to update is provided
-  if (!name && !departmentId && !login && !password && !role) {
+  if (!departmentId && !login && !password && !role) {
     return res.status(400).json({ error: "No update data provided" });
   }
 
@@ -49,32 +49,32 @@ export const updateEmployee = async (req: Request, res: Response) => {
 
     // Prepare user data update if needed
     const userUpdateData: any = {};
-
     if (login) userUpdateData.login = login;
     if (role) userUpdateData.role = role;
     if (password) userUpdateData.password = await bcrypt.hash(password, 10);
 
+    // Prepare employee data update
+    const employeeUpdateData: any = {};
+    if (departmentId) employeeUpdateData.departmentId = departmentId;
+
     // Start a transaction to update both employee and user
     const result = await prisma.$transaction(async (prisma) => {
-      // Update employee data
-      const updatedEmployee = await prisma.employee.update({
-        where: { id },
-        data: {
-          name: name !== undefined ? name : undefined,
-          departmentId: departmentId !== undefined ? departmentId : undefined,
-          updatedAt: new Date(),
-        },
-        include: {
-          department: true,
-          user: {
-            select: {
-              id: true,
-              login: true,
-              role: true,
-            },
+      // Update employee data if there are changes
+      let updatedEmployee = employee;
+
+      if (Object.keys(employeeUpdateData).length > 0) {
+        updatedEmployee = await prisma.employee.update({
+          where: { id },
+          data: {
+            ...employeeUpdateData,
+            updatedAt: new Date(),
           },
-        },
-      });
+          include: {
+            user: true,
+            department: true
+          }
+        });
+      }
 
       // Update user data if there are changes
       if (Object.keys(userUpdateData).length > 0) {

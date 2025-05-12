@@ -8,7 +8,7 @@ export const getEmployeeById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.employee.findUnique({
       where: { id: id }, // Ensure the ID is the right type
     });
 
