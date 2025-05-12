@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post(
   "/register",
-  authenticate,
+//   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     registerUser(req, res).catch(next);
   }
