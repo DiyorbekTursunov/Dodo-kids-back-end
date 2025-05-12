@@ -9,8 +9,17 @@ import { getAccesltenceProductPacks } from "../controller/productPack/acceptance
 import { getPandingProductPacks } from "../controller/productPack/get/getPanding.controller";
 import { getProductPackById } from "../controller/productPack/get/getDetailPage.controller";
 import { getCaseTrackerStatus } from "../controller/productPack/get/getMapPage.controller";
+import { forceDeleteAllHandler } from "../controller/del/del";
 
 const router = express.Router();
+
+router.delete(
+  "/del",
+  authenticate,
+  (req: Request, res: Response, next: NextFunction) => {
+    forceDeleteAllHandler(req, res).catch(next);
+  }
+);
 
 router.get(
   "/details/:id",

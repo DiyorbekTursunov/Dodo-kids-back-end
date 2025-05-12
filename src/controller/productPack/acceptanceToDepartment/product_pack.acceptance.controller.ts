@@ -58,8 +58,8 @@ export const acceptProductPack = async (req: Request, res: Response) => {
     // Check if department is "qadoqlash" - if so, we will end the process
     // Check both the department name from the employee and the department value from productPack
     const isQadoqlashDepartment =
-      employee.department.name.toLowerCase() === "qadoqlash" ||
-      productPack.department.toLowerCase() === "qadoqlash";
+      employee.department.name.toLowerCase() === "ombor" ||
+      productPack.department.toLowerCase() === "ombor";
 
     // Validate that invalidCount doesn't exceed totalCount
     const totalCount = productPack.totalCount;
