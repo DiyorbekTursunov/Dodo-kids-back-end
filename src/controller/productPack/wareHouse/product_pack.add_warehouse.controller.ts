@@ -50,40 +50,58 @@ export const addWareHouse = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
+    // Check if department exists
+    const departmentExists = await prisma.department.findUnique({
+      where: { id: departmentId },
+    });
+
+    if (!departmentExists) {
+      return res.status(404).json({ error: "Department not found" });
+    }
+
     // Generate a parent ID
     const perentId = uuidv4();
 
-    // Create the product pack
-    const productPack = await prisma.productPack.create({
-      data: {
-        perentId: perentId,
-        name,
-        departmentId,
-        department,
-        totalCount: Number(totalCount),
-        protsessIsOver: false,
-        // Connect to the Product relation - this will set the productId field
-        Product: {
-          connect: { id: productId },
-        },
-        // Initialize with default ProductProtsess if needed
-        status: {
-          create: {
-            status: "Qabul qilingan",
-            departmentId,
-            employeeId: employeeId,
-            acceptCount: Number(totalCount),
-            sendedCount: 0,
-            residueCount: 0,
-            invalidCount: Number(invalidCount) || 0,
-            invalidReason: invalidReason || "",
+    // Create the product pack with a transaction to ensure consistency
+    const productPack = await prisma.$transaction(async (tx) => {
+      // First create the product pack
+      const newProductPack = await tx.productPack.create({
+        data: {
+          perentId,
+          name,
+          departmentId,
+          department,
+          totalCount: Number(totalCount),
+          protsessIsOver: false,
+          Product: {
+            connect: { id: productId },
           },
         },
-      },
-      include: {
-        Product: true,
-        status: true,
-      },
+        include: {
+          Product: true,
+        },
+      });
+
+      // Then create the product process separately
+      const productProcess = await tx.productProtsess.create({
+        data: {
+          departmentName: "ombor",
+          status: "Qabul qilingan",
+          departmentId,
+          productpackId: newProductPack.id, // Use the new product pack ID
+          employeeId,
+          acceptCount: Number(totalCount),
+          sendedCount: 0,
+          residueCount: Number(totalCount) - (Number(invalidCount) || 0),
+          invalidCount: Number(invalidCount) || 0,
+          invalidReason: invalidReason || "",
+        },
+      });
+
+      return {
+        ...newProductPack,
+        status: [productProcess],
+      };
     });
 
     res.status(201).json(productPack);
@@ -91,7 +109,7 @@ export const addWareHouse = async (req: Request, res: Response) => {
     console.error("Error creating Product Pack:", err);
     res.status(500).json({
       error: "Internal server error",
-      details: (err as Error).message
+      details: (err as Error).message,
     });
   }
 };

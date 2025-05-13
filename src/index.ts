@@ -10,6 +10,7 @@ import productRoutes from "./routes/product.routes";
 import productPackRoutes from "./routes/product_pack.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
 import employeeRoutes from "./routes/employee.routes";
+import filterRouters from "./routes/filters.routes";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.use("/api/product", productRoutes);
 app.use("/api/product_pack", productPackRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/models", filterRouters);
 
 // app.post(
 //   "/check_token",

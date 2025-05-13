@@ -119,6 +119,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       data: {
         protsessIsOver: isComplete,
         status: newStatus,
+        departmentName: sourceProductPack.department,
         departmentId: sourceProductPack.departmentId,
         productpackId: productPackId,
         employeeId,
@@ -157,6 +158,9 @@ export const sendToDepartment = async (req: Request, res: Response) => {
           create: {
             protsessIsOver: false,
             status: "Pending", // Initial status is "Pending"
+            // fromWhere: "Autsorsdan",
+            departmentName: sourceProductPack.department,
+            targetDepartment: targetDepartment.name,
             departmentId: targetDepartmentId,
             employeeId,
             acceptCount: 0, // Will be updated when target department accepts

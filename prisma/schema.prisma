@@ -79,22 +79,28 @@ model Product {
 }
 
 model ProductProtsess {
-    createdAt      DateTime    @default(now()) // Added timestamp
-    updatedAt      DateTime    @updatedAt // Added timestamp
-    id             String      @id @default(uuid())
-    date           DateTime    @default(now())
-    protsessIsOver Boolean     @default(false)
-    status         String
-    employeeId     String
-    departmentId   String
-    productpackId  String
-    acceptCount    Int
-    sendedCount    Int
-    invalidCount   Int
-    residueCount   Int
-    invalidReason  String
-    department     Department  @relation(fields: [departmentId], references: [id])
-    productPack    ProductPack @relation(fields: [productpackId], references: [id])
+    createdAt        DateTime    @default(now()) // Added timestamp
+    updatedAt        DateTime    @updatedAt // Added timestamp
+    id               String      @id @default(uuid())
+    date             DateTime    @default(now())
+    protsessIsOver   Boolean     @default(false)
+    status           String
+    employeeId       String
+
+    departmentName   String
+    targetDepartment String?
+
+    departmentId     String
+    productpackId    String
+    acceptCount      Int
+    sendedCount      Int
+    invalidCount     Int
+    residueCount     Int
+    invalidReason    String
+    department       Department  @relation(fields: [departmentId], references: [id])
+    productPack      ProductPack @relation(fields: [productpackId], references: [id])
+
+    fromWhere        String?     @default("")
 }
 
 enum userRole {

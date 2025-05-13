@@ -87,6 +87,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
       const newStatus = await prismaClient.productProtsess.create({
         data: {
           // If the department is "qadoqlash", we mark the process as complete
+          departmentName: productPack.department,
           protsessIsOver: isQadoqlashDepartment,
           status: "Qabul qilingan",
           departmentId: productPack.departmentId,
@@ -129,11 +130,9 @@ export const acceptProductPack = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error("Error accepting product pack:", err);
-    res
-      .status(500)
-      .json({
-        error: "Internal server error",
-        details: (err as Error).message,
-      });
+    res.status(500).json({
+      error: "Internal server error",
+      details: (err as Error).message,
+    });
   }
 };
