@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Get Sent Product Packs for a Department
+// Get Sent Product Packs for a Department with filtered statuses
 export const getSentProductPacks = async (req: Request, res: Response) => {
   const { departmentId } = req.params;
 
@@ -21,7 +21,7 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Department not found" });
     }
 
-    // Get product packs with latest status "Yuborilgan"
+    // Get product packs with status "Yuborilgan" or "To'liq yuborilmagan"
     const sentProductPacks = await prisma.productPack.findMany({
       where: {
         departmentId,
@@ -40,6 +40,7 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
             size: true
           }
         },
+        // Only include status records with "Yuborilgan" or "To'liq yuborilmagan"
         status: {
           orderBy: {
             date: 'desc'
@@ -53,16 +54,12 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
       }
     });
 
-    // Format the response
-    const formattedPacks = sentProductPacks.map(pack => ({
-      ...pack,
-      latestStatus: pack.status[0] || null,
-      status: undefined
-    }));
-
-    res.status(200).json(formattedPacks);
+    res.status(200).json(sentProductPacks);
   } catch (err) {
     console.error("Error fetching sent product packs:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: "Internal server error",
+      details: (err as Error).message
+    });
   }
 };
