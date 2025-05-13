@@ -3,164 +3,141 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Type definitions for filter parameters
-type FilterParams = {
-  name?: string;
+// Type definitions for ProductPack filter parameters
+type ProductPackFilterParams = {
+  colorId?: string;
+  sizeId?: string;
+  departmentId?: string;
+  model?: string;
+  status?: string;
   sortBy: string;
   sortOrder: "asc" | "desc";
-  page: number;
-  pageSize: number;
 };
 
 /**
- * Get colors with filtering options
+ * Get product packs with filtering options by color, size, department and status
  */
-export const getColors = async (req: Request, res: Response) => {
+export const getFilteredProductPacks = async (req: Request, res: Response) => {
   try {
-    const filters = extractFilterParams(req);
-    const skip = (filters.page - 1) * filters.pageSize;
+    const filters = extractProductPackFilterParams(req);
 
     // Create filter condition
-    const where = filters.name ? {
-      name: {
-        contains: filters.name,
-        mode: "insensitive" as const,
-      },
-    } : {};
+    const where: any = {};
 
-    // Get total count for pagination
-    const totalCount = await prisma.color.count({ where });
+    // Filter by departmentId if provided
+    if (filters.departmentId) {
+      where.departmentId = filters.departmentId;
+    }
+
+    // Filter by product model if provided
+    if (filters.model) {
+      where.Product = {
+        model: {
+          contains: filters.model,
+          mode: "insensitive" as const,
+        }
+      };
+    }
+
+    // Filter by related color if provided
+    if (filters.colorId) {
+      where.Product = {
+        ...where.Product,
+        color: {
+          some: {
+            id: filters.colorId
+          }
+        }
+      };
+    }
+
+    // Filter by related size if provided
+    if (filters.sizeId) {
+      where.Product = {
+        ...where.Product,
+        size: {
+          some: {
+            id: filters.sizeId
+          }
+        }
+      };
+    }
 
     // Get data with filters
-    const colors = await prisma.color.findMany({
+    const productPacks = await prisma.productPack.findMany({
       where,
       orderBy: {
         [filters.sortBy]: filters.sortOrder,
       },
-      skip,
-      take: filters.pageSize,
-    });
-
-    return res.status(200).json({
-      data: colors,
-      pagination: {
-        total: totalCount,
-        page: filters.page,
-        pageSize: filters.pageSize,
-        pageCount: Math.ceil(totalCount / filters.pageSize),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching colors:", error);
-    return res.status(500).json({ error: "Failed to fetch colors" });
-  }
-};
-
-/**
- * Get sizes with filtering options
- */
-export const getSizes = async (req: Request, res: Response) => {
-  try {
-    const filters = extractFilterParams(req);
-    const skip = (filters.page - 1) * filters.pageSize;
-
-    // Create filter condition
-    const where = filters.name ? {
-      name: {
-        contains: filters.name,
-        mode: "insensitive" as const,
-      },
-    } : {};
-
-    // Get total count for pagination
-    const totalCount = await prisma.size.count({ where });
-
-    // Get data with filters
-    const sizes = await prisma.size.findMany({
-      where,
-      orderBy: {
-        [filters.sortBy]: filters.sortOrder,
-      },
-      skip,
-      take: filters.pageSize,
-    });
-
-    return res.status(200).json({
-      data: sizes,
-      pagination: {
-        total: totalCount,
-        page: filters.page,
-        pageSize: filters.pageSize,
-        pageCount: Math.ceil(totalCount / filters.pageSize),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching sizes:", error);
-    return res.status(500).json({ error: "Failed to fetch sizes" });
-  }
-};
-
-/**
- * Get departments with filtering options
- */
-export const getDepartments = async (req: Request, res: Response) => {
-  try {
-    const filters = extractFilterParams(req);
-    const skip = (filters.page - 1) * filters.pageSize;
-
-    // Create filter condition
-    const where = filters.name ? {
-      name: {
-        contains: filters.name,
-        mode: "insensitive" as const,
-      },
-    } : {};
-
-    // Get total count for pagination
-    const totalCount = await prisma.department.count({ where });
-
-    // Get data with filters
-    const departments = await prisma.department.findMany({
-      where,
-      orderBy: {
-        [filters.sortBy]: filters.sortOrder,
-      },
-      skip,
-      take: filters.pageSize,
       include: {
-        _count: {
-          select: {
-            Employee: true,
-            ProductProtsess: true,
-          },
+        Product: {
+          include: {
+            color: true,
+            size: true,
+          }
         },
+        status: true,
       },
     });
 
+    // Process status information for each product pack
+    const processedProductPacks = productPacks.map(pack => {
+      // Find the latest status entry for this product pack
+      const latestStatus = pack.status.length > 0
+        ? pack.status.reduce((latest, current) =>
+            new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
+          )
+        : null;
+
+      // Map status values as required
+      let statusValue = "";
+      if (latestStatus) {
+        // Add condition to handle "Pending" status
+        if (latestStatus.status === "Pending") {
+          statusValue = "Pending";
+        } else if (latestStatus.status === "Qabul qilingan") {
+          statusValue = "Qabul qilingan";
+        } else if (latestStatus.sendedCount < latestStatus.acceptCount) {
+          statusValue = "To'liq yuborilmagan";
+        } else {
+          statusValue = "Yuborilgan";
+        }
+      }
+
+      return {
+        ...pack,
+        processedStatus: statusValue
+      };
+    });
+
+    // Filter by status if provided (exclude Pending status if not explicitly requested)
+    const statusFilteredPacks = filters.status
+      ? processedProductPacks.filter(pack => pack.processedStatus === filters.status)
+      : processedProductPacks.filter(pack => pack.processedStatus !== "Pending");
+
     return res.status(200).json({
-      data: departments,
-      pagination: {
-        total: totalCount,
-        page: filters.page,
-        pageSize: filters.pageSize,
-        pageCount: Math.ceil(totalCount / filters.pageSize),
-      },
+      data: statusFilteredPacks
     });
   } catch (error) {
-    console.error("Error fetching departments:", error);
-    return res.status(500).json({ error: "Failed to fetch departments" });
+    console.error("Error fetching filtered product packs:", error);
+    return res.status(500).json({
+      error: "Failed to fetch product packs",
+      details: (error as Error).message
+    });
   }
 };
 
 /**
  * Helper function to extract filter parameters from request
  */
-function extractFilterParams(req: Request): FilterParams {
+function extractProductPackFilterParams(req: Request): ProductPackFilterParams {
   return {
-    name: req.query.name as string || undefined,
+    colorId: req.query.colorId as string || undefined,
+    sizeId: req.query.sizeId as string || undefined,
+    departmentId: req.query.departmentId as string || undefined,
+    model: req.query.model as string || undefined,
+    status: req.query.status as string || undefined,
     sortBy: (req.query.sortBy as string) || "createdAt",
     sortOrder: ((req.query.sortOrder as "asc" | "desc") || "desc"),
-    page: req.query.page ? parseInt(req.query.page as string) : 1,
-    pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : 10,
   };
 }
