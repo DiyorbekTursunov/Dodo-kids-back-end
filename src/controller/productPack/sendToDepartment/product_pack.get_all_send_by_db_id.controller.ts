@@ -14,7 +14,7 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
   try {
     // Check if department exists
     const department = await prisma.department.findUnique({
-      where: { id: departmentId }
+      where: { id: departmentId },
     });
 
     if (!department) {
@@ -28,30 +28,30 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
         status: {
           some: {
             status: {
-              in: ["Yuborilgan", "To'liq yuborilmagan"]
-            }
-          }
-        }
+              in: ["Yuborilgan", "To'liq yuborilmagan"],
+            },
+          },
+        },
       },
       include: {
         Product: {
           include: {
             color: true,
-            size: true
-          }
+            size: true,
+          },
         },
         // Only include status records with "Yuborilgan" or "To'liq yuborilmagan"
         status: {
           orderBy: {
-            date: 'desc'
+            date: "desc",
           },
           where: {
             status: {
-              in: ["Yuborilgan", "To'liq yuborilmagan"]
-            }
-          }
-        }
-      }
+              in: ["Yuborilgan", "To'liq yuborilmagan"],
+            },
+          },
+        },
+      },
     });
 
     res.status(200).json(sentProductPacks);
@@ -59,7 +59,7 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
     console.error("Error fetching sent product packs:", err);
     res.status(500).json({
       error: "Internal server error",
-      details: (err as Error).message
+      details: (err as Error).message,
     });
   }
 };

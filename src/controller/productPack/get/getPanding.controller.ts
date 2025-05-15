@@ -52,14 +52,8 @@ export const getPandingProductPacks = async (
       },
     });
 
-    // Format the response
-    const formattedPacks = sentProductPacks.map((pack) => ({
-      ...pack,
-      latestStatus: pack.status[0] || null,
-      status: undefined,
-    }));
 
-    res.status(200).json(formattedPacks);
+    res.status(200).json(sentProductPacks);
   } catch (err) {
     console.error("Error fetching sent product packs:", err);
     res.status(500).json({ error: "Internal server error" });

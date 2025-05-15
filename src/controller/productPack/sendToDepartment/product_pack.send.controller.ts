@@ -41,12 +41,32 @@ export const sendToDepartment = async (req: Request, res: Response) => {
     }
 
     // Get target department
-    const targetDepartment = await prisma.department.findUnique({
+    let targetDepartment = await prisma.department.findUnique({
       where: { id: targetDepartmentId },
     });
 
     if (!targetDepartment) {
       return res.status(404).json({ error: "Target department not found" });
+    }
+
+    // Check if target department is "avsors", redirect to "chistka" if it is
+    let actualTargetDepartmentId = targetDepartmentId;
+    let actualTargetDepartmentName = targetDepartment.name;
+
+    if (targetDepartment.name === "avsors") {
+      // Find the chistka department
+      const chistkaDepartment = await prisma.department.findFirst({
+        where: { name: "chiska" },
+      });
+
+      if (!chistkaDepartment) {
+        return res.status(404).json({ error: "Chistka department not found" });
+      }
+
+      // Update the target department to chistka
+      actualTargetDepartmentId = chistkaDepartment.id;
+      actualTargetDepartmentName = chistkaDepartment.name;
+      targetDepartment = chistkaDepartment;
     }
 
     // Find the latest status - handling TypeScript's strong typing
@@ -147,9 +167,9 @@ export const sendToDepartment = async (req: Request, res: Response) => {
     const newProductPack = await prisma.productPack.create({
       data: {
         perentId: perentId, // Use the field name 'perentId' as defined in the schema
-        name: `${sourceProductPack.name} - ${targetDepartment.name}`,
-        departmentId: targetDepartmentId,
-        department: targetDepartment.name,
+        name: `${sourceProductPack.name} - ${actualTargetDepartmentName}`,
+        departmentId: actualTargetDepartmentId,
+        department: actualTargetDepartmentName,
         productId: sourceProductPack.productId,
         totalCount: Number(sendCount),
         protsessIsOver: false,
@@ -158,10 +178,11 @@ export const sendToDepartment = async (req: Request, res: Response) => {
           create: {
             protsessIsOver: false,
             status: "Pending", // Initial status is "Pending"
-            // fromWhere: "Autsorsdan",
-            departmentName: sourceProductPack.department,
-            targetDepartment: targetDepartment.name,
-            departmentId: targetDepartmentId,
+            fromWhere:
+              actualTargetDepartmentName === "chistka" ? "Autsorsdan" : "",
+            departmentName: actualTargetDepartmentName,
+            departmentId: actualTargetDepartmentId,
+            targetDepartment: sourceProductPack.department,
             employeeId,
             acceptCount: 0, // Will be updated when target department accepts
             sendedCount: 0,
@@ -179,7 +200,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
 
     // Return the updated information
     res.status(200).json({
-      message: `Successfully sent ${sendCount} items to ${targetDepartment.name} department`,
+      message: `Successfully sent ${sendCount} items to ${actualTargetDepartmentName} department`,
       sourceStatus: newSourceStatus,
       newProductPack,
       remainingItems: residueCount,

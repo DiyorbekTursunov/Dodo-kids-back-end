@@ -60,61 +60,83 @@ export const getDashboardStatsByDateRange = async (
     // Get all ProductPack count (not filtered by date)
     const totalProductPacks = await prisma.productPack.count();
 
-    // Get overall stats with date filtering
-    const filteredOverallStats = await prisma.productProtsess.aggregate({
-      where: dateFilter,
-      _sum: {
-        sendedCount: true,
-        invalidCount: true,
-        acceptCount: true,
-      },
+    // First check if any data exists in the date range
+    const countInDateRange = await prisma.productProtsess.count({
+      where: dateFilter
     });
 
-    // Check if we have any data in the date range
-    const filteredSendedCount = filteredOverallStats._sum.sendedCount || 0;
-    const filteredInvalidCount = filteredOverallStats._sum.invalidCount || 0;
-    const filteredAcceptCount = filteredOverallStats._sum.acceptCount || 0;
-    const hasDataInDateRange = filteredSendedCount > 0 || filteredInvalidCount > 0 || filteredAcceptCount > 0;
-
-    // If no data in date range, get all data without filtering
-    let overallStats;
+    // For tracking if we had to use fallback data
     let usingFallback = false;
+    let allProcesses = [];
 
-    if (!hasDataInDateRange) {
+    // Decide whether to use date filter or all data
+    if (countInDateRange === 0) {
       console.log('No data in specified date range, falling back to all data');
-      overallStats = await prisma.productProtsess.aggregate({
-        _sum: {
-          sendedCount: true,
-          invalidCount: true,
-          acceptCount: true,
-        },
-      });
       usingFallback = true;
+
+      // Get all processes without date filtering
+      allProcesses = await prisma.productProtsess.findMany({
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          productPack: true
+        }
+      });
     } else {
-      overallStats = filteredOverallStats;
+      // Get processes within date range
+      allProcesses = await prisma.productProtsess.findMany({
+        where: dateFilter,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          productPack: true
+        }
+      });
     }
 
-    // Calculate overall residueCount
-    const overallSendedCount = overallStats._sum.sendedCount || 0;
-    const overallInvalidCount = overallStats._sum.invalidCount || 0;
-    const overallAcceptCount = overallStats._sum.acceptCount || 0;
-    const overallResidueCount = overallAcceptCount - (overallSendedCount + overallInvalidCount);
+    // Get unique product pack IDs
+    const uniqueProductPackIds = [...new Set(allProcesses.map(process => process.productpackId))];
 
-    // Get all unique departments
-    const uniqueDepartments = await prisma.productPack.findMany({
-      distinct: ["department"],
+    // For each product pack, get the latest process
+    const latestProcessesByProductPack = uniqueProductPackIds.map(packId => {
+      const packProcesses = allProcesses.filter(process => process.productpackId === packId);
+      return packProcesses.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0]; // Get the most recent
+    });
+
+    // Calculate overall stats from the latest entries
+    const overallStats = {
+      sendedCount: 0,
+      invalidCount: 0,
+      acceptCount: 0,
+      residueCount: 0
+    };
+
+    latestProcessesByProductPack.forEach(process => {
+      overallStats.sendedCount += process.sendedCount;
+      overallStats.invalidCount += process.invalidCount;
+      overallStats.acceptCount += process.acceptCount;
+      overallStats.residueCount += process.residueCount;
+    });
+
+    // Get all departments
+    const departments = await prisma.department.findMany({
       select: {
-        department: true,
+        id: true,
+        name: true,
       },
     });
 
     // Get stats aggregated by department
     const formattedProductPackStats = await Promise.all(
-      uniqueDepartments.map(async ({ department }) => {
-        // Get all ProductPacks for this department
+      departments.map(async (department) => {
+        // Get ProductPacks associated with this department
         const productPacksInDepartment = await prisma.productPack.findMany({
           where: {
-            department,
+            departmentId: department.id,
           },
           select: {
             id: true,
@@ -131,36 +153,57 @@ export const getDashboardStatsByDateRange = async (
         // Get the IDs of all ProductPacks in this department
         const productPackIds = productPacksInDepartment.map((pack) => pack.id);
 
-        // Construct department filter with product pack IDs
+        // Get all processes for this department
         const departmentFilter = {
           productpackId: {
-            in: productPackIds,
+            in: productPackIds
           },
-          ...(Object.keys(dateFilter).length > 0 && !usingFallback && dateFilter)
+          ...(Object.keys(dateFilter).length > 0 && !usingFallback ? dateFilter : {})
         };
 
-        // Aggregate stats for this department
-        const processStats = await prisma.productProtsess.aggregate({
+        // Get department processes
+        const departmentProcesses = await prisma.productProtsess.findMany({
           where: departmentFilter,
-          _sum: {
-            sendedCount: true,
-            invalidCount: true,
-            acceptCount: true,
-          },
+          orderBy: {
+            createdAt: 'desc'
+          }
         });
 
-        // Calculate stats for this department
-        const sendedCount = processStats._sum.sendedCount || 0;
-        const invalidCount = processStats._sum.invalidCount || 0;
-        const acceptCount = processStats._sum.acceptCount || 0;
-        const residueCount = acceptCount - (sendedCount + invalidCount);
+        // Get the latest process for each product pack in this department
+        const uniquePackIds = [...new Set(departmentProcesses.map(process => process.productpackId))];
+        const latestDepartmentProcesses = uniquePackIds.map(packId => {
+          const packProcesses = departmentProcesses.filter(process => process.productpackId === packId);
+          return packProcesses.sort((a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+        });
+
+        // Calculate department stats
+        let sendedCount = 0;
+        let invalidCount = 0;
+        let acceptCount = 0;
+        let residueCount = 0;
+
+        latestDepartmentProcesses.forEach(process => {
+          if (process) {
+            sendedCount += process.sendedCount;
+            invalidCount += process.invalidCount;
+            acceptCount += process.acceptCount;
+            residueCount += process.residueCount;
+          }
+        });
+
+        // Calculate if process is complete
+        const protsessIsOver = productPacksInDepartment.length > 0 &&
+          acceptCount > 0 &&
+          sendedCount + invalidCount === acceptCount;
 
         return {
-          id: department,
-          name: department,
-          department,
+          id: department.id,
+          name: department.name,
+          department: department.name,
           totalCount,
-          protsessIsOver: acceptCount === (sendedCount + invalidCount),
+          protsessIsOver,
           sendedCount,
           invalidCount,
           acceptCount,
@@ -181,12 +224,7 @@ export const getDashboardStatsByDateRange = async (
           : "No end date specified",
       },
       usedFallbackData: usingFallback,
-      overallStats: {
-        sendedCount: overallSendedCount,
-        invalidCount: overallInvalidCount,
-        acceptCount: overallAcceptCount,
-        residueCount: overallResidueCount,
-      },
+      overallStats,
       productPackStats: formattedProductPackStats,
     };
 
