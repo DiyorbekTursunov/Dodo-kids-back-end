@@ -61,13 +61,21 @@ export const searchProductsByModel = async (req: Request, res: Response) => {
       };
     });
 
-    // First filter out "Pending" status items
-    let filteredProductPacks = processedProductPacks.filter(pack =>
-      pack.processedStatus !== "Pending"
-    );
+    // First filter out "Pending" status items by default (unless explicitly requested)
+    let filteredProductPacks = statusFilter === "Pending"
+      ? processedProductPacks.filter(pack => pack.processedStatus === "Pending")
+      : processedProductPacks.filter(pack => pack.processedStatus !== "Pending");
 
-    // Then apply the status filter if provided
-    if (statusFilter) {
+    // Special handling for "To'liq yuborilmagan" or "Yuborilgan" status filters
+    if (statusFilter === "To'liq yuborilmagan" || statusFilter === "Yuborilgan") {
+      // Return both statuses together when either is requested
+      filteredProductPacks = processedProductPacks.filter(pack =>
+        pack.processedStatus === "To'liq yuborilmagan" ||
+        pack.processedStatus === "Yuborilgan"
+      );
+    }
+    // Apply other status filters normally if provided (and not one of the special cases)
+    else if (statusFilter && statusFilter !== "Pending") {
       filteredProductPacks = filteredProductPacks.filter(pack =>
         pack.processedStatus === statusFilter
       );

@@ -110,7 +110,19 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
       };
     });
 
-    // Filter by status if provided (exclude Pending status if not explicitly requested)
+    // Special handling for when user requests both "To'liq yuborilmagan" and "Yuborilgan"
+    if (filters.status === "To'liq yuborilmagan" || filters.status === "Yuborilgan") {
+      // If user specifically asks for either status, return both status types
+      const combinedStatusPacks = processedProductPacks.filter(pack =>
+        pack.processedStatus === "To'liq yuborilmagan" || pack.processedStatus === "Yuborilgan"
+      );
+
+      return res.status(200).json({
+        data: combinedStatusPacks
+      });
+    }
+
+    // Regular status filtering (exclude Pending status if not explicitly requested)
     const statusFilteredPacks = filters.status
       ? processedProductPacks.filter(pack => pack.processedStatus === filters.status)
       : processedProductPacks.filter(pack => pack.processedStatus !== "Pending");

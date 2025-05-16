@@ -4,6 +4,7 @@ import { getFilteredProductPacks } from "../controller/filter/filter.controller"
 import { searchProductsByModel } from "../controller/search/search.controller";
 
 
+
 const router = express.Router();
 
 // Product Pack filter route

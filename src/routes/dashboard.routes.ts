@@ -4,19 +4,28 @@ import { getDashboardStatsByDateRange } from "../controller/dashboardController/
 import { getProductPackStats } from "../controller/dashboardController/dashboard.product_pack_id.controller";
 import { getEmployeeStats } from "../controller/dashboardController/dashboard.stats_dp_id.controller";
 import express, { Request, Response, NextFunction } from "express";
+import { getCaseTrackerStatus } from "../controller/filter/filterMap/filter_map.controller";
 
 const router = express.Router();
+
+router.get(
+  "/search-filter-map",
+  (req: Request, res: Response, next: NextFunction) => {
+    getCaseTrackerStatus(req, res).catch(next);
+  }
+);
 
 /**
  * @route GET /api/dashboard/stats
  * @desc Get all dashboard statistics
  * @access Private
  */
-router.get("/stats-all-models-count", (req: Request, res: Response, next: NextFunction) => {
-  getAllModelCounts(req, res).catch(next);
-});
-
-
+router.get(
+  "/stats-all-models-count",
+  (req: Request, res: Response, next: NextFunction) => {
+    getAllModelCounts(req, res).catch(next);
+  }
+);
 
 /**
  * @route GET /api/dashboard/stats/:departmentId

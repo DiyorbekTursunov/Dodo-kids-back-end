@@ -101,6 +101,7 @@ model ProductProtsess {
     productPack      ProductPack @relation(fields: [productpackId], references: [id])
 
     fromWhere        String?     @default("")
+    
 }
 
 enum userRole {

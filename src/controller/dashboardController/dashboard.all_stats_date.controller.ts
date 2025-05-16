@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Dashboard Controller with date range filtering and fallback to all data
+// Dashboard Controller with date range filtering and NO fallback to all data for statistics
 export const getDashboardStatsByDateRange = async (
   req: Request,
   res: Response
@@ -19,6 +19,7 @@ export const getDashboardStatsByDateRange = async (
     let dateFilter = {};
     let parsedStartDate: Date | undefined = undefined;
     let parsedEndDate: Date | undefined = undefined;
+    let usingFallback = false;
 
     if (startDateInput && typeof startDateInput === 'string') {
       try {
@@ -47,80 +48,89 @@ export const getDashboardStatsByDateRange = async (
       }
     }
 
-    // Construct date filter if dates are valid
-    if (parsedStartDate || parsedEndDate) {
-      dateFilter = {
-        createdAt: {
-          ...(parsedStartDate && { gte: parsedStartDate }),
-          ...(parsedEndDate && { lte: parsedEndDate })
-        }
-      };
-    }
-
-    // Get all ProductPack count (not filtered by date)
+    // Get total ProductPack count (not filtered by date)
     const totalProductPacks = await prisma.productPack.count();
 
-    // First check if any data exists in the date range
-    const countInDateRange = await prisma.productProtsess.count({
-      where: dateFilter
-    });
-
-    // For tracking if we had to use fallback data
-    let usingFallback = false;
-    let allProcesses = [];
-
-    // Decide whether to use date filter or all data
-    if (countInDateRange === 0) {
-      console.log('No data in specified date range, falling back to all data');
-      usingFallback = true;
-
-      // Get all processes without date filtering
-      allProcesses = await prisma.productProtsess.findMany({
-        orderBy: {
-          createdAt: 'desc'
-        },
-        include: {
-          productPack: true
-        }
-      });
-    } else {
-      // Get processes within date range
-      allProcesses = await prisma.productProtsess.findMany({
-        where: dateFilter,
-        orderBy: {
-          createdAt: 'desc'
-        },
-        include: {
-          productPack: true
-        }
-      });
-    }
-
-    // Get unique product pack IDs
-    const uniqueProductPackIds = [...new Set(allProcesses.map(process => process.productpackId))];
-
-    // For each product pack, get the latest process
-    const latestProcessesByProductPack = uniqueProductPackIds.map(packId => {
-      const packProcesses = allProcesses.filter(process => process.productpackId === packId);
-      return packProcesses.sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0]; // Get the most recent
-    });
-
-    // Calculate overall stats from the latest entries
-    const overallStats = {
+    // Define empty stats for when no data is found
+    const emptyStats = {
       sendedCount: 0,
       invalidCount: 0,
       acceptCount: 0,
       residueCount: 0
     };
 
-    latestProcessesByProductPack.forEach(process => {
-      overallStats.sendedCount += process.sendedCount;
-      overallStats.invalidCount += process.invalidCount;
-      overallStats.acceptCount += process.acceptCount;
-      overallStats.residueCount += process.residueCount;
-    });
+    let productPacks = [];
+    let overallStats = { ...emptyStats };
+
+    // Only apply date filter if at least one date is valid
+    if (parsedStartDate || parsedEndDate) {
+      // Construct date filter for ProductPack
+      dateFilter = {
+        createdAt: {
+          ...(parsedStartDate && { gte: parsedStartDate }),
+          ...(parsedEndDate && { lte: parsedEndDate })
+        }
+      };
+
+      // Get ProductPacks within date range
+      productPacks = await prisma.productPack.findMany({
+        where: dateFilter,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          status: {
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      });
+
+      if (productPacks.length === 0) {
+        console.log('No data in specified date range');
+        // Keep overallStats as zeros
+      } else {
+        // Calculate overall stats from ProductPacks in the date range
+        productPacks.forEach(pack => {
+          if (pack.status && pack.status.length > 0) {
+            const latestStatus = pack.status[0]; // Already ordered by createdAt desc
+            overallStats.sendedCount += latestStatus.sendedCount;
+            overallStats.invalidCount += latestStatus.invalidCount;
+            overallStats.acceptCount += latestStatus.acceptCount;
+            overallStats.residueCount += latestStatus.residueCount;
+          }
+        });
+      }
+    } else {
+      // If dates are not valid, get all data
+      console.log('Invalid date parameters, using all data');
+      usingFallback = true;
+
+      productPacks = await prisma.productPack.findMany({
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          status: {
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      });
+
+      // Calculate stats from all data when falling back
+      productPacks.forEach(pack => {
+        if (pack.status && pack.status.length > 0) {
+          const latestStatus = pack.status[0]; // Already ordered by createdAt desc
+          overallStats.sendedCount += latestStatus.sendedCount;
+          overallStats.invalidCount += latestStatus.invalidCount;
+          overallStats.acceptCount += latestStatus.acceptCount;
+          overallStats.residueCount += latestStatus.residueCount;
+        }
+      });
+    }
 
     // Get all departments
     const departments = await prisma.department.findMany({
@@ -133,16 +143,35 @@ export const getDashboardStatsByDateRange = async (
     // Get stats aggregated by department
     const formattedProductPackStats = await Promise.all(
       departments.map(async (department) => {
-        // Get ProductPacks associated with this department
+        // Get ProductPacks associated with this department, applying date filter if applicable
         const productPacksInDepartment = await prisma.productPack.findMany({
           where: {
             departmentId: department.id,
+            ...(Object.keys(dateFilter).length > 0 ? dateFilter : {})
           },
-          select: {
-            id: true,
-            totalCount: true,
-          },
+          include: {
+            status: {
+              orderBy: {
+                createdAt: 'desc'
+              }
+            }
+          }
         });
+
+        // If no data for this department in the date range, return zeros
+        if (productPacksInDepartment.length === 0) {
+          return {
+            id: department.id,
+            name: department.name,
+            department: department.name,
+            totalCount: 0,
+            protsessIsOver: false,
+            sendedCount: 0,
+            invalidCount: 0,
+            acceptCount: 0,
+            residueCount: 0,
+          };
+        }
 
         // Sum up totalCount for this department
         const totalCount = productPacksInDepartment.reduce(
@@ -150,46 +179,19 @@ export const getDashboardStatsByDateRange = async (
           0
         );
 
-        // Get the IDs of all ProductPacks in this department
-        const productPackIds = productPacksInDepartment.map((pack) => pack.id);
-
-        // Get all processes for this department
-        const departmentFilter = {
-          productpackId: {
-            in: productPackIds
-          },
-          ...(Object.keys(dateFilter).length > 0 && !usingFallback ? dateFilter : {})
-        };
-
-        // Get department processes
-        const departmentProcesses = await prisma.productProtsess.findMany({
-          where: departmentFilter,
-          orderBy: {
-            createdAt: 'desc'
-          }
-        });
-
-        // Get the latest process for each product pack in this department
-        const uniquePackIds = [...new Set(departmentProcesses.map(process => process.productpackId))];
-        const latestDepartmentProcesses = uniquePackIds.map(packId => {
-          const packProcesses = departmentProcesses.filter(process => process.productpackId === packId);
-          return packProcesses.sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )[0];
-        });
-
-        // Calculate department stats
+        // Calculate department stats from the latest status of each product pack
         let sendedCount = 0;
         let invalidCount = 0;
         let acceptCount = 0;
         let residueCount = 0;
 
-        latestDepartmentProcesses.forEach(process => {
-          if (process) {
-            sendedCount += process.sendedCount;
-            invalidCount += process.invalidCount;
-            acceptCount += process.acceptCount;
-            residueCount += process.residueCount;
+        productPacksInDepartment.forEach(pack => {
+          if (pack.status && pack.status.length > 0) {
+            const latestStatus = pack.status[0]; // Already ordered by createdAt desc
+            sendedCount += latestStatus.sendedCount;
+            invalidCount += latestStatus.invalidCount;
+            acceptCount += latestStatus.acceptCount;
+            residueCount += latestStatus.residueCount;
           }
         });
 
@@ -225,7 +227,7 @@ export const getDashboardStatsByDateRange = async (
       },
       usedFallbackData: usingFallback,
       overallStats,
-      productPackStats: formattedProductPackStats,
+      departmentStats: formattedProductPackStats,
     };
 
     return res.status(200).json({
