@@ -15,11 +15,13 @@ interface FormattedProductPack {
     model: string;
     createdAt: Date;
     updatedAt: Date;
+    color?: { id: string; name: string }[];
+    size?: { id: string; name: string }[];
   };
   totalCount: number;
   isSent: boolean;
   status: string;
-  processedStatus: string; // Added to match the product packs filter
+  processedStatus: string;
 }
 
 interface GroupedProductPacks {
@@ -39,7 +41,9 @@ interface CaseTrackerFilterParams {
   searchName?: string | undefined;
   departmentId?: string | undefined;
   status?: string | undefined;
-  includePending?: boolean | undefined; // New parameter to control Pending items
+  includePending?: boolean | undefined;
+  colorId?: string | undefined;
+  sizeId?: string | undefined;
 }
 
 /**
@@ -74,14 +78,16 @@ function extractCaseTrackerFilterParams(req: Request): CaseTrackerFilterParams {
     searchName: getSearchName(),
     departmentId: safeGetValue('departmentId'),
     status: safeGetValue('status'),
-    includePending: getIncludePending()
+    includePending: getIncludePending(),
+    colorId: safeGetValue('colorId'),
+    sizeId: safeGetValue('sizeId')
   };
 }
 
 /**
  * Get case tracker status for product packs with filtering options
  * Returns status information grouped by parentIds
- * Supports filtering by date range, name/model search, department and status
+ * Supports filtering by date range, name/model search, department, status, color, and size
  */
 export const getCaseTrackerStatus = async (req: Request, res: Response) => {
   try {
@@ -129,25 +135,62 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
       queryFilter.departmentId = filters.departmentId;
     }
 
+    // FIXED: Simplify the color and size filtering logic
+    // This is more direct and has better performance
+    if (filters.colorId) {
+      queryFilter.Product = {
+        ...(queryFilter.Product || {}),
+        color: {
+          some: {
+            id: filters.colorId
+          }
+        }
+      };
+    }
+
+    if (filters.sizeId) {
+      queryFilter.Product = {
+        ...(queryFilter.Product || {}),
+        size: {
+          some: {
+            id: filters.sizeId
+          }
+        }
+      };
+    }
+
     // Apply name search filter for both product name and model
     if (filters.searchName) {
-      queryFilter.OR = [
-        {
-          name: {
-            contains: filters.searchName,
-            mode: "insensitive" as const
-          }
-        },
-        {
-          Product: {
-            model: {
+      const searchConditions = {
+        OR: [
+          {
+            name: {
               contains: filters.searchName,
               mode: "insensitive" as const
             }
+          },
+          {
+            Product: {
+              model: {
+                contains: filters.searchName,
+                mode: "insensitive" as const
+              }
+            }
           }
-        }
-      ];
+        ]
+      };
+
+      // Merge with existing conditions
+      if (Object.keys(queryFilter).length > 0) {
+        queryFilter.AND = queryFilter.AND || [];
+        queryFilter.AND.push(searchConditions);
+      } else {
+        Object.assign(queryFilter, searchConditions);
+      }
     }
+
+    // Debug log to inspect the final query filter
+    console.log('Final Prisma query filter:', JSON.stringify(queryFilter, null, 2));
 
     // Get product packs with applied filters and their latest status
     const productPacks = await prisma.productPack.findMany({
@@ -158,20 +201,31 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
             id: true,
             model: true,
             createdAt: true,
-            updatedAt: true
+            updatedAt: true,
+            color: true,  // Include color relation
+            size: true    // Include size relation
           },
         },
         status: {
           orderBy: {
             date: "desc",
           },
-          // Include all status records to have complete info
         },
       },
       orderBy: {
         createdAt: 'desc'
       }
     });
+
+    // Debug log for raw results
+    console.log('Raw product packs count:', productPacks.length);
+    if (productPacks.length > 0) {
+      console.log('Sample product pack color data:',
+        productPacks[0].Product.color ?
+        JSON.stringify(productPacks[0].Product.color, null, 2) :
+        'No color data'
+      );
+    }
 
     // Format individual product packs
     let formattedPacks = productPacks.map(pack => {
@@ -196,14 +250,6 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
         }
       }
 
-      // Debug log to help diagnose status issues
-      console.log(`Processing pack ${pack.id}:`, {
-        rawStatus,
-        processedStatus,
-        sendedCount: latestStatus?.sendedCount,
-        acceptCount: latestStatus?.acceptCount
-      });
-
       return {
         id: pack.id,
         name: pack.name,
@@ -214,12 +260,14 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
           id: pack.Product.id,
           model: pack.Product.model,
           createdAt: pack.Product.createdAt,
-          updatedAt: pack.Product.updatedAt
+          updatedAt: pack.Product.updatedAt,
+          color: pack.Product.color,  // Include colors from the relation
+          size: pack.Product.size     // Include sizes from the relation
         },
         totalCount: pack.totalCount,
         isSent: processedStatus === "Yuborilgan",
         status: rawStatus,
-        processedStatus: processedStatus,
+        processedStatus: processedStatus
       };
     });
 
@@ -237,7 +285,9 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
         pack.status !== "Pending" && pack.processedStatus !== "Pending"
       );
     }
-    // If includePending is true or a specific status is requested, don't filter out pending
+
+    // Debug log for status filtering
+    console.log('After status filtering count:', formattedPacks.length);
 
     // Group by parentId with proper TypeScript typing
     const groupedByParent: GroupByParentMap = {};
