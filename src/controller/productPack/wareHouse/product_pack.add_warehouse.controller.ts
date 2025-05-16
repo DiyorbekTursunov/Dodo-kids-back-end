@@ -89,6 +89,7 @@ export const addWareHouse = async (req: Request, res: Response) => {
           status: "Qabul qilingan",
           departmentId,
           productpackId: newProductPack.id, // Use the new product pack ID
+          targetDepartment: "",
           employeeId,
           acceptCount: Number(totalCount),
           sendedCount: 0,
