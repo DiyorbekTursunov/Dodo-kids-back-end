@@ -8,7 +8,7 @@ import { getSentProductPacks } from "../controller/productPack/sendToDepartment/
 import { getAccesltenceProductPacks } from "../controller/productPack/acceptanceToDepartment/product_pack.get_all_by_dp_id.controller";
 import { getPandingProductPacks } from "../controller/productPack/get/getPanding.controller";
 import { getProductPackById } from "../controller/productPack/get/getDetailPage.controller";
-import { getCaseTrackerStatus } from "../controller/productPack/get/getMapPage.controller";
+import { getConsolidatedCaseTrackerStatus } from "../controller/productPack/get/getMapPage.controller";
 import { forceDeleteAllHandler } from "../controller/del/del";
 
 const router = express.Router();
@@ -33,7 +33,7 @@ router.get(
   "/status-map",
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
-    getCaseTrackerStatus(req, res).catch(next);
+    getConsolidatedCaseTrackerStatus(req, res).catch(next);
   }
 );
 

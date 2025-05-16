@@ -178,8 +178,6 @@ export const sendToDepartment = async (req: Request, res: Response) => {
           create: {
             protsessIsOver: false,
             status: "Pending", // Initial status is "Pending"
-            fromWhere:
-              actualTargetDepartmentName === "chistka" ? "Autsorsdan" : "",
             departmentName: actualTargetDepartmentName,
             departmentId: actualTargetDepartmentId,
             targetDepartment: sourceProductPack.department,

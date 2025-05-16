@@ -5,14 +5,22 @@ import { getDepartments } from "../controller/department/department.get_all.cont
 import { getDepartmentById } from "../controller/department/department.get_id.controller";
 import { updateDepartment } from "../controller/department/department.update.controller";
 import express, { Request, Response, NextFunction } from "express";
+import { getNextDepartments } from "../controller/department/departmentflow/department.flow.controller";
 
 const router = express.Router();
 
 router.post(
   "/",
-    // authenticate,
+  // authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     createDepartment(req, res).catch(next);
+  }
+);
+
+router.get(
+  "/next/:departmentId",
+  (req: Request, res: Response, next: NextFunction) => {
+    getNextDepartments(req, res).catch(next);
   }
 );
 

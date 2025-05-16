@@ -9,8 +9,10 @@ export const deleteDepartment = async (req: Request, res: Response) => {
 
   try {
     await prisma.department.delete({ where: { id } });
+
     res.status(204).send();
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 };

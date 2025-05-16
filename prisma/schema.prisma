@@ -99,9 +99,6 @@ model ProductProtsess {
     invalidReason    String
     department       Department  @relation(fields: [departmentId], references: [id])
     productPack      ProductPack @relation(fields: [productpackId], references: [id])
-
-    fromWhere        String?     @default("")
-    
 }
 
 enum userRole {
