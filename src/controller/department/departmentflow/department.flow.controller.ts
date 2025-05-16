@@ -2,21 +2,31 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
-export const departmentFlowMap: Record<string, string[]> = {
+const prisma = new PrismaClient();
+
+// All routes, including reverse for pechat -> tasnif
+const departmentFlowMap: Record<string, string[]> = {
   ombor: ["bichuv"],
   bichuv: ["tasnif"],
-  tasnif: ["pechat", "AutsorsPechat"],
+  tasnif: ["pechat", "autsorsPechat", "tikuv", "autsorsTikuv"],
   pechat: ["tasnif"],
-  AutsorsPechat: ["tasnif"],
+  autsorsPechat: ["tasnif"],
   tikuv: ["chistka"],
-  AutsorsTikuv: ["chistka"],
-  chistka: ["Chiska"],
-  Chiska: ["kontrol"],
-  kontrol: ["Dazmol"],
-  Dazmol: ["Upakofka"],
+  autsorsTikuv: ["chistka"],
+  chistka: ["chistka kontrol"], // 👈 after chistka comes kontrol
+  "chistka kontrol": ["dazmol"],
+  dazmol: ["upakofka"],
+  upakofka: ["ombor"], // 👈 loop back to start
 };
 
-const prisma = new PrismaClient();
+// Normalize outsourced versions to their group name
+const normalizeDepartment = (name: string): string => {
+  const map: Record<string, string> = {
+    autsorsPechat: "pechat",
+    autsorsTikuv: "tikuv",
+  };
+  return map[name] || name;
+};
 
 export const getNextDepartments = async (req: Request, res: Response) => {
   const { departmentId } = req.params;
@@ -31,21 +41,16 @@ export const getNextDepartments = async (req: Request, res: Response) => {
     }
 
     const currentDeptName = department.name;
+    const normalizedName = normalizeDepartment(currentDeptName);
 
-    const nextDepartments = departmentFlowMap[currentDeptName];
+    // Get next department names based on current
+    const nextNames = departmentFlowMap[currentDeptName] || [];
 
-    if (!nextDepartments) {
-      return res.status(200).json({
-        success: true,
-        message: "No next departments defined for this department.",
-        data: [],
-      });
-    }
-
+    // Fetch next departments from DB
     const resolvedDepartments = await prisma.department.findMany({
       where: {
         name: {
-          in: nextDepartments,
+          in: nextNames,
         },
       },
     });
@@ -56,7 +61,7 @@ export const getNextDepartments = async (req: Request, res: Response) => {
       nextDepartments: resolvedDepartments,
     });
   } catch (error) {
-    console.error("Error fetching next departments:", error);
+    console.error("Error:", error);
     return res.status(500).json({
       success: false,
       error: "Internal server error",
