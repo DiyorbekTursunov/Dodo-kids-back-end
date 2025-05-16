@@ -91,6 +91,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
           protsessIsOver: isQadoqlashDepartment,
           status: "Qabul qilingan",
           departmentId: productPack.departmentId,
+          targetDepartment: "",
           productpackId: productPackId,
           employeeId,
           acceptCount,
