@@ -64,12 +64,13 @@ function extractCaseTrackerFilterParams(req: Request): CaseTrackerFilterParams {
            safeGetValue('name');
   };
 
-  // Get includePending parameter with a default value
+  // Get includePending parameter - default to TRUE unless explicitly set to false
   const getIncludePending = (): boolean => {
     const includePendingParam = safeGetValue('includePending');
-    if (includePendingParam === 'true') return true;
-    if (includePendingParam === '1') return true;
-    return false;
+    // Only return false if explicitly set to false/0
+    if (includePendingParam === 'false') return false;
+    if (includePendingParam === '0') return false;
+    return true; // Default to true - include pending items
   };
 
   return {
@@ -99,34 +100,39 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
     // Build the filter for the Prisma query
     const queryFilter: any = {};
 
-    // Parse and apply date filters only if they exist
-    if (filters.startDate) {
-      try {
-        const parsedStartDate = new Date(filters.startDate);
-        if (!isNaN(parsedStartDate.getTime())) {
-          if (!queryFilter.createdAt) queryFilter.createdAt = {};
-          queryFilter.createdAt.gte = parsedStartDate;
-        } else {
-          console.error('Invalid start date format:', filters.startDate);
-        }
-      } catch (e) {
-        console.error('Error parsing start date:', e);
-      }
-    }
+    // Parse and apply date filters correctly
+    if (filters.startDate || filters.endDate) {
+      // Create date range filter directly on ProductPack creation date
+      queryFilter.createdAt = {};
 
-    if (filters.endDate) {
-      try {
-        const parsedEndDate = new Date(filters.endDate);
-        if (!isNaN(parsedEndDate.getTime())) {
-          // Add one day to include the entire end date
-          parsedEndDate.setHours(23, 59, 59, 999);
-          if (!queryFilter.createdAt) queryFilter.createdAt = {};
-          queryFilter.createdAt.lte = parsedEndDate;
-        } else {
-          console.error('Invalid end date format:', filters.endDate);
+      if (filters.startDate) {
+        try {
+          const parsedStartDate = new Date(filters.startDate);
+          if (!isNaN(parsedStartDate.getTime())) {
+            queryFilter.createdAt.gte = parsedStartDate;
+            console.log('Applying start date filter:', parsedStartDate);
+          } else {
+            console.error('Invalid start date format:', filters.startDate);
+          }
+        } catch (e) {
+          console.error('Error parsing start date:', e);
         }
-      } catch (e) {
-        console.error('Error parsing end date:', e);
+      }
+
+      if (filters.endDate) {
+        try {
+          const parsedEndDate = new Date(filters.endDate);
+          if (!isNaN(parsedEndDate.getTime())) {
+            // Add one day to include the entire end date
+            parsedEndDate.setHours(23, 59, 59, 999);
+            queryFilter.createdAt.lte = parsedEndDate;
+            console.log('Applying end date filter:', parsedEndDate);
+          } else {
+            console.error('Invalid end date format:', filters.endDate);
+          }
+        } catch (e) {
+          console.error('Error parsing end date:', e);
+        }
       }
     }
 
@@ -135,57 +141,60 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
       queryFilter.departmentId = filters.departmentId;
     }
 
-    // FIXED: Simplify the color and size filtering logic
-    // This is more direct and has better performance
-    if (filters.colorId) {
+    // Apply color and size filtering logic
+    if (filters.colorId || filters.sizeId) {
       queryFilter.Product = {
-        ...(queryFilter.Product || {}),
-        color: {
+        ...(queryFilter.Product || {})
+      };
+
+      if (filters.colorId) {
+        queryFilter.Product.color = {
           some: {
             id: filters.colorId
           }
-        }
-      };
-    }
+        };
+      }
 
-    if (filters.sizeId) {
-      queryFilter.Product = {
-        ...(queryFilter.Product || {}),
-        size: {
+      if (filters.sizeId) {
+        queryFilter.Product.size = {
           some: {
             id: filters.sizeId
           }
-        }
-      };
+        };
+      }
     }
 
     // Apply name search filter for both product name and model
     if (filters.searchName) {
-      const searchConditions = {
-        OR: [
-          {
-            name: {
-              contains: filters.searchName,
-              mode: "insensitive" as const
-            }
-          },
-          {
-            Product: {
-              model: {
-                contains: filters.searchName,
+      const searchTerm = filters.searchName.trim();
+
+      if (searchTerm) {
+        const searchConditions = {
+          OR: [
+            {
+              name: {
+                contains: searchTerm,
                 mode: "insensitive" as const
               }
+            },
+            {
+              Product: {
+                model: {
+                  contains: searchTerm,
+                  mode: "insensitive" as const
+                }
+              }
             }
-          }
-        ]
-      };
+          ]
+        };
 
-      // Merge with existing conditions
-      if (Object.keys(queryFilter).length > 0) {
-        queryFilter.AND = queryFilter.AND || [];
-        queryFilter.AND.push(searchConditions);
-      } else {
-        Object.assign(queryFilter, searchConditions);
+        // Merge with existing conditions
+        if (Object.keys(queryFilter).length > 0) {
+          queryFilter.AND = queryFilter.AND || [];
+          queryFilter.AND.push(searchConditions);
+        } else {
+          Object.assign(queryFilter, searchConditions);
+        }
       }
     }
 
@@ -233,16 +242,14 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
       const latestStatus = pack.status.length > 0 ? pack.status[0] : null;
       const rawStatus = latestStatus?.status || "";
 
-      // Check if the status field already contains processed values like "To'liq yuborilmagan"
-      // or if we need to calculate them
+      // Determine the processed status
       let processedStatus = rawStatus;
 
-      // Special statuses that might need processing
+      // Special statuses that are already processed
       const specialStatuses = ["Pending", "Qabul qilingan", "To'liq yuborilmagan", "Yuborilgan"];
 
-      // If the status isn't already one of our special processed values, calculate it
+      // Calculate the processed status if needed
       if (!specialStatuses.includes(rawStatus) && latestStatus) {
-        // Apply original logic to calculate processedStatus
         if (latestStatus.sendedCount < latestStatus.acceptCount) {
           processedStatus = "To'liq yuborilmagan";
         } else {
@@ -261,8 +268,8 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
           model: pack.Product.model,
           createdAt: pack.Product.createdAt,
           updatedAt: pack.Product.updatedAt,
-          color: pack.Product.color,  // Include colors from the relation
-          size: pack.Product.size     // Include sizes from the relation
+          color: pack.Product.color,
+          size: pack.Product.size
         },
         totalCount: pack.totalCount,
         isSent: processedStatus === "Yuborilgan",
@@ -273,21 +280,20 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
 
     // Apply status filter if provided (post-database filter)
     if (filters.status) {
-      // Handle both raw status and processed status in filtering
-      const filterStatus = filters.status;
-      formattedPacks = formattedPacks.filter(pack =>
-        pack.status === filterStatus || pack.processedStatus === filterStatus
+      const status = filters.status.trim();
+      formattedPacks = formattedPacks.filter(
+        (p) => p.status === status || p.processedStatus === status
       );
-    } else if (!filters.includePending) {
-      // If includePending is false and no specific status is requested,
-      // exclude Pending status by default
-      formattedPacks = formattedPacks.filter(pack =>
-        pack.status !== "Pending" && pack.processedStatus !== "Pending"
+    } else if (filters.includePending === false) {
+      // Only exclude pending if explicitly told to
+      console.log('Excluding pending items as includePending is false');
+      formattedPacks = formattedPacks.filter(
+        (p) => p.status !== "Pending" && p.processedStatus !== "Pending"
       );
+    } else {
+      // Log that we're including all items including pending
+      console.log('Including all items (including pending) as includePending is not explicitly false');
     }
-
-    // Debug log for status filtering
-    console.log('After status filtering count:', formattedPacks.length);
 
     // Group by parentId with proper TypeScript typing
     const groupedByParent: GroupByParentMap = {};
