@@ -8,18 +8,18 @@ datasource db {
 }
 
 model Color {
-    id        String        @id @default(uuid())
-    name      String        @unique
-    createdAt DateTime      @default(now())
-    updatedAt DateTime      @updatedAt
+    id               String             @id @default(uuid())
+    name             String             @unique
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
     ProductColorSize ProductColorSize[]
 }
 
 model Size {
-    id        String        @id @default(uuid())
-    name      String        @unique
-    createdAt DateTime      @default(now())
-    updatedAt DateTime      @updatedAt
+    id               String             @id @default(uuid())
+    name             String             @unique
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
     ProductColorSize ProductColorSize[]
 }
 
@@ -69,32 +69,32 @@ model ProductPack {
 }
 
 model Product {
-    id          String        @id @default(uuid())
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    ProductPack ProductPack[]
+    id           String        @id @default(uuid())
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    ProductPack  ProductPack[]
     productTypes ProductType[]
 }
 
 model ProductType {
-    id          String        @id @default(uuid())
-    name        String
-    material    String
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    productId   String
-    product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups  SizeGroup[]
+    id         String      @id @default(uuid())
+    name       String
+    totalCount Int
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    productId  String
+    product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+    sizeGroups SizeGroup[]
 }
 
 model SizeGroup {
-    id            String        @id @default(uuid())
+    id            String             @id @default(uuid())
     size          String
     quantity      Int
-    createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt
+    createdAt     DateTime           @default(now())
+    updatedAt     DateTime           @updatedAt
     productTypeId String
-    productType   ProductType   @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+    productType   ProductType        @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
     colorSizes    ProductColorSize[]
 }
 

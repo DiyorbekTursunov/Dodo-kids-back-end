@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 /**
- * Create a complex product with multiple product types, sizes, and colors
+ * Update the controller to handle Size references
  */
 export const createProduct = async (req: Request, res: Response) => {
   const { productTypes } = req.body;
@@ -21,20 +21,25 @@ export const createProduct = async (req: Request, res: Response) => {
         productTypes: {
           create: productTypes.map((productType: any) => ({
             name: productType.name,
-            material: productType.material,
+            totalCount: productType.totalCount,
             sizeGroups: {
               create: productType.sizeGroups.map((sizeGroup: any) => ({
                 size: sizeGroup.size,
                 quantity: parseInt(sizeGroup.quantity),
                 colorSizes: {
                   create: sizeGroup.colors.map((color: any) => {
-                    // Check if color already exists
                     return {
                       quantity: parseInt(color.quantity),
                       color: {
                         connectOrCreate: {
                           where: { name: color.name.toLowerCase() },
                           create: { name: color.name.toLowerCase() }
+                        }
+                      },
+                      size: {
+                        connectOrCreate: {
+                          where: { name: color.sizeName || sizeGroup.size },
+                          create: { name: color.sizeName || sizeGroup.size }
                         }
                       }
                     };
@@ -52,7 +57,8 @@ export const createProduct = async (req: Request, res: Response) => {
               include: {
                 colorSizes: {
                   include: {
-                    color: true
+                    color: true,
+                    size: true
                   }
                 }
               }
