@@ -181,6 +181,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
             departmentName: actualTargetDepartmentName,
             departmentId: actualTargetDepartmentId,
             targetDepartment: sourceProductPack.department,
+            acceptanceDepartment: actualTargetDepartmentName,
             employeeId,
             acceptCount: 0, // Will be updated when target department accepts
             sendedCount: 0,

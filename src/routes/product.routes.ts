@@ -1,4 +1,4 @@
-import { getAllProducts } from "../controller/product/product.get_all.controller";
+// import { getAllProducts } from "../controller/product/product.get_all.controller";
 import { createProduct } from "../controller/product/product.create.controller";
 import { Router, Request, Response, NextFunction } from "express";
 import { authenticate } from "../middleware/authMiddleware";
@@ -13,12 +13,12 @@ router.post(
   }
 );
 
-router.get(
-  "/",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    getAllProducts(req, res).catch(next);
-  }
-);
+// router.get(
+//   "/",
+//   authenticate,
+//   (req: Request, res: Response, next: NextFunction) => {
+//     getAllProducts(req, res).catch(next);
+//   }
+// );
 
 export default router;

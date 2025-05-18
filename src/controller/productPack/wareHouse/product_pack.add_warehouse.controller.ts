@@ -90,6 +90,7 @@ export const addWareHouse = async (req: Request, res: Response) => {
           departmentId,
           productpackId: newProductPack.id, // Use the new product pack ID
           targetDepartment: "ombor",
+          acceptanceDepartment: "",
           employeeId,
           acceptCount: Number(totalCount),
           sendedCount: 0,
