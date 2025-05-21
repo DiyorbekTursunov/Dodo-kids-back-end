@@ -1,278 +1,141 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+// product.controller.ts
+import { PrismaClient } from '@prisma/client';
+import { Request, Response } from 'express';
 
 const prisma = new PrismaClient();
 
-/**
- * Update the controller to handle Size references
- */
-export const createProduct = async (req: Request, res: Response) => {
-  const { productTypes } = req.body;
+// Define TypeScript interfaces for the request body
+interface ColorSizeRequest {
+  colorId: string;
+  sizeId: string;
+  quantity: number;
+}
 
+interface SizeGroupRequest {
+  size: string;
+  quantity: number;
+  colorSizes: ColorSizeRequest[];
+}
+
+interface ProductSettingRequest {
+  totalCount: number;
+  sizeGroups: SizeGroupRequest[];
+}
+
+interface ProductPackRequest {
+  invoiceId: string; // Required: ID of existing invoice
+  productSettings: ProductSettingRequest[];
+}
+
+interface ProductRequest {
+  name: string;
+  productPacks: ProductPackRequest[];
+}
+
+// Request can be a single product or an array of products
+type ProductsRequest = ProductRequest | ProductRequest[];
+
+export const createProducts = async (req: Request, res: Response): Promise<Response> => {
   try {
-    // Input validation
-    if (!productTypes || !Array.isArray(productTypes) || productTypes.length === 0) {
-      return res.status(400).json({ error: "At least one product type is required" });
-    }
+    const productsData: ProductsRequest = req.body;
 
-    // Create product with nested relations
-    const product = await prisma.product.create({
-      data: {
-        productTypes: {
-          create: productTypes.map((productType: any) => ({
-            name: productType.name,
-            totalCount: productType.totalCount,
-            sizeGroups: {
-              create: productType.sizeGroups.map((sizeGroup: any) => ({
-                size: sizeGroup.size,
-                quantity: parseInt(sizeGroup.quantity),
-                colorSizes: {
-                  create: sizeGroup.colors.map((color: any) => {
-                    return {
-                      quantity: parseInt(color.quantity),
-                      color: {
-                        connectOrCreate: {
-                          where: { name: color.name.toLowerCase() },
-                          create: { name: color.name.toLowerCase() }
-                        }
-                      },
-                      size: {
-                        connectOrCreate: {
-                          where: { name: color.sizeName || sizeGroup.size },
-                          create: { name: color.sizeName || sizeGroup.size }
-                        }
-                      }
-                    };
-                  })
-                }
-              }))
-            }
-          }))
+    // Convert to array if single product
+    const productArray: ProductRequest[] = Array.isArray(productsData) ? productsData : [productsData];
+
+    const createdProducts = [];
+
+    // Process each product in sequence to ensure proper connections
+    for (const productData of productArray) {
+      // 1. First create the product
+      const product = await prisma.product.create({
+        data: {
+          name: productData.name,
         }
-      },
-      include: {
-        productTypes: {
-          include: {
-            sizeGroups: {
-              include: {
-                colorSizes: {
-                  include: {
-                    color: true,
-                    size: true
+      });
+
+      // 2. For each product pack, create it and connect to the product and invoice
+      for (const pack of productData.productPacks) {
+        // Verify invoice exists
+        const invoice = await prisma.invoice.findUnique({
+          where: { id: pack.invoiceId }
+        });
+
+        if (!invoice) {
+          throw new Error(`Invoice with ID ${pack.invoiceId} not found`);
+        }
+
+        // Create the product pack
+        const productPack = await prisma.productPack.create({
+          data: {
+            Product: { connect: { id: product.id } },
+            Invoice: { connect: { id: pack.invoiceId } }
+          }
+        });
+
+        // 3. Create product settings and connect them to both product and product pack
+        for (const setting of pack.productSettings) {
+          await prisma.productSetting.create({
+            data: {
+              totalCount: setting.totalCount,
+              product: { connect: { id: product.id } },
+              productPack: { connect: { id: productPack.id } },
+              sizeGroups: {
+                create: setting.sizeGroups.map((group) => ({
+                  size: group.size,
+                  quantity: group.quantity,
+                  colorSizes: {
+                    create: group.colorSizes.map((colorSize) => ({
+                      quantity: colorSize.quantity,
+                      color: { connect: { id: colorSize.colorId } },
+                      size: { connect: { id: colorSize.sizeId } }
+                    }))
                   }
-                }
+                }))
               }
             }
-          }
+          });
         }
       }
-    });
 
-    res.status(201).json(product);
-  } catch (err) {
-    console.error("Error creating product:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
-    });
-  }
-};
-
-/**
- * Get product by id with all nested relations
- */
-export const getProductById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        productTypes: {
-          include: {
-            sizeGroups: {
-              include: {
-                colorSizes: {
-                  include: {
-                    color: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-
-    res.json(product);
-  } catch (err) {
-    console.error("Error fetching product:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
-    });
-  }
-};
-
-/**
- * Get all products with nested relations
- */
-export const getAllProducts = async (_req: Request, res: Response) => {
-  try {
-    const products = await prisma.product.findMany({
-      include: {
-        productTypes: {
-          include: {
-            sizeGroups: {
-              include: {
-                colorSizes: {
-                  include: {
-                    color: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    res.json(products);
-  } catch (err) {
-    console.error("Error fetching products:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
-    });
-  }
-};
-
-/**
- * Update a product and its nested relations
- */
-export const updateProduct = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { productTypes } = req.body;
-
-  try {
-    // Check if product exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        productTypes: {
-          include: {
-            sizeGroups: {
-              include: {
-                colorSizes: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!existingProduct) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-
-    // Delete existing relations to replace them
-    // This is a simple approach - a more sophisticated one would update existing records
-    await prisma.$transaction([
-      ...existingProduct.productTypes.flatMap(pt =>
-        pt.sizeGroups.map(sg =>
-          prisma.productColorSize.deleteMany({
-            where: { sizeGroupId: sg.id }
-          })
-        )
-      ),
-      ...existingProduct.productTypes.map(pt =>
-        prisma.sizeGroup.deleteMany({
-          where: { productTypeId: pt.id }
-        })
-      ),
-      prisma.productType.deleteMany({
-        where: { productId: id }
-      })
-    ]);
-
-    // Create new relations
-    const updatedProduct = await prisma.product.update({
-      where: { id },
-      data: {
-        productTypes: {
-          create: productTypes.map((productType: any) => ({
-            name: productType.name,
-            material: productType.material,
-            sizeGroups: {
-              create: productType.sizeGroups.map((sizeGroup: any) => ({
-                size: sizeGroup.size,
-                quantity: parseInt(sizeGroup.quantity),
-                colorSizes: {
-                  create: sizeGroup.colors.map((color: any) => {
-                    return {
-                      quantity: parseInt(color.quantity),
-                      color: {
-                        connectOrCreate: {
-                          where: { name: color.name.toLowerCase() },
-                          create: { name: color.name.toLowerCase() }
+      // Fetch the complete product with all its relations
+      const completedProduct = await prisma.product.findUnique({
+        where: { id: product.id },
+        include: {
+          ProductPack: {
+            include: {
+              Invoice: true,
+              productSettings: {
+                include: {
+                  sizeGroups: {
+                    include: {
+                      colorSizes: {
+                        include: {
+                          color: true,
+                          size: true
                         }
                       }
-                    };
-                  })
-                }
-              }))
-            }
-          }))
-        }
-      },
-      include: {
-        productTypes: {
-          include: {
-            sizeGroups: {
-              include: {
-                colorSizes: {
-                  include: {
-                    color: true
+                    }
                   }
                 }
               }
             }
           }
         }
-      }
+      });
+
+      createdProducts.push(completedProduct);
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: createdProducts
     });
-
-    res.json(updatedProduct);
-  } catch (err) {
-    console.error("Error updating product:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
-    });
-  }
-};
-
-/**
- * Delete a product and all its nested relations
- */
-export const deleteProduct = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    await prisma.product.delete({
-      where: { id }
-    });
-
-    res.json({ message: "Product deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting product:", err);
-    res.status(500).json({
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? (err as Error).message : undefined,
+  } catch (error) {
+    console.error('Error creating products:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create products',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };

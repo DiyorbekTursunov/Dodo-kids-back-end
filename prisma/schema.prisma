@@ -23,6 +23,23 @@ model Size {
     ProductColorSize ProductColorSize[]
 }
 
+model File {
+    id        String   @id @default(uuid())
+    fileName  String
+    path      String
+    mimeType  String
+    size      Int
+    fileType  FileType
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum FileType {
+    IMAGE
+    DOCUMENT
+    OTHER
+}
+
 model Department {
     id              String            @id @default(uuid())
     name            String            @unique
@@ -53,32 +70,54 @@ model User {
     Employee  Employee[]
 }
 
-model ProductPack {
-    id             String            @id @default(uuid())
-    name           String?
+model Invoice {
+    id     String @id @default(uuid())
+    number Int
+
     perentId       String
     protsessIsOver Boolean           @default(false)
     departmentId   String
     department     String
-    createdAt      DateTime          @default(now())
-    updatedAt      DateTime          @updatedAt
     productId      String
     totalCount     Int
     Product        Product           @relation(fields: [productId], references: [id])
     status         ProductProtsess[]
+
+    ProductPacks ProductPack[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ProductPack {
+    id String @id @default(uuid())
+
+    InvoiceId String
+    Invoice   Invoice @relation(fields: [InvoiceId], references: [id])
+
+    productSettings productSetting[]
+
+    Product Product? @relation(fields: [productId], references: [id])
+
+    productId String?
 }
 
 model Product {
-    id           String        @id @default(uuid())
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
-    ProductPack  ProductPack[]
-    productTypes ProductType[]
+    id             String           @id @default(uuid())
+    name           String
+    createdAt      DateTime         @default(now())
+    updatedAt      DateTime         @updatedAt
+    ProductPack    ProductPack[]
+    Invoice        Invoice[]
+    productSetting productSetting[]
 }
 
-model ProductType {
-    id         String      @id @default(uuid())
-    name       String
+model productSetting {
+    id String @id @default(uuid())
+
+    productPackId String
+    productPack   ProductPack @relation(fields: [productPackId], references: [id])
+
     totalCount Int
     createdAt  DateTime    @default(now())
     updatedAt  DateTime    @updatedAt
@@ -88,14 +127,16 @@ model ProductType {
 }
 
 model SizeGroup {
-    id            String             @id @default(uuid())
-    size          String
-    quantity      Int
-    createdAt     DateTime           @default(now())
-    updatedAt     DateTime           @updatedAt
-    productTypeId String
-    productType   ProductType        @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
-    colorSizes    ProductColorSize[]
+    id        String   @id @default(uuid())
+    size      String
+    quantity  Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    productSettingId String
+    productSetting   productSetting @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
+
+    colorSizes ProductColorSize[]
 }
 
 model ProductColorSize {
@@ -124,15 +165,17 @@ model ProductProtsess {
     targetDepartment     String?
     acceptanceDepartment String?
 
-    departmentId  String
-    productpackId String
+    departmentId String
+
     acceptCount   Int
     sendedCount   Int
     invalidCount  Int
     residueCount  Int
     invalidReason String
-    department    Department  @relation(fields: [departmentId], references: [id])
-    productPack   ProductPack @relation(fields: [productpackId], references: [id])
+    department    Department @relation(fields: [departmentId], references: [id])
+
+    invoiceId String
+    Invoice   Invoice @relation(fields: [invoiceId], references: [id])
 }
 
 enum userRole {
