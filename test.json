@@ -1,0 +1,163 @@
+{
+  "products": [
+    {
+      "name": "A1",
+      "products": [
+        {
+          "name": "Product Name",
+          "productSettings": [
+            {
+              "totalCount": 100,
+              "files": [
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                },
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                }
+              ],
+              "sizeGroups": [
+                {
+                  "size": "M",
+                  "quantity": 50,
+                  "colorSizes": [
+                    {
+                      "colorId": "color-uuid",
+                      "sizeId": "size-uuid",
+                      "quantity": 25
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Product Name 2",
+          "productSettings": [
+            {
+              "totalCount": 100,
+              "files": [
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                },
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                }
+              ],
+              "sizeGroups": [
+                {
+                  "size": "M",
+                  "quantity": 50,
+                  "colorSizes": [
+                    {
+                      "colorId": "color-uuid",
+                      "sizeId": "size-uuid",
+                      "quantity": 25
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "A2",
+      "products": [
+        {
+          "name": "Product Name",
+          "productSettings": [
+            {
+              "totalCount": 100,
+              "files": [
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                },
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                }
+              ],
+              "sizeGroups": [
+                {
+                  "size": "M",
+                  "quantity": 50,
+                  "colorSizes": [
+                    {
+                      "colorId": "color-uuid",
+                      "sizeId": "size-uuid",
+                      "quantity": 25
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Product Name 2",
+          "productSettings": [
+            {
+              "totalCount": 100,
+              "files": [
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                },
+                {
+                  "id": "3dbdd943-1e12-4358-86da-6a4e07aa715b",
+                  "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                  "path": "/home/diyorbek/Documents/Dodo kids back end/src/controller/uploads/files-1747856810297-412273846.jpg",
+                  "mimeType": "image/jpeg",
+                  "fileType": "IMAGE"
+                }
+              ],
+              "sizeGroups": [
+                {
+                  "size": "M",
+                  "quantity": 50,
+                  "colorSizes": [
+                    {
+                      "colorId": "color-uuid",
+                      "sizeId": "size-uuid",
+                      "quantity": 25
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

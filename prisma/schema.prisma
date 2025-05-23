@@ -7,138 +7,86 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Color {
-    id               String             @id @default(uuid())
-    name             String             @unique
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    ProductColorSize ProductColorSize[]
-}
-
-model Size {
-    id               String             @id @default(uuid())
-    name             String             @unique
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    ProductColorSize ProductColorSize[]
-}
-
+// File model to store file details
 model File {
-    id        String   @id @default(uuid())
-    fileName  String
-    path      String
-    mimeType  String
-    size      Int
-    fileType  FileType
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id                 String               @id @default(uuid())
+    fileName           String
+    path               String
+    mimeType           String
+    size               Int
+    fileType           FileType
+    createdAt          DateTime             @default(now())
+    updatedAt          DateTime             @updatedAt
+    ProductSettingFile ProductSettingFile[]
 }
 
+// Enum for file types
 enum FileType {
     IMAGE
     DOCUMENT
     OTHER
 }
 
-model Department {
-    id              String            @id @default(uuid())
-    name            String            @unique
-    createdAt       DateTime          @default(now())
-    updatedAt       DateTime          @updatedAt
-    Employee        Employee[]
-    ProductProtsess ProductProtsess[]
+// ProductGroup model (e.g., "A1", "A2", "A3")
+model ProductGroup {
+    id        String    @id @default(uuid())
+    name      String // e.g., "A1", "A2", "A3"
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    products  Product[]
 }
 
-model Employee {
-    id           String     @id @default(uuid())
-    name         String
-    userId       String
-    departmentId String
-    createdAt    DateTime   @default(now())
-    updatedAt    DateTime   @updatedAt
-    department   Department @relation(fields: [departmentId], references: [id])
-    user         User       @relation(fields: [userId], references: [id])
-}
-
-model User {
-    id        String     @id @default(uuid())
-    login     String     @unique
-    password  String
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
-    role      userRole
-    Employee  Employee[]
-}
-
-model Invoice {
-    id     String @id @default(uuid())
-    number Int
-
-    perentId       String
-    protsessIsOver Boolean           @default(false)
-    departmentId   String
-    department     String
-    productId      String
-    totalCount     Int
-    Product        Product           @relation(fields: [productId], references: [id])
-    status         ProductProtsess[]
-
-    ProductPacks ProductPack[]
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
-model ProductPack {
-    id String @id @default(uuid())
-
-    InvoiceId String
-    Invoice   Invoice @relation(fields: [InvoiceId], references: [id])
-
-    productSettings productSetting[]
-
-    Product Product? @relation(fields: [productId], references: [id])
-
-    productId String?
-}
-
+// Product model (individual products within a group)
 model Product {
     id             String           @id @default(uuid())
     name           String
+    allTotalCount  Int // Added this field
     createdAt      DateTime         @default(now())
     updatedAt      DateTime         @updatedAt
+    productGroupId String?
+    productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id])
+    productSetting productSetting[]
     ProductPack    ProductPack[]
     Invoice        Invoice[]
-    productSetting productSetting[]
 }
 
+// ProductSetting model to store settings for each product
 model productSetting {
-    id String @id @default(uuid())
-
-    productPackId String
-    productPack   ProductPack @relation(fields: [productPackId], references: [id])
-
-    totalCount Int
-    createdAt  DateTime    @default(now())
-    updatedAt  DateTime    @updatedAt
-    productId  String
-    product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups SizeGroup[]
+    id            String               @id @default(uuid())
+    totalCount    Int
+    createdAt     DateTime             @default(now())
+    updatedAt     DateTime             @updatedAt
+    productId     String
+    product       Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+    sizeGroups    SizeGroup[]
+    files         ProductSettingFile[]
+    productPackId String?
+    productPack   ProductPack?         @relation(fields: [productPackId], references: [id])
 }
 
-model SizeGroup {
-    id        String   @id @default(uuid())
-    size      String
-    quantity  Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
+// Junction table for many-to-many relationship between productSetting and File
+model ProductSettingFile {
+    id               String         @id @default(uuid())
     productSettingId String
-    productSetting   productSetting @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
-
-    colorSizes ProductColorSize[]
+    fileId           String
+    productSetting   productSetting @relation(fields: [productSettingId], references: [id])
+    file             File           @relation(fields: [fileId], references: [id])
+    // Remove @@unique([productSettingId, fileId])
 }
 
+// SizeGroup model to group sizes and their quantities
+model SizeGroup {
+    id               String             @id @default(uuid())
+    size             String
+    quantity         Int
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    productSettingId String
+    productSetting   productSetting     @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
+    colorSizes       ProductColorSize[]
+}
+
+// ProductColorSize model to store color and size combinations
 model ProductColorSize {
     id          String    @id @default(uuid())
     quantity    Int
@@ -152,32 +100,108 @@ model ProductColorSize {
     size        Size      @relation(fields: [sizeId], references: [id])
 }
 
-model ProductProtsess {
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
-    id             String   @id @default(uuid())
-    date           DateTime @default(now())
-    protsessIsOver Boolean  @default(false)
-    status         String
-    employeeId     String
+// Color model
+model Color {
+    id               String             @id @default(uuid())
+    name             String             @unique
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    ProductColorSize ProductColorSize[]
+}
 
+// Size model
+model Size {
+    id               String             @id @default(uuid())
+    name             String             @unique
+    createdAt        DateTime           @default(now())
+    updatedAt        DateTime           @updatedAt
+    ProductColorSize ProductColorSize[]
+}
+
+// ProductPack model
+model ProductPack {
+    id              String           @id @default(uuid())
+    InvoiceId       String
+    Invoice         Invoice          @relation(fields: [InvoiceId], references: [id])
+    productSettings productSetting[]
+    productId       String?
+    Product         Product?         @relation(fields: [productId], references: [id])
+}
+
+// Invoice model
+model Invoice {
+    id             String            @id @default(uuid())
+    number         Int
+    perentId       String
+    protsessIsOver Boolean           @default(false)
+    departmentId   String
+    department     String
+    productId      String
+    totalCount     Int
+    Product        Product           @relation(fields: [productId], references: [id])
+    status         ProductProtsess[]
+    ProductPacks   ProductPack[]
+    createdAt      DateTime          @default(now())
+    updatedAt      DateTime          @updatedAt
+}
+
+// Department model
+model Department {
+    id              String            @id @default(uuid())
+    name            String            @unique
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    Employee        Employee[]
+    ProductProtsess ProductProtsess[]
+}
+
+// Employee model
+model Employee {
+    id           String     @id @default(uuid())
+    name         String
+    userId       String
+    departmentId String
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+    department   Department @relation(fields: [departmentId], references: [id])
+    user         User       @relation(fields: [userId], references: [id])
+}
+
+// User model
+model User {
+    id        String     @id @default(uuid())
+    login     String     @unique
+    password  String
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    role      userRole
+    Employee  Employee[]
+}
+
+// ProductProtsess model
+model ProductProtsess {
+    createdAt            DateTime   @default(now())
+    updatedAt            DateTime   @updatedAt
+    id                   String     @id @default(uuid())
+    date                 DateTime   @default(now())
+    protsessIsOver       Boolean    @default(false)
+    status               String
+    employeeId           String
     departmentName       String
     targetDepartment     String?
     acceptanceDepartment String?
-
-    departmentId String
-
-    acceptCount   Int
-    sendedCount   Int
-    invalidCount  Int
-    residueCount  Int
-    invalidReason String
-    department    Department @relation(fields: [departmentId], references: [id])
-
-    invoiceId String
-    Invoice   Invoice @relation(fields: [invoiceId], references: [id])
+    departmentId         String
+    acceptCount          Int
+    sendedCount          Int
+    invalidCount         Int
+    residueCount         Int
+    invalidReason        String
+    department           Department @relation(fields: [departmentId], references: [id])
+    invoiceId            String
+    Invoice              Invoice    @relation(fields: [invoiceId], references: [id])
 }
 
+// Enum for user roles
 enum userRole {
     ADMIN
     USER
