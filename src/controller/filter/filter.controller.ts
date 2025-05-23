@@ -3,108 +3,203 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Type definitions for ProductPack filter parameters
+// Type definitions for filter parameters
 type ProductPackFilterParams = {
   colorId?: string;
   sizeId?: string;
   departmentId?: string;
-  model?: string;
+  productName?: string;
   status?: string;
-  sortBy: string;
+  sortBy: "createdAt" | "totalCount";
   sortOrder: "asc" | "desc";
   startDate?: string;
   endDate?: string;
+  page?: number;
+  pageSize?: number;
 };
 
 /**
- * Get product packs with filtering options by color, size, department, status, and date range
+ * Get invoices with filtering options by color, size, department, product name, status, and date range
  */
 export const getFilteredProductPacks = async (req: Request, res: Response) => {
   try {
     const filters = extractProductPackFilterParams(req);
 
-    // Create filter condition
+    // Build the where clause for filtering
     const where: any = {};
 
-    // Filter by departmentId if provided
     if (filters.departmentId) {
       where.departmentId = filters.departmentId;
     }
 
-    // Filter by product model if provided
-    if (filters.model) {
-      where.Product = {
-        model: {
-          contains: filters.model,
-          mode: "insensitive" as const,
-        },
-      };
-    }
-
-    // Filter by related color if provided
-    if (filters.colorId) {
-      where.Product = {
-        ...where.Product,
-        color: {
+    if (filters.productName) {
+      where.ProductGroup = {
+        products: {
           some: {
-            id: filters.colorId,
+            name: {
+              contains: filters.productName,
+              mode: "insensitive",
+            },
           },
         },
       };
     }
 
-    // Filter by related size if provided
-    if (filters.sizeId) {
-      where.Product = {
-        ...where.Product,
-        size: {
+    if (filters.colorId || filters.sizeId) {
+      where.ProductGroup = {
+        ...where.ProductGroup,
+        products: {
           some: {
-            id: filters.sizeId,
+            productSetting: {
+              some: {
+                sizeGroups: { // Fixed: Changed SizeGroup to sizeGroups
+                  some: {
+                    colorSizes: {
+                      some: {
+                        ...(filters.colorId ? { colorId: filters.colorId } : {}),
+                        ...(filters.sizeId ? { sizeId: filters.sizeId } : {}),
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       };
     }
 
-    // Filter by createdAt date range if provided
     if (filters.startDate || filters.endDate) {
       where.createdAt = {};
       if (filters.startDate) {
-        where.createdAt.gte = new Date(filters.startDate);
+        const startDate = new Date(filters.startDate);
+        if (isNaN(startDate.getTime())) {
+          throw new Error("Invalid startDate format");
+        }
+        where.createdAt.gte = startDate;
       }
       if (filters.endDate) {
-        where.createdAt.lte = new Date(filters.endDate);
+        const endDate = new Date(filters.endDate);
+        if (isNaN(endDate.getTime())) {
+          throw new Error("Invalid endDate format");
+        }
+        where.createdAt.lte = endDate;
       }
     }
 
-    // Get data with filters
-    const productPacks = await prisma.productPack.findMany({
+    if (filters.status) {
+      where.status = {
+        some: {
+          status: filters.status,
+        },
+      };
+    } else {
+      // Exclude "Pending" status by default unless explicitly requested
+      where.status = {
+        some: {
+          status: {
+            not: "Pending",
+          },
+        },
+      };
+    }
+
+    // Pagination setup
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 10;
+    const skip = (page - 1) * pageSize;
+
+    // Fetch filtered invoices
+    const invoices = await prisma.invoice.findMany({
       where,
       orderBy: {
         [filters.sortBy]: filters.sortOrder,
       },
-      include: {
-        Product: {
-          include: {
-            color: true,
-            size: true,
+      select: {
+        id: true,
+        number: true,
+        departmentId: true,
+        department: true,
+        totalCount: true,
+        protsessIsOver: true,
+        createdAt: true,
+        updatedAt: true,
+        ProductGroup: {
+          select: {
+            id: true,
+            name: true,
+            products: {
+              select: {
+                id: true,
+                name: true,
+                allTotalCount: true,
+                productSetting: {
+                  select: {
+                    id: true,
+                    totalCount: true,
+                    sizeGroups: { // Fixed: Changed SizeGroup to sizeGroups
+                      select: {
+                        id: true,
+                        size: true,
+                        quantity: true,
+                        colorSizes: {
+                          select: {
+                            color: {
+                              select: {
+                                id: true,
+                                name: true,
+                              },
+                            },
+                            size: {
+                              select: {
+                                id: true,
+                                name: true,
+                              },
+                            },
+                            quantity: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
-        status: true,
+        status: { // Correctly reference ProductProtsess relation
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 1, // Fetch only the latest status
+          select: {
+            id: true,
+            status: true,
+            date: true,
+            employeeId: true,
+            departmentName: true,
+            targetDepartment: true,
+            acceptCount: true,
+            sendedCount: true,
+            invalidCount: true,
+            residueCount: true,
+            invalidReason: true,
+          },
+        },
       },
+      skip,
+      take: pageSize,
     });
 
-    // Process status information for each product pack
-    const processedProductPacks = productPacks.map((pack) => {
-      // Find the latest status entry for this product pack
-      const latestStatus =
-        pack.status.length > 0
-          ? pack.status.reduce((latest, current) =>
-              new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
-            )
-          : null;
+    // Get total count for pagination metadata
+    const totalCount = await prisma.invoice.count({ where });
+    const totalPages = Math.ceil(totalCount / pageSize);
 
-      // Map status values as required
+    // Process status for display
+    const processedInvoices = invoices.map((invoice) => {
+      const latestStatus = invoice.status[0]; // Latest status (if any)
       let statusValue = "";
+
       if (latestStatus) {
         if (latestStatus.status === "Pending") {
           statusValue = "Pending";
@@ -118,41 +213,49 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
       }
 
       return {
-        ...pack,
+        ...invoice,
         processedStatus: statusValue,
       };
     });
 
-    // Filter by status if provided (exclude Pending status if not explicitly requested)
-    const statusFilteredPacks = filters.status
-      ? processedProductPacks.filter((pack) => pack.processedStatus === filters.status)
-      : processedProductPacks.filter((pack) => pack.processedStatus !== "Pending");
-
-    return res.status(200).json({
-      data: statusFilteredPacks,
+    // Return paginated response
+    res.status(200).json({
+      message: "Product packs retrieved successfully",
+      data: processedInvoices,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalCount,
+        totalPages,
+      },
     });
   } catch (error) {
-    console.error("Error fetching filtered product packs:", error);
-    return res.status(500).json({
-      error: "Failed to fetch product packs",
-      details: (error as Error).message,
+    console.error("Error fetching filtered product packs:", {
+      error,
+      filters: req.query,
+    });
+    res.status(500).json({
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
 
 /**
- * Helper function to extract filter parameters from request
+ * Helper function to extract and validate filter parameters from request
  */
 function extractProductPackFilterParams(req: Request): ProductPackFilterParams {
   return {
-    colorId: req.query.colorId as string || undefined,
-    sizeId: req.query.sizeId as string || undefined,
-    departmentId: req.query.departmentId as string || undefined,
-    model: req.query.model as string || undefined,
-    status: req.query.status as string || undefined,
-    sortBy: (req.query.sortBy as string) || "createdAt",
-    sortOrder: ((req.query.sortOrder as "asc" | "desc") || "desc"),
-    startDate: req.query.startDate as string || undefined,
-    endDate: req.query.endDate as string || undefined,
+    colorId: req.query.colorId as string | undefined,
+    sizeId: req.query.sizeId as string | undefined,
+    departmentId: req.query.departmentId as string | undefined,
+    productName: req.query.productName as string | undefined,
+    status: req.query.status as string | undefined,
+    sortBy: (req.query.sortBy as "createdAt" | "totalCount") || "createdAt",
+    sortOrder: (req.query.sortOrder as "asc" | "desc") || "desc",
+    startDate: req.query.startDate as string | undefined,
+    endDate: req.query.endDate as string | undefined,
+    page: parseInt(req.query.page as string) || 1,
+    pageSize: parseInt(req.query.pageSize as string) || 10,
   };
 }
