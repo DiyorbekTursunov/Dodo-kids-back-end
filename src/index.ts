@@ -14,7 +14,7 @@ import fileRoutes from "./routes/file.routes"; // Add this line
 import { staticFilesMiddleware, serveFile } from "./middleware/static.middleware"; // Add this line
 import dashboardRoutes from "./routes/dashboard.routes";
 import filterRouters from "./routes/filters.routes";
-// import searchRouters from "./routes/search.routes";
+import searchRouters from "./routes/search.routes";
 
 dotenv.config();
 

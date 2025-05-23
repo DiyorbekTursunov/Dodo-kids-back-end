@@ -5,13 +5,13 @@ const prisma = new PrismaClient();
 
 interface FileRequest {
   id: string;
-  fileName: string;
-  path: string;
-  mimeType: string;
-  size: number;
-  fileType: string;
-  createdAt: string;
-  updatedAt: string;
+  fileName?: string;
+  path?: string;
+  mimeType?: string;
+  size?: number;
+  fileType?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ColorSizeRequest {
@@ -30,6 +30,7 @@ interface ProductSettingRequest {
   totalCount: number;
   sizeGroups: SizeGroupRequest[];
   productPackId?: string;
+  files?: FileRequest[]; // Now supported with updated schema
 }
 
 interface ProductRequest {
@@ -40,7 +41,7 @@ interface ProductRequest {
 
 interface ProductGroupRequest {
   name: string;
-  files: FileRequest[];
+  files?: FileRequest[]; // Optional files at group level
   products: ProductRequest[];
 }
 
@@ -60,11 +61,14 @@ export const createProducts = async (
       const productGroup = await prisma.productGroup.create({
         data: {
           name: productGroupData.name,
-          productGroupFiles: {
-            create: productGroupData.files.map((file: { id: string }) => ({
-              file: { connect: { id: file.id } },
-            })),
-          },
+          // Handle files at ProductGroup level if they exist
+          ...(productGroupData.files && productGroupData.files.length > 0 && {
+            productGroupFiles: {
+              create: productGroupData.files.map((file: FileRequest) => ({
+                file: { connect: { id: file.id } },
+              })),
+            },
+          }),
           products: {
             create: productGroupData.products.map(
               (productData: ProductRequest) => ({
@@ -74,6 +78,14 @@ export const createProducts = async (
                   create: productData.productSettings.map(
                     (setting: ProductSettingRequest) => ({
                       totalCount: setting.totalCount,
+                      // Handle files at ProductSetting level if they exist
+                      ...(setting.files && setting.files.length > 0 && {
+                        productSettingFiles: {
+                          create: setting.files.map((file: FileRequest) => ({
+                            file: { connect: { id: file.id } },
+                          })),
+                        },
+                      }),
                       sizeGroups: {
                         create: setting.sizeGroups.map(
                           (group: SizeGroupRequest) => ({
@@ -108,6 +120,11 @@ export const createProducts = async (
             include: {
               productSetting: {
                 include: {
+                  productSettingFiles: {
+                    include: {
+                      file: true,
+                    },
+                  },
                   sizeGroups: {
                     include: {
                       colorSizes: {
@@ -129,7 +146,7 @@ export const createProducts = async (
 
     return res.status(201).json({
       success: true,
-      data: productGroups, // Fixed from createdProductGroups
+      data: productGroups,
     });
   } catch (error) {
     console.error("Error creating products:", error);
@@ -157,6 +174,11 @@ export const getAllProducts = async (
           include: {
             productSetting: {
               include: {
+                productSettingFiles: {
+                  include: {
+                    file: true,
+                  },
+                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -209,6 +231,11 @@ export const getProductById = async (
         },
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -264,6 +291,11 @@ export const getProductGroupById = async (
           include: {
             productSetting: {
               include: {
+                productSettingFiles: {
+                  include: {
+                    file: true,
+                  },
+                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -326,6 +358,7 @@ export const updateProductSettings = async (
       });
     }
 
+    // Delete existing product settings
     await prisma.productSetting.deleteMany({
       where: { productId: id },
     });
@@ -336,9 +369,13 @@ export const updateProductSettings = async (
         productSetting: {
           create: productSettings.map((setting) => ({
             totalCount: setting.totalCount,
-            productPack: setting.productPackId
-              ? { connect: { id: setting.productPackId } }
-              : undefined,
+            ...(setting.files && setting.files.length > 0 && {
+              productSettingFiles: {
+                create: setting.files.map((file: FileRequest) => ({
+                  file: { connect: { id: file.id } },
+                })),
+              },
+            }),
             sizeGroups: {
               create: setting.sizeGroups.map((group) => ({
                 size: group.size,
@@ -358,6 +395,11 @@ export const updateProductSettings = async (
       include: {
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -493,6 +535,11 @@ export const updateProductGroup = async (
           include: {
             productSetting: {
               include: {
+                productSettingFiles: {
+                  include: {
+                    file: true,
+                  },
+                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -564,9 +611,13 @@ export const createProduct = async (
         productSetting: {
           create: productSettings.map((setting: ProductSettingRequest) => ({
             totalCount: setting.totalCount,
-            productPack: setting.productPackId
-              ? { connect: { id: setting.productPackId } }
-              : undefined,
+            ...(setting.files && setting.files.length > 0 && {
+              productSettingFiles: {
+                create: setting.files.map((file: FileRequest) => ({
+                  file: { connect: { id: file.id } },
+                })),
+              },
+            }),
             sizeGroups: {
               create: setting.sizeGroups.map((group) => ({
                 size: group.size,
@@ -595,6 +646,11 @@ export const createProduct = async (
         },
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -669,6 +725,11 @@ export const updateProduct = async (
         },
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -716,6 +777,11 @@ export const getAllProductsFlat = async (
         },
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -766,6 +832,11 @@ export const getProductsByGroupId = async (
         },
         productSetting: {
           include: {
+            productSettingFiles: {
+              include: {
+                file: true,
+              },
+            },
             sizeGroups: {
               include: {
                 colorSizes: {
