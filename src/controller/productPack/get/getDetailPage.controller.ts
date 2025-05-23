@@ -11,10 +11,30 @@ export const getProductPackById = async (req: Request, res: Response) => {
     const pack = await prisma.invoice.findUnique({
       where: { id },
       include: {
-        Product: {
+        ProductGroup: {
           include: {
-            ProductPack: true,
-            productSetting: true,
+            productGroupFiles: {
+              include: {
+                file: true,
+              },
+            },
+            products: {
+              include: {
+                productSetting: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: {
+                          include: {
+                            sizeGroup: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         status: {

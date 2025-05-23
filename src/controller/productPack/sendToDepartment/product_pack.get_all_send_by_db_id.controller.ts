@@ -3,28 +3,28 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Get Sent Product Packs for a Department with filtered statuses
 export const getSentProductPacks = async (req: Request, res: Response) => {
-  const { departmentId } = req.params;
+  const { departmentId, page = "1", pageSize = "10" } = req.query;
 
   if (!departmentId) {
     return res.status(400).json({ error: "Department ID is required" });
   }
 
+  const pageNum = parseInt(page as string, 10);
+  const size = parseInt(pageSize as string, 10);
+
+  if (isNaN(pageNum) || isNaN(size) || pageNum < 1 || size < 1) {
+    return res.status(400).json({ error: "Invalid page or pageSize" });
+  }
+
   try {
-    // Check if department exists
-    const department = await prisma.department.findUnique({
-      where: { id: departmentId },
-    });
+    // Calculate skip value for pagination
+    const skip = (pageNum - 1) * size;
 
-    if (!department) {
-      return res.status(404).json({ error: "Department not found" });
-    }
-
-    // Get product packs with status "Yuborilgan" or "To'liq yuborilmagan"
-    const sentProductPacks = await prisma.invoice.findMany({
+    // Fetch paginated product packs
+    const productPacks = await prisma.invoice.findMany({
       where: {
-        departmentId,
+        departmentId: String(departmentId),
         status: {
           some: {
             status: {
@@ -34,18 +34,19 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
         },
       },
       include: {
-        Product: {
-          include: {
-            ProductPack: true,
-            productSetting: true,
-          },
-        },
-        // Only include status records with "Yuborilgan" or "To'liq yuborilmagan"
+        status: true,
+        ProductGroup: true,
+      },
+      skip, // Number of records to skip
+      take: size, // Number of records to take
+    });
+
+    // Get total count for pagination metadata
+    const totalCount = await prisma.invoice.count({
+      where: {
+        departmentId: String(departmentId),
         status: {
-          orderBy: {
-            date: "desc",
-          },
-          where: {
+          some: {
             status: {
               in: ["Yuborilgan", "To'liq yuborilmagan"],
             },
@@ -54,9 +55,26 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json(sentProductPacks);
+    if (!productPacks.length) {
+      return res.status(404).json({ error: "No product packs found for this department with the pagenation" });
+    }
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / size);
+
+    // Return paginated response
+    res.status(200).json({
+      message: "Product packs retrieved successfully",
+      data: productPacks,
+      pagination: {
+        currentPage: pageNum,
+        pageSize: size,
+        totalCount,
+        totalPages,
+      },
+    });
   } catch (err) {
-    console.error("Error fetching sent product packs:", err);
+    console.error("Error fetching product packs:", err);
     res.status(500).json({
       error: "Internal server error",
       details: (err as Error).message,

@@ -8,7 +8,7 @@ export const getAllProductPacks = async (_req: Request, res: Response) => {
   try {
     const productPacks = await prisma.invoice.findMany({
       include: {
-        Product: true,
+        ProductGroup: true,
         status: true,
       },
     });

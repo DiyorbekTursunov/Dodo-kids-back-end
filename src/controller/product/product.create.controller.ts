@@ -28,19 +28,19 @@ interface SizeGroupRequest {
 
 interface ProductSettingRequest {
   totalCount: number;
-  files: FileRequest[];
   sizeGroups: SizeGroupRequest[];
   productPackId?: string;
 }
+
 interface ProductRequest {
   name: string;
-  allTotalCount: number; // Added this field
+  allTotalCount: number;
   productSettings: ProductSettingRequest[];
 }
 
 interface ProductGroupRequest {
-  name: string; // "A1", "A2", "A3"
-  id: string; // might be empty
+  name: string;
+  files: FileRequest[];
   products: ProductRequest[];
 }
 
@@ -53,14 +53,18 @@ export const createProducts = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { products } = req.body;
+    const { products }: ProductsArrayRequest = req.body;
 
-    const createdProductGroups = [];
-
+    const productGroups = [];
     for (const productGroupData of products) {
       const productGroup = await prisma.productGroup.create({
         data: {
           name: productGroupData.name,
+          productGroupFiles: {
+            create: productGroupData.files.map((file: { id: string }) => ({
+              file: { connect: { id: file.id } },
+            })),
+          },
           products: {
             create: productGroupData.products.map(
               (productData: ProductRequest) => ({
@@ -70,26 +74,22 @@ export const createProducts = async (
                   create: productData.productSettings.map(
                     (setting: ProductSettingRequest) => ({
                       totalCount: setting.totalCount,
-                      productPack: setting.productPackId
-                        ? { connect: { id: setting.productPackId } }
-                        : undefined,
-                      files: {
-                        create: setting.files.map((file) => ({
-                          file: { connect: { id: file.id } },
-                        })),
-                      },
                       sizeGroups: {
-                        create: setting.sizeGroups.map((group) => ({
-                          size: group.size,
-                          quantity: group.quantity,
-                          colorSizes: {
-                            create: group.colorSizes.map((colorSize) => ({
-                              quantity: colorSize.quantity,
-                              color: { connect: { id: colorSize.colorId } },
-                              size: { connect: { id: colorSize.sizeId } },
-                            })),
-                          },
-                        })),
+                        create: setting.sizeGroups.map(
+                          (group: SizeGroupRequest) => ({
+                            size: group.size,
+                            quantity: group.quantity,
+                            colorSizes: {
+                              create: group.colorSizes.map(
+                                (colorSize: ColorSizeRequest) => ({
+                                  quantity: colorSize.quantity,
+                                  color: { connect: { id: colorSize.colorId } },
+                                  size: { connect: { id: colorSize.sizeId } },
+                                })
+                              ),
+                            },
+                          })
+                        ),
                       },
                     })
                   ),
@@ -98,17 +98,16 @@ export const createProducts = async (
             ),
           },
         },
-        // ADD INCLUDE TO GET FULL DATA IN RESPONSE
         include: {
+          productGroupFiles: {
+            include: {
+              file: true,
+            },
+          },
           products: {
             include: {
               productSetting: {
                 include: {
-                  files: {
-                    include: {
-                      file: true,
-                    },
-                  },
                   sizeGroups: {
                     include: {
                       colorSizes: {
@@ -119,27 +118,18 @@ export const createProducts = async (
                       },
                     },
                   },
-                  productPack: {
-                    include: {
-                      Invoice: true,
-                      Product: true,
-                    },
-                  },
                 },
               },
-              ProductPack: true,
-              Invoice: true,
             },
           },
         },
       });
-
-      createdProductGroups.push(productGroup);
+      productGroups.push(productGroup);
     }
 
     return res.status(201).json({
       success: true,
-      data: createdProductGroups,
+      data: productGroups, // Fixed from createdProductGroups
     });
   } catch (error) {
     console.error("Error creating products:", error);
@@ -151,7 +141,6 @@ export const createProducts = async (
   }
 };
 
-// Get all product groups with their products
 export const getAllProducts = async (
   req: Request,
   res: Response
@@ -159,29 +148,23 @@ export const getAllProducts = async (
   try {
     const productGroups = await prisma.productGroup.findMany({
       include: {
+        productGroupFiles: {
+          include: {
+            file: true,
+          },
+        },
         products: {
           include: {
             productSetting: {
               include: {
-                files: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
-                    colorSizes: { // This is the correct field name, not "colorsG"
+                    colorSizes: {
                       include: {
                         color: true,
                         size: true,
                       },
                     },
-                  },
-                },
-                productPack: {
-                  include: {
-                    Invoice: true,
-                    Product: true,
                   },
                 },
               },
@@ -205,7 +188,6 @@ export const getAllProducts = async (
   }
 };
 
-// Get a single product by ID
 export const getProductById = async (
   req: Request,
   res: Response
@@ -216,14 +198,17 @@ export const getProductById = async (
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        productGroup: true,
-        productSetting: {
+        productGroup: {
           include: {
-            files: {
+            productGroupFiles: {
               include: {
                 file: true,
               },
             },
+          },
+        },
+        productSetting: {
+          include: {
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -234,11 +219,8 @@ export const getProductById = async (
                 },
               },
             },
-            productPack: true,
           },
         },
-        ProductPack: true,
-        Invoice: true,
       },
     });
 
@@ -263,7 +245,6 @@ export const getProductById = async (
   }
 };
 
-// Get a product group by ID
 export const getProductGroupById = async (
   req: Request,
   res: Response
@@ -274,15 +255,15 @@ export const getProductGroupById = async (
     const productGroup = await prisma.productGroup.findUnique({
       where: { id },
       include: {
+        productGroupFiles: {
+          include: {
+            file: true,
+          },
+        },
         products: {
           include: {
             productSetting: {
               include: {
-                files: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -293,7 +274,6 @@ export const getProductGroupById = async (
                     },
                   },
                 },
-                productPack: true,
               },
             },
           },
@@ -322,17 +302,15 @@ export const getProductGroupById = async (
   }
 };
 
-// Update product settings for a specific product
 export const updateProductSettings = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const { id } = req.params; // Product ID
+    const { id } = req.params;
     const { productSettings }: { productSettings: ProductSettingRequest[] } =
       req.body;
 
-    // Validate input
     if (!productSettings || !Array.isArray(productSettings)) {
       return res.status(400).json({
         success: false,
@@ -340,7 +318,6 @@ export const updateProductSettings = async (
       });
     }
 
-    // Verify product exists
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) {
       return res.status(404).json({
@@ -349,12 +326,10 @@ export const updateProductSettings = async (
       });
     }
 
-    // Delete existing product settings and related data
     await prisma.productSetting.deleteMany({
       where: { productId: id },
     });
 
-    // Create new product settings
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
@@ -364,13 +339,6 @@ export const updateProductSettings = async (
             productPack: setting.productPackId
               ? { connect: { id: setting.productPackId } }
               : undefined,
-            files: {
-              create: setting.files.map((file) => ({
-                file: {
-                  connect: { id: file.id },
-                },
-              })),
-            },
             sizeGroups: {
               create: setting.sizeGroups.map((group) => ({
                 size: group.size,
@@ -390,11 +358,6 @@ export const updateProductSettings = async (
       include: {
         productSetting: {
           include: {
-            files: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -405,7 +368,6 @@ export const updateProductSettings = async (
                 },
               },
             },
-            productPack: true,
           },
         },
       },
@@ -425,7 +387,6 @@ export const updateProductSettings = async (
   }
 };
 
-// Delete a product
 export const deleteProduct = async (
   req: Request,
   res: Response
@@ -433,7 +394,6 @@ export const deleteProduct = async (
   try {
     const { id } = req.params;
 
-    // Verify product exists
     const product = await prisma.product.findUnique({ where: { id } });
     if (!product) {
       return res.status(404).json({
@@ -442,7 +402,6 @@ export const deleteProduct = async (
       });
     }
 
-    // Delete product (cascades to productSetting and sizeGroups due to onDelete: Cascade)
     await prisma.product.delete({
       where: { id },
     });
@@ -461,7 +420,6 @@ export const deleteProduct = async (
   }
 };
 
-// Delete a product group
 export const deleteProductGroup = async (
   req: Request,
   res: Response
@@ -469,7 +427,6 @@ export const deleteProductGroup = async (
   try {
     const { id } = req.params;
 
-    // Verify product group exists
     const productGroup = await prisma.productGroup.findUnique({
       where: { id },
     });
@@ -480,7 +437,6 @@ export const deleteProductGroup = async (
       });
     }
 
-    // Delete product group (will cascade to products and their settings)
     await prisma.productGroup.delete({
       where: { id },
     });
@@ -499,45 +455,6 @@ export const deleteProductGroup = async (
   }
 };
 
-// Delete a product pack
-export const deleteProductPack = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  try {
-    const { id } = req.params;
-
-    // Verify product pack exists
-    const productPack = await prisma.productPack.findUnique({ where: { id } });
-    if (!productPack) {
-      return res.status(404).json({
-        success: false,
-        message: "Product pack not found",
-      });
-    }
-
-    // Delete product pack (cascades to productSetting due to relation)
-    await prisma.productPack.delete({
-      where: { id },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Product pack deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting product pack:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete product pack",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-};
-
-// ============ PRODUCT GROUP RUD OPERATIONS ============
-
-// Update a product group
 export const updateProductGroup = async (
   req: Request,
   res: Response
@@ -546,16 +463,16 @@ export const updateProductGroup = async (
     const { id } = req.params;
     const { name } = req.body;
 
-    // Validate input
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
       return res.status(400).json({
         success: false,
         message: "Name is required and must be a string",
       });
     }
 
-    // Verify product group exists
-    const existingGroup = await prisma.productGroup.findUnique({ where: { id } });
+    const existingGroup = await prisma.productGroup.findUnique({
+      where: { id },
+    });
     if (!existingGroup) {
       return res.status(404).json({
         success: false,
@@ -563,20 +480,19 @@ export const updateProductGroup = async (
       });
     }
 
-    // Update product group
     const updatedGroup = await prisma.productGroup.update({
       where: { id },
       data: { name },
       include: {
+        productGroupFiles: {
+          include: {
+            file: true,
+          },
+        },
         products: {
           include: {
             productSetting: {
               include: {
-                files: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -585,12 +501,6 @@ export const updateProductGroup = async (
                         size: true,
                       },
                     },
-                  },
-                },
-                productPack: {
-                  include: {
-                    Invoice: true,
-                    Product: true,
                   },
                 },
               },
@@ -614,9 +524,6 @@ export const updateProductGroup = async (
   }
 };
 
-// ============ PRODUCT RUD OPERATIONS ============
-
-// Create a single product within a product group
 export const createProduct = async (
   req: Request,
   res: Response
@@ -625,24 +532,22 @@ export const createProduct = async (
     const { productGroupId } = req.params;
     const { name, allTotalCount, productSettings = [] } = req.body;
 
-    // Validate input
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
       return res.status(400).json({
         success: false,
         message: "Name is required and must be a string",
       });
     }
 
-    if (!allTotalCount || typeof allTotalCount !== 'number') {
+    if (!allTotalCount || typeof allTotalCount !== "number") {
       return res.status(400).json({
         success: false,
         message: "allTotalCount is required and must be a number",
       });
     }
 
-    // Verify product group exists
     const productGroup = await prisma.productGroup.findUnique({
-      where: { id: productGroupId }
+      where: { id: productGroupId },
     });
     if (!productGroup) {
       return res.status(404).json({
@@ -651,7 +556,6 @@ export const createProduct = async (
       });
     }
 
-    // Create product
     const createdProduct = await prisma.product.create({
       data: {
         name,
@@ -663,11 +567,6 @@ export const createProduct = async (
             productPack: setting.productPackId
               ? { connect: { id: setting.productPackId } }
               : undefined,
-            files: {
-              create: setting.files.map((file) => ({
-                file: { connect: { id: file.id } },
-              })),
-            },
             sizeGroups: {
               create: setting.sizeGroups.map((group) => ({
                 size: group.size,
@@ -685,14 +584,17 @@ export const createProduct = async (
         },
       },
       include: {
-        productGroup: true,
-        productSetting: {
+        productGroup: {
           include: {
-            files: {
+            productGroupFiles: {
               include: {
                 file: true,
               },
             },
+          },
+        },
+        productSetting: {
+          include: {
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -701,12 +603,6 @@ export const createProduct = async (
                     size: true,
                   },
                 },
-              },
-            },
-            productPack: {
-              include: {
-                Invoice: true,
-                Product: true,
               },
             },
           },
@@ -728,7 +624,6 @@ export const createProduct = async (
   }
 };
 
-// Update a product (name and allTotalCount only, not productSettings)
 export const updateProduct = async (
   req: Request,
   res: Response
@@ -737,22 +632,20 @@ export const updateProduct = async (
     const { id } = req.params;
     const { name, allTotalCount } = req.body;
 
-    // Validate input
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
       return res.status(400).json({
         success: false,
         message: "Name is required and must be a string",
       });
     }
 
-    if (!allTotalCount || typeof allTotalCount !== 'number') {
+    if (!allTotalCount || typeof allTotalCount !== "number") {
       return res.status(400).json({
         success: false,
         message: "allTotalCount is required and must be a number",
       });
     }
 
-    // Verify product exists
     const existingProduct = await prisma.product.findUnique({ where: { id } });
     if (!existingProduct) {
       return res.status(404).json({
@@ -761,19 +654,21 @@ export const updateProduct = async (
       });
     }
 
-    // Update product
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: { name, allTotalCount },
       include: {
-        productGroup: true,
-        productSetting: {
+        productGroup: {
           include: {
-            files: {
+            productGroupFiles: {
               include: {
                 file: true,
               },
             },
+          },
+        },
+        productSetting: {
+          include: {
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -782,12 +677,6 @@ export const updateProduct = async (
                     size: true,
                   },
                 },
-              },
-            },
-            productPack: {
-              include: {
-                Invoice: true,
-                Product: true,
               },
             },
           },
@@ -809,7 +698,6 @@ export const updateProduct = async (
   }
 };
 
-// Get all products (without grouping)
 export const getAllProductsFlat = async (
   req: Request,
   res: Response
@@ -817,14 +705,17 @@ export const getAllProductsFlat = async (
   try {
     const products = await prisma.product.findMany({
       include: {
-        productGroup: true,
-        productSetting: {
+        productGroup: {
           include: {
-            files: {
+            productGroupFiles: {
               include: {
                 file: true,
               },
             },
+          },
+        },
+        productSetting: {
+          include: {
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -835,16 +726,8 @@ export const getAllProductsFlat = async (
                 },
               },
             },
-            productPack: {
-              include: {
-                Invoice: true,
-                Product: true,
-              },
-            },
           },
         },
-        ProductPack: true,
-        Invoice: true,
       },
     });
 
@@ -862,7 +745,6 @@ export const getAllProductsFlat = async (
   }
 };
 
-// Get products by product group ID
 export const getProductsByGroupId = async (
   req: Request,
   res: Response
@@ -873,14 +755,17 @@ export const getProductsByGroupId = async (
     const products = await prisma.product.findMany({
       where: { productGroupId },
       include: {
-        productGroup: true,
-        productSetting: {
+        productGroup: {
           include: {
-            files: {
+            productGroupFiles: {
               include: {
                 file: true,
               },
             },
+          },
+        },
+        productSetting: {
+          include: {
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -889,12 +774,6 @@ export const getProductsByGroupId = async (
                     size: true,
                   },
                 },
-              },
-            },
-            productPack: {
-              include: {
-                Invoice: true,
-                Product: true,
               },
             },
           },

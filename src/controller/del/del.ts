@@ -9,19 +9,22 @@ export const forceDeleteAllHandler = async (_req: Request, res: Response) => {
       // 1. Delete all ProductProtsess entries
       await tx.productProtsess.deleteMany();
 
-      // 2. Delete all ProductPack entries
-      await tx.productPack.deleteMany();
+      // 2. Delete all Invoice entries (to satisfy foreign key constraints)
+      await tx.invoice.deleteMany();
 
-      // 3. Delete all ProductColorSize entries (disconnect relationships between entities)
+      // 3. Delete all ProductGroup entries
+      await tx.productGroup.deleteMany();
+
+      // 4. Delete all ProductColorSize entries
       await tx.productColorSize.deleteMany();
 
-      // 4. Delete all SizeGroup entries
+      // 5. Delete all SizeGroup entries
       await tx.sizeGroup.deleteMany();
 
-      // 5. Delete all ProductType entries
+      // 6. Delete all ProductSetting entries
       await tx.productSetting.deleteMany();
 
-      // 6. Delete all Product entries
+      // 7. Delete all Product entries
       await tx.product.deleteMany();
     });
 

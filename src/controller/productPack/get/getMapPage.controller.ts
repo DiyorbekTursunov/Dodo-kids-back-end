@@ -82,7 +82,7 @@ export const getConsolidatedCaseTrackerStatus = async (
     // Get all product packs with their latest status and process information
     const productPacks = await prisma.invoice.findMany({
       include: {
-        Product: true, // Include all Product fields instead of selecting specific ones
+        ProductGroup: true, // Include all Product fields instead of selecting specific ones
         status: {
           orderBy: {
             date: "desc",

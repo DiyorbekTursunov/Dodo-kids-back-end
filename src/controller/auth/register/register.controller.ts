@@ -19,7 +19,6 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(409).json({ error: "Login already taken" });
     }
 
-    // ✅ Validate departmentId
     const department = await prisma.department.findUnique({
       where: { id: departmentId },
     });
@@ -35,21 +34,31 @@ export const registerUser = async (req: Request, res: Response) => {
         login,
         password: hashedPassword,
         role,
-        Employee: {
+        employee: {
           create: {
-            name: department.name, // 🟢 use department name as employee name
+            name: department.name,
             departmentId,
           },
         },
       },
-      include: {
-        Employee: true,
+      select: {
+        id: true,
+        login: true,
+        role: true,
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            departmentId: true,
+          },
+        },
       },
     });
 
     const token = jwt.sign(
       { userId: newUser.id, role: newUser.role },
-      JWT_SECRET
+      JWT_SECRET,
+      { expiresIn: "1h" }
     );
 
     return res.status(201).json({
@@ -59,7 +68,7 @@ export const registerUser = async (req: Request, res: Response) => {
         id: newUser.id,
         login: newUser.login,
         role: newUser.role,
-        employee: newUser.Employee,
+        employee: newUser.employee,
       },
     });
   } catch (error) {

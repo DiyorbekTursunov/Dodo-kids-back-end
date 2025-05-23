@@ -3,59 +3,128 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Get Sent Product Packs for a Department
-export const getAccesltenceProductPacks = async (
+export const getAcceptanceProductPacks = async (
   req: Request,
   res: Response
 ) => {
-  const { departmentId } = req.params;
+  const { departmentId, page = "1", pageSize = "10" } = req.query;
 
   if (!departmentId) {
     return res.status(400).json({ error: "Department ID is required" });
   }
 
+  const pageNum = parseInt(page as string, 10);
+  const size = parseInt(pageSize as string, 10);
+
+  if (isNaN(pageNum) || isNaN(size) || pageNum < 1 || size < 1) {
+    return res.status(400).json({ error: "Invalid page or pageSize" });
+  }
+
   try {
     // Check if department exists
     const department = await prisma.department.findUnique({
-      where: { id: departmentId },
+      where: { id: String(departmentId) },
     });
 
     if (!department) {
       return res.status(404).json({ error: "Department not found" });
     }
 
-    // Get product packs with latest status "Yuborilgan"
-    const sentProductPacks = await prisma.invoice.findMany({
+    // Calculate skip value for pagination
+    const skip = (pageNum - 1) * size;
+
+    // Fetch paginated product packs with status "Qabul qilingan"
+    const productPacks = await prisma.invoice.findMany({
       where: {
-        departmentId,
+        departmentId: String(departmentId),
         status: {
           some: {
             status: "Qabul qilingan",
           },
         },
       },
-      include: {
-        Product: {
-          include: {
-            ProductPack: true,
-            productSetting: true,
+      select: {
+        id: true,
+        departmentId: true,
+        totalCount: true,
+        ProductGroup: {
+          select: {
+            id: true,
+            name: true,
+            products: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         status: {
+          where: {
+            status: "Qabul qilingan",
+          },
           orderBy: {
             date: "desc",
           },
-          where: {
+          select: {
+            id: true,
+            status: true,
+            date: true,
+            employeeId: true,
+            departmentName: true,
+            targetDepartment: true,
+            acceptCount: true,
+            invalidCount: true,
+            invalidReason: true,
+          },
+        },
+      },
+      skip,
+      take: size,
+    });
+
+    // Get total count for pagination metadata
+    const totalCount = await prisma.invoice.count({
+      where: {
+        departmentId: String(departmentId),
+        status: {
+          some: {
             status: "Qabul qilingan",
           },
         },
       },
     });
 
+    if (!productPacks.length) {
+      return res.status(404).json({
+        error: "No product packs found for this department with the pagination",
+      });
+    }
 
-    res.status(200).json(sentProductPacks);
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / size);
+
+    // Return paginated response
+    res.status(200).json({
+      message: "Product packs retrieved successfully",
+      data: productPacks,
+      pagination: {
+        currentPage: pageNum,
+        pageSize: size,
+        totalCount,
+        totalPages,
+      },
+    });
   } catch (err) {
-    console.error("Error fetching sent product packs:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error fetching accepted product packs:", {
+      error: err,
+      departmentId,
+      page,
+      pageSize,
+    });
+    res.status(500).json({
+      error: "Internal server error",
+      details: err instanceof Error ? err.message : "Unknown error",
+    });
   }
 };

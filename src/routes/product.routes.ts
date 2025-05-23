@@ -20,7 +20,6 @@ import {
   updateProductSettings,
 
   // Product Pack operations
-  deleteProductPack,
 } from "../controller/product/product.create.controller";
 
 const router = Router();
@@ -120,15 +119,5 @@ router.delete(
   }
 );
 
-// ============ PRODUCT PACK ROUTES ============
-
-// DELETE - Delete product pack
-router.delete(
-  "/packs/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    deleteProductPack(req, res).catch(next);
-  }
-);
 
 export default router;

@@ -6,28 +6,19 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
-// Create user and employee
 export const createEmployee = async (req: Request, res: Response) => {
   const { login, password, role, departmentId } = req.body;
 
-  // Validate required fields
-  if (!login) return res.status(400).json({ error: "Login is required" });
-  if (!password) return res.status(400).json({ error: "Password is required" });
-  if (!role) return res.status(400).json({ error: "Role is required" });
-  if (!departmentId)
-    return res.status(400).json({ error: "Department ID is required" });
+  if (!login || !password || !role || !departmentId) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
   try {
-    // Check if user with the same login already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { login },
-    });
-
+    const existingUser = await prisma.user.findUnique({ where: { login } });
     if (existingUser) {
       return res.status(409).json({ error: "Login already taken" });
     }
 
-    // Check if department exists
     const department = await prisma.department.findUnique({
       where: { id: departmentId },
     });
@@ -36,35 +27,38 @@ export const createEmployee = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Department not found" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user and employee in a single transaction
     const newUser = await prisma.user.create({
       data: {
         login,
         password: hashedPassword,
         role,
-        Employee: {
+        employee: {
           create: {
             name: department.name,
             departmentId,
           },
         },
       },
-      include: {
-        Employee: {
-          include: {
-            department: true,
+      select: {
+        id: true,
+        login: true,
+        role: true,
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            departmentId: true,
           },
         },
       },
     });
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: newUser.id, role: newUser.role },
-      JWT_SECRET
+      JWT_SECRET,
+      { expiresIn: "1h" }
     );
 
     return res.status(201).json({
@@ -74,7 +68,7 @@ export const createEmployee = async (req: Request, res: Response) => {
         id: newUser.id,
         login: newUser.login,
         role: newUser.role,
-        employee: newUser.Employee,
+        employee: newUser.employee,
       },
     });
   } catch (error) {

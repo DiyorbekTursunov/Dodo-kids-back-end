@@ -16,7 +16,19 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { login },
-      include: { Employee: true },
+      select: {
+        id: true,
+        login: true,
+        role: true,
+        password: true, // Needed for comparison, not returned
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            departmentId: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -28,8 +40,9 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid login or password" });
     }
 
-    // Create JWT token (no expiration)
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET);
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: "1h", // Added expiration for security
+    });
 
     return res.status(200).json({
       message: "Login successful",
@@ -38,7 +51,7 @@ export const loginUser = async (req: Request, res: Response) => {
         id: user.id,
         login: user.login,
         role: user.role,
-        employee: user.Employee,
+        employee: user.employee,
       },
     });
   } catch (error) {

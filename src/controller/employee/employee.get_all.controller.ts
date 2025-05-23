@@ -3,12 +3,22 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Get all employees
 export const getEmployees = async (req: Request, res: Response) => {
   try {
     const employees = await prisma.user.findMany({
-      include: {
-        Employee: true,
+      select: {
+        id: true,
+        login: true,
+        role: true,
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            departmentId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
