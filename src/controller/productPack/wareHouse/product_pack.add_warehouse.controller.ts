@@ -18,9 +18,16 @@ export const addInvoice = async (req: Request, res: Response) => {
   } = req.body;
 
   // Validate required fields
-  if (!departmentId || !department || !productGroupId || !totalCount || !employeeId) {
+  if (
+    !departmentId ||
+    !department ||
+    !productGroupId ||
+    !totalCount ||
+    !employeeId
+  ) {
     return res.status(400).json({
-      error: "All fields (departmentId, department, productGroupId, totalCount, employeeId) are required",
+      error:
+        "All fields (departmentId, department, productGroupId, totalCount, employeeId) are required",
       data: {
         departmentId,
         department,
@@ -34,7 +41,10 @@ export const addInvoice = async (req: Request, res: Response) => {
   }
 
   // Validate numeric inputs
-  if (isNaN(Number(totalCount)) || (invalidCount && isNaN(Number(invalidCount)))) {
+  if (
+    isNaN(Number(totalCount)) ||
+    (invalidCount && isNaN(Number(invalidCount)))
+  ) {
     return res.status(400).json({
       error: "totalCount and invalidCount (if provided) must be numbers",
     });
@@ -94,6 +104,7 @@ export const addInvoice = async (req: Request, res: Response) => {
           departmentId,
           invoiceId: invoice.id,
           targetDepartment: department,
+          acceptanceDepartment: department,
           employeeId,
           acceptCount: Number(totalCount),
           sendedCount: 0,
