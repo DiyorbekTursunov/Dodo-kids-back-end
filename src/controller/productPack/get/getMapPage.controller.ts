@@ -10,11 +10,9 @@ interface RawProductPack {
   department: string;
   protsessIsOver: boolean;
   perentId: string;
-  Product: {
+  ProductGroup: {
     id: string;
-    model: string; // Added model field to match schema
-    createdAt: Date;
-    updatedAt: Date;
+    name: string;
   };
   totalCount: number;
   status: {
@@ -36,11 +34,9 @@ interface FormattedProductPack {
   department: string;
   protsessIsOver: boolean;
   perentId: string;
-  Product: {
+  ProductGroup: {
     id: string;
-    model: string;
-    createdAt: Date;
-    updatedAt: Date;
+    name: string;
   };
   totalCount: number;
   sendedCount: number;
@@ -48,6 +44,7 @@ interface FormattedProductPack {
   residueCount: number;
   isSent: boolean;
   status: string;
+  statusDate: Date; // Included for comparison during consolidation
 }
 
 interface ConsolidatedProductPack {
@@ -56,11 +53,9 @@ interface ConsolidatedProductPack {
   department: string;
   protsessIsOver: boolean;
   perentId: string;
-  Product: {
+  ProductGroup: {
     id: string;
-    model: string;
-    createdAt: Date;
-    updatedAt: Date;
+    name: string;
   };
   totalCount: number;
   sendedCount: number;
@@ -72,53 +67,38 @@ interface ConsolidatedProductPack {
 
 /**
  * Get consolidated case tracker status for product packs
- * Returns a summary of all product packs grouped by parentId and department to avoid duplicates
+ * Returns a summary of all product packs grouped by perentId with the latest status per department
  */
 export const getConsolidatedCaseTrackerStatus = async (
   req: Request,
   res: Response
 ) => {
   try {
-    // Get all product packs with their latest status and process information
+    // Fetch all invoices with only the latest status record
     const productPacks = await prisma.invoice.findMany({
       include: {
-        ProductGroup: true, // Include all Product fields instead of selecting specific ones
+        ProductGroup: true,
         status: {
           orderBy: {
             date: "desc",
           },
+          take: 1, // Fetch only the latest status per invoice
         },
       },
     });
 
-    // Type assertion after we've fetched the data
+    // Type assertion for fetched data
     const typedProductPacks = productPacks as unknown as RawProductPack[];
 
-    // Format all product packs
+    // Format packs using the latest status
     const formattedPacks: FormattedProductPack[] = typedProductPacks.map((pack) => {
-      // Get the latest status record
-      const latestStatus = pack.status[0]?.status || "";
-
-      // Calculate totals from process records
-      let sendedCount = 0;
-      let acceptCount = 0;
-      let residueCount = 0;
-
-      // Sum up values from all process records
-      if (pack.status.length > 0) {
-        sendedCount = pack.status.reduce(
-          (sum, process) => sum + process.sendedCount,
-          0
-        );
-        acceptCount = pack.status.reduce(
-          (sum, process) => sum + process.acceptCount,
-          0
-        );
-        residueCount = pack.status.reduce(
-          (sum, process) => sum + process.residueCount,
-          0
-        );
-      }
+      const latestProcess = pack.status[0];
+      const sendedCount = latestProcess ? latestProcess.sendedCount : 0;
+      const acceptCount = latestProcess ? latestProcess.acceptCount : 0;
+      const residueCount = latestProcess ? latestProcess.residueCount : 0;
+      const status = latestProcess ? latestProcess.status : "";
+      const statusDate = latestProcess ? latestProcess.date : new Date(0);
+      const isSent = status === "Yuborilgan";
 
       return {
         id: pack.id,
@@ -126,76 +106,50 @@ export const getConsolidatedCaseTrackerStatus = async (
         department: pack.department,
         protsessIsOver: pack.protsessIsOver,
         perentId: pack.perentId,
-        Product: {
-          id: pack.Product.id,
-          model: pack.Product.model, // Now correctly accessing model
-          createdAt: pack.Product.createdAt,
-          updatedAt: pack.Product.updatedAt,
-        },
+        ProductGroup: pack.ProductGroup,
         totalCount: pack.totalCount,
-        sendedCount: sendedCount,
-        acceptCount: acceptCount,
-        residueCount: residueCount,
-        isSent: latestStatus === "Yuborilgan",
-        status: latestStatus,
+        sendedCount,
+        acceptCount,
+        residueCount,
+        isSent,
+        status,
+        statusDate, // Include date for consolidation comparison
       };
     });
 
-    // Consolidate the formatted packs by parentId AND department to eliminate duplicates
-    const consolidatedMap: Map<string, ConsolidatedProductPack> = new Map();
+    // Consolidate the formatted packs by perentId and department, keeping only the latest entry
+    const consolidatedMap: Map<string, FormattedProductPack> = new Map();
 
     formattedPacks.forEach((pack) => {
-      // Create a unique key combining parentId and department
       const key = `${pack.perentId}-${pack.department}`;
-
       if (!consolidatedMap.has(key)) {
-        // First entry for this parent/department combination
-        consolidatedMap.set(key, {
-          id: pack.id, // Keep the first ID as reference
-          name: pack.name,
-          department: pack.department,
-          protsessIsOver: pack.protsessIsOver,
-          perentId: pack.perentId,
-          Product: pack.Product,
-          totalCount: pack.totalCount,
-          sendedCount: pack.sendedCount,
-          acceptCount: pack.acceptCount,
-          residueCount: pack.residueCount,
-          isSent: pack.isSent,
-          status: pack.status,
-        });
+        consolidatedMap.set(key, pack);
       } else {
-        // Add counts to existing entry
         const existing = consolidatedMap.get(key)!;
-
-        existing.totalCount += pack.totalCount;
-        existing.sendedCount += pack.sendedCount;
-        existing.acceptCount += pack.acceptCount;
-        existing.residueCount += pack.residueCount;
-
-        // Update process status if needed
-        if (!existing.protsessIsOver) {
-          existing.protsessIsOver = pack.protsessIsOver;
-        }
-
-        // If any pack is sent and the consolidated isn't already marked as sent
-        if (pack.isSent && !existing.isSent) {
-          existing.isSent = true;
-        }
-
-        // Update the status based on priority: Yuborilgan > Other status
-        if (pack.status === "Yuborilgan" && existing.status !== "Yuborilgan") {
-          existing.status = "Yuborilgan";
+        if (pack.statusDate > existing.statusDate) {
+          consolidatedMap.set(key, pack);
         }
       }
     });
 
-    // Convert the consolidated map to an array
-    const consolidatedPacksArray = Array.from(consolidatedMap.values());
+    // Convert the map to an array of ConsolidatedProductPack (excluding statusDate)
+    const consolidatedPacksArray: ConsolidatedProductPack[] = Array.from(consolidatedMap.values()).map(pack => ({
+      id: pack.id,
+      name: pack.name,
+      department: pack.department,
+      protsessIsOver: pack.protsessIsOver,
+      perentId: pack.perentId,
+      ProductGroup: pack.ProductGroup,
+      totalCount: pack.totalCount,
+      sendedCount: pack.sendedCount,
+      acceptCount: pack.acceptCount,
+      residueCount: pack.residueCount,
+      isSent: pack.isSent,
+      status: pack.status,
+    }));
 
-    // Group by parentId for the response
-    const groupedByParentId: { [parentId: string]: ConsolidatedProductPack[] } =
-      {};
+    // Group by perentId for the response
+    const groupedByParentId: { [parentId: string]: ConsolidatedProductPack[] } = {};
 
     consolidatedPacksArray.forEach((pack) => {
       if (!groupedByParentId[pack.perentId]) {
@@ -205,14 +159,12 @@ export const getConsolidatedCaseTrackerStatus = async (
     });
 
     // Format the response
-    const responseData = Object.entries(groupedByParentId).map(
-      ([perentId, data]) => ({
-        perentId,
-        data,
-      })
-    );
+    const responseData = Object.entries(groupedByParentId).map(([perentId, data]) => ({
+      perentId,
+      data,
+    }));
 
-    // Return consolidated data
+    // Return the consolidated data
     return res.status(200).json({
       success: true,
       count: responseData.length,
