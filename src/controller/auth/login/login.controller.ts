@@ -40,9 +40,7 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid login or password" });
     }
 
-    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
-      expiresIn: "1h", // Added expiration for security
-    });
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET);
 
     return res.status(200).json({
       message: "Login successful",

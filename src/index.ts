@@ -12,7 +12,7 @@ import productPackRoutes from "./routes/product_pack.routes";
 import employeeRoutes from "./routes/employee.routes";
 import fileRoutes from "./routes/file.routes"; // Add this line
 import { staticFilesMiddleware, serveFile } from "./middleware/static.middleware"; // Add this line
-// import dashboardRoutes from "./routes/dashboard.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 // import filterRouters from "./routes/filters.routes";
 // import searchRouters from "./routes/search.routes";
 
@@ -49,7 +49,7 @@ app.use("/api/product", productRoutes);
 app.use("/api/product_pack", productPackRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/files", fileRoutes); // Add this line
-// app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 // app.use("/api/models", filterRouters);
 // app.use("/api/models", searchRouters);
 
