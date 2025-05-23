@@ -534,3 +534,384 @@ export const deleteProductPack = async (
     });
   }
 };
+
+// ============ PRODUCT GROUP RUD OPERATIONS ============
+
+// Update a product group
+export const updateProductGroup = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    // Validate input
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required and must be a string",
+      });
+    }
+
+    // Verify product group exists
+    const existingGroup = await prisma.productGroup.findUnique({ where: { id } });
+    if (!existingGroup) {
+      return res.status(404).json({
+        success: false,
+        message: "Product group not found",
+      });
+    }
+
+    // Update product group
+    const updatedGroup = await prisma.productGroup.update({
+      where: { id },
+      data: { name },
+      include: {
+        products: {
+          include: {
+            productSetting: {
+              include: {
+                files: {
+                  include: {
+                    file: true,
+                  },
+                },
+                sizeGroups: {
+                  include: {
+                    colorSizes: {
+                      include: {
+                        color: true,
+                        size: true,
+                      },
+                    },
+                  },
+                },
+                productPack: {
+                  include: {
+                    Invoice: true,
+                    Product: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updatedGroup,
+    });
+  } catch (error) {
+    console.error("Error updating product group:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update product group",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+// ============ PRODUCT RUD OPERATIONS ============
+
+// Create a single product within a product group
+export const createProduct = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { productGroupId } = req.params;
+    const { name, allTotalCount, productSettings = [] } = req.body;
+
+    // Validate input
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required and must be a string",
+      });
+    }
+
+    if (!allTotalCount || typeof allTotalCount !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: "allTotalCount is required and must be a number",
+      });
+    }
+
+    // Verify product group exists
+    const productGroup = await prisma.productGroup.findUnique({
+      where: { id: productGroupId }
+    });
+    if (!productGroup) {
+      return res.status(404).json({
+        success: false,
+        message: "Product group not found",
+      });
+    }
+
+    // Create product
+    const createdProduct = await prisma.product.create({
+      data: {
+        name,
+        allTotalCount,
+        productGroupId,
+        productSetting: {
+          create: productSettings.map((setting: ProductSettingRequest) => ({
+            totalCount: setting.totalCount,
+            productPack: setting.productPackId
+              ? { connect: { id: setting.productPackId } }
+              : undefined,
+            files: {
+              create: setting.files.map((file) => ({
+                file: { connect: { id: file.id } },
+              })),
+            },
+            sizeGroups: {
+              create: setting.sizeGroups.map((group) => ({
+                size: group.size,
+                quantity: group.quantity,
+                colorSizes: {
+                  create: group.colorSizes.map((colorSize) => ({
+                    quantity: colorSize.quantity,
+                    color: { connect: { id: colorSize.colorId } },
+                    size: { connect: { id: colorSize.sizeId } },
+                  })),
+                },
+              })),
+            },
+          })),
+        },
+      },
+      include: {
+        productGroup: true,
+        productSetting: {
+          include: {
+            files: {
+              include: {
+                file: true,
+              },
+            },
+            sizeGroups: {
+              include: {
+                colorSizes: {
+                  include: {
+                    color: true,
+                    size: true,
+                  },
+                },
+              },
+            },
+            productPack: {
+              include: {
+                Invoice: true,
+                Product: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: createdProduct,
+    });
+  } catch (error) {
+    console.error("Error creating product:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create product",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+// Update a product (name and allTotalCount only, not productSettings)
+export const updateProduct = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { id } = req.params;
+    const { name, allTotalCount } = req.body;
+
+    // Validate input
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required and must be a string",
+      });
+    }
+
+    if (!allTotalCount || typeof allTotalCount !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: "allTotalCount is required and must be a number",
+      });
+    }
+
+    // Verify product exists
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    if (!existingProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // Update product
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: { name, allTotalCount },
+      include: {
+        productGroup: true,
+        productSetting: {
+          include: {
+            files: {
+              include: {
+                file: true,
+              },
+            },
+            sizeGroups: {
+              include: {
+                colorSizes: {
+                  include: {
+                    color: true,
+                    size: true,
+                  },
+                },
+              },
+            },
+            productPack: {
+              include: {
+                Invoice: true,
+                Product: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updatedProduct,
+    });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update product",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+// Get all products (without grouping)
+export const getAllProductsFlat = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const products = await prisma.product.findMany({
+      include: {
+        productGroup: true,
+        productSetting: {
+          include: {
+            files: {
+              include: {
+                file: true,
+              },
+            },
+            sizeGroups: {
+              include: {
+                colorSizes: {
+                  include: {
+                    color: true,
+                    size: true,
+                  },
+                },
+              },
+            },
+            productPack: {
+              include: {
+                Invoice: true,
+                Product: true,
+              },
+            },
+          },
+        },
+        ProductPack: true,
+        Invoice: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch products",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+// Get products by product group ID
+export const getProductsByGroupId = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { productGroupId } = req.params;
+
+    const products = await prisma.product.findMany({
+      where: { productGroupId },
+      include: {
+        productGroup: true,
+        productSetting: {
+          include: {
+            files: {
+              include: {
+                file: true,
+              },
+            },
+            sizeGroups: {
+              include: {
+                colorSizes: {
+                  include: {
+                    color: true,
+                    size: true,
+                  },
+                },
+              },
+            },
+            productPack: {
+              include: {
+                Invoice: true,
+                Product: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Error fetching products by group:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch products by group",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
