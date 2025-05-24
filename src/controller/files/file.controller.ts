@@ -1,4 +1,4 @@
-// ===== FILE CONTROLLER (fileController.ts) =====
+// controller/fileController.ts
 import { Request, Response } from "express";
 import { PrismaClient, FileType } from "@prisma/client";
 import multer from "multer";
@@ -10,15 +10,15 @@ const prisma = new PrismaClient();
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Use absolute path for uploads directory
-    const uploadDir = path.resolve(process.cwd(), 'uploads');
+    // Use uploads directory in project root
+    const uploadDir = path.join(process.cwd(), 'uploads');
 
     // Create uploads directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    console.log('Upload directory:', uploadDir); // Debug log
+    console.log('Upload directory:', uploadDir);
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -102,6 +102,13 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
 
     const { productId } = req.body;
 
+    console.log('File uploaded:', {
+      originalName: req.file.originalname,
+      path: req.file.path,
+      filename: req.file.filename,
+      exists: fs.existsSync(req.file.path)
+    });
+
     // If productId is provided, verify that the product exists
     if (productId) {
       const product = await prisma.product.findUnique({
@@ -113,12 +120,6 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
         return;
       }
     }
-
-    console.log('File uploaded:', {
-      originalName: req.file.originalname,
-      path: req.file.path,
-      exists: fs.existsSync(req.file.path)
-    }); // Debug log
 
     const file = await prisma.file.create({
       data: {
@@ -134,7 +135,7 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
     const fileWithUrls = {
       ...file,
       url: generateFileUrl(req, file.id),
-      staticUrl: generateStaticFileUrl(req, path.basename(req.file.path))
+      staticUrl: generateStaticFileUrl(req, req.file.filename) // Use the generated filename
     };
 
     res.status(201).json({
@@ -191,7 +192,7 @@ export const uploadMultipleFiles = async (req: Request, res: Response): Promise<
     const filesWithUrls = uploadedFiles.map((file, index) => ({
       ...file,
       url: generateFileUrl(req, file.id),
-      staticUrl: generateStaticFileUrl(req, path.basename(files[index].path))
+      staticUrl: generateStaticFileUrl(req, files[index].filename)
     }));
 
     res.status(201).json({
@@ -324,7 +325,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<void> =
       id: file.id,
       path: file.path,
       exists: fs.existsSync(file.path)
-    }); // Debug log
+    });
 
     // Check if file exists on filesystem
     if (!fs.existsSync(file.path)) {
@@ -333,7 +334,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<void> =
         message: "File not found on server",
         filePath: file.path,
         currentDir: process.cwd(),
-        uploadDir: path.resolve(process.cwd(), 'uploads')
+        uploadDir: path.join(process.cwd(), 'uploads')
       });
       return;
     }

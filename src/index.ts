@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, RequestHandler, Response } from "express";
 import dotenv from "dotenv";
 import "module-alias/register";
 import path from "path";
@@ -11,7 +11,10 @@ import productRoutes from "./routes/product.routes";
 import productPackRoutes from "./routes/product_pack.routes";
 import employeeRoutes from "./routes/employee.routes";
 import fileRoutes from "./routes/file.routes"; // Add this line
-import { staticFilesMiddleware, serveFile } from "./middleware/static.middleware"; // Add this line
+import {
+  staticFilesMiddleware,
+  serveFile,
+} from "./middleware/static.middleware"; // Add this line
 import dashboardRoutes from "./routes/dashboard.routes";
 import filterRouters from "./routes/filters.routes";
 import searchRouters from "./routes/search.routes";
@@ -28,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the uploads directory
 app.use("/uploads", staticFilesMiddleware);
-app.get("/uploads/:filename", serveFile);
+app.get("/uploads/:filename", serveFile as RequestHandler);
 
 // Health check route
 app.get("/health", (req: Request, res: Response) => {
