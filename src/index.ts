@@ -51,7 +51,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/files", fileRoutes); // Add this line
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/models", filterRouters);
-// app.use("/api/models", searchRouters);
+app.use("/api/models", searchRouters);
 
 // Error handler
 app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
