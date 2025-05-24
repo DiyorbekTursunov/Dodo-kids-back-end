@@ -47,7 +47,7 @@ router.post(
 
 router.get(
   "/get-all-warehouse",
-  authenticate,
+//   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     getAllProductPacks(req, res).catch(next);
   }
@@ -63,7 +63,7 @@ router.post(
 
 router.get(
   "/send-to-department",
-  authenticate,
+//   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     getSentProductPacks(req, res).catch(next);
   }
@@ -79,7 +79,7 @@ router.post(
 
 router.get(
   "/acceptance-to-department",
-  authenticate,
+//   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     getAcceptanceProductPacks(req, res).catch(next);
   }
@@ -87,7 +87,7 @@ router.get(
 
 router.get(
   "/panding-to-department",
-  authenticate,
+//   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
     getPendingProductPacks(req, res).catch(next);
   }

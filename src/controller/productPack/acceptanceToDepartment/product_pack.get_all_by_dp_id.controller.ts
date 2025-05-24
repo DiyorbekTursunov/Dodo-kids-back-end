@@ -76,6 +76,7 @@ export const getAcceptanceProductPacks = async (
             acceptCount: true,
             invalidCount: true,
             invalidReason: true,
+            
           },
         },
       },

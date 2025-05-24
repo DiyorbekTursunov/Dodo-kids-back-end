@@ -1042,3 +1042,75 @@ export const getProductsByGroupId = async (
     });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // Create multiple ProductGroups
+// export const createProducts = async (
+//   req: Request,
+//   res: Response
+// ): Promise<Response> => {
+//   try {
+//     const { productGroups }: ProductsArrayRequest = req.body;
+
+//     if (!productGroups || !Array.isArray(productGroups)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid request: productGroups array is required",
+//       });
+//     }
+
+//     const createdProductGroups = [];
+//     for (const productGroupData of productGroups) {
+//       const productGroup = await prisma.productGroup.create({
+//         data: {
+//           name: productGroupData.name,
+//           ...(productGroupData.files &&
+//             productGroupData.files.length > 0 && {
+//               productGroupFiles: {
+//                 create: productGroupData.files.map((file: FileRequest) => ({
+//                   file: { connect: { id: file.id } },
+//                 })),
+//               },
+//             }),
+//         },
+//         include: {
+//           productGroupFiles: {
+//             include: {
+//               file: true,
+//               productGroup: {
+//                 include: {
+//                   products: true,
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       });
+//       createdProductGroups.push(productGroup);
+//     }
+
+//     return res.status(201).json({
+//       success: true,
+//       data: createdProductGroups,
+//     });
+//   } catch (error) {
+//     console.error("Error creating product groups:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to create product groups",
+//       error: error instanceof Error ? error.message : "Unknown error",
+//     });
+//   }
+// };

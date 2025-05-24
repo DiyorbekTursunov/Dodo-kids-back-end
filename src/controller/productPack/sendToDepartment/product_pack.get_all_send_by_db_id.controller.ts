@@ -35,7 +35,15 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
       },
       include: {
         status: true,
-        ProductGroup: true,
+        ProductGroup: {
+          include: {
+            productGroupFiles: {
+              include: {
+                file: true,
+              },
+            },
+          },
+        },
       },
       skip, // Number of records to skip
       take: size, // Number of records to take
@@ -56,7 +64,12 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
     });
 
     if (!productPacks.length) {
-      return res.status(404).json({ error: "No product packs found for this department with the pagenation" });
+      return res
+        .status(404)
+        .json({
+          error:
+            "No product packs found for this department with the pagenation",
+        });
     }
 
     // Calculate total pages

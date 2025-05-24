@@ -4,10 +4,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
+const JWT_SECRET = process.env.JWT_SECRET || "b3c8f9e2d5a74f1a9c2e3d4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z";
 
 export const loginUser = async (req: Request, res: Response) => {
   const { login, password } = req.body;
+
+  console.log({ login: JWT_SECRET });
 
   if (!login || !password) {
     return res.status(400).json({ error: "Login and password are required" });
