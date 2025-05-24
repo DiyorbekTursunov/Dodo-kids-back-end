@@ -77,6 +77,18 @@ const getFileType = (mimeType: string): FileType => {
   }
 };
 
+// Helper function to generate file URL
+const generateFileUrl = (req: Request, fileId: string): string => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  return `${baseUrl}/api/files/${fileId}/download`;
+};
+
+// Helper function to generate static file URL
+const generateStaticFileUrl = (req: Request, fileName: string): string => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  return `${baseUrl}/uploads/${fileName}`;
+};
+
 // Controller methods
 export const uploadFile = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -109,9 +121,16 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
       },
     });
 
+    // Add URLs to the response
+    const fileWithUrls = {
+      ...file,
+      url: generateFileUrl(req, file.id),
+      staticUrl: generateStaticFileUrl(req, path.basename(req.file.path))
+    };
+
     res.status(201).json({
       message: "File uploaded successfully",
-      file,
+      file: fileWithUrls,
     });
   } catch (error) {
     console.error("Error uploading file:", error);
@@ -159,12 +178,88 @@ export const uploadMultipleFiles = async (req: Request, res: Response): Promise<
       })
     );
 
+    // Add URLs to the response
+    const filesWithUrls = uploadedFiles.map((file, index) => ({
+      ...file,
+      url: generateFileUrl(req, file.id),
+      staticUrl: generateStaticFileUrl(req, path.basename(files[index].path))
+    }));
+
     res.status(201).json({
       message: "Files uploaded successfully",
-      files: uploadedFiles,
+      files: filesWithUrls,
     });
   } catch (error) {
     console.error("Error uploading files:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Get all files
+export const getAllFiles = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      page = '1',
+      limit = '10',
+      fileType,
+      search
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build where clause
+    const where: any = {};
+
+    if (fileType && fileType !== 'ALL') {
+      where.fileType = fileType as FileType;
+    }
+
+    if (search) {
+      where.fileName = {
+        contains: search as string,
+        mode: 'insensitive'
+      };
+    }
+
+    // Get files with pagination
+    const [files, totalCount] = await Promise.all([
+      prisma.file.findMany({
+        where,
+        skip: offset,
+        take: limitNum,
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      prisma.file.count({ where })
+    ]);
+
+    // Add URLs to files
+    const filesWithUrls = files.map(file => ({
+      ...file,
+      url: generateFileUrl(req, file.id),
+      staticUrl: generateStaticFileUrl(req, path.basename(file.path))
+    }));
+
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    res.status(200).json({
+      files: filesWithUrls,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalCount,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching files:", error);
     res.status(500).json({
       message: "Internal Server Error",
       error: (error as Error).message,
@@ -185,9 +280,60 @@ export const getFileById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    res.status(200).json(file);
+    // Add URLs to the response
+    const fileWithUrls = {
+      ...file,
+      url: generateFileUrl(req, file.id),
+      staticUrl: generateStaticFileUrl(req, path.basename(file.path))
+    };
+
+    res.status(200).json(fileWithUrls);
   } catch (error) {
     console.error("Error fetching file:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Serve/download file
+export const downloadFile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const file = await prisma.file.findUnique({
+      where: { id },
+    });
+
+    if (!file) {
+      res.status(404).json({ message: "File not found" });
+      return;
+    }
+
+    // Check if file exists on filesystem
+    if (!fs.existsSync(file.path)) {
+      res.status(404).json({ message: "File not found on server" });
+      return;
+    }
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Length', file.size);
+
+    // For images, we want to display them inline
+    if (file.fileType === FileType.IMAGE) {
+      res.setHeader('Content-Disposition', `inline; filename="${file.fileName}"`);
+    } else {
+      // For documents, trigger download
+      res.setHeader('Content-Disposition', `attachment; filename="${file.fileName}"`);
+    }
+
+    // Stream the file
+    const fileStream = fs.createReadStream(file.path);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error("Error downloading file:", error);
     res.status(500).json({
       message: "Internal Server Error",
       error: (error as Error).message,
