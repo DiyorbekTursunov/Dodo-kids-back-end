@@ -86,6 +86,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
     // Validate department transition
     const currentDepartment = sourceInvoice.department;
     const possibleNextDepartments = departmentFlow[currentDepartment.toLowerCase()] || [];
+
     if (!possibleNextDepartments.includes(actualTargetDepartment.name)) {
       return res.status(400).json({
         error: `Invalid transition from ${currentDepartment} to ${
