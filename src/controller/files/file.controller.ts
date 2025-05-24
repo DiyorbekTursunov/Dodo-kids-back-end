@@ -1,3 +1,4 @@
+// ===== FILE CONTROLLER (fileController.ts) =====
 import { Request, Response } from "express";
 import { PrismaClient, FileType } from "@prisma/client";
 import multer from "multer";
@@ -9,13 +10,15 @@ const prisma = new PrismaClient();
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "../uploads");
+    // Use absolute path for uploads directory
+    const uploadDir = path.resolve(process.cwd(), 'uploads');
 
     // Create uploads directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
+    console.log('Upload directory:', uploadDir); // Debug log
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -110,6 +113,12 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
         return;
       }
     }
+
+    console.log('File uploaded:', {
+      originalName: req.file.originalname,
+      path: req.file.path,
+      exists: fs.existsSync(req.file.path)
+    }); // Debug log
 
     const file = await prisma.file.create({
       data: {
@@ -311,9 +320,21 @@ export const downloadFile = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    console.log('Attempting to serve file:', {
+      id: file.id,
+      path: file.path,
+      exists: fs.existsSync(file.path)
+    }); // Debug log
+
     // Check if file exists on filesystem
     if (!fs.existsSync(file.path)) {
-      res.status(404).json({ message: "File not found on server" });
+      console.error('File not found on filesystem:', file.path);
+      res.status(404).json({
+        message: "File not found on server",
+        filePath: file.path,
+        currentDir: process.cwd(),
+        uploadDir: path.resolve(process.cwd(), 'uploads')
+      });
       return;
     }
 
