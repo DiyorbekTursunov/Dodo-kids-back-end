@@ -4,20 +4,20 @@ import { PrismaClient, ProductProtsess } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Define allowed department transitions
-const departmentFlow: { [key: string]: string[] } = {
-  ombor: ["bichuv"],
-  bichuv: ["tasnif"],
-  tasnif: ["pechat", "autsorsPechat"],
-  pechat: ["tasnif-2"],
-  autsorsPechat: ["tasnif-2"],
-  "tasnif-2": ["tikuv", "autsorsTikuv"],
-  tikuv: ["chistka"],
-  autsorsTikuv: ["chistka"],
-  chistka: ["kontrol"],
-  kontrol: ["dazmol"],
-  dazmol: ["upakofka"],
-  upakofka: ["ombor"],
-};
+// const departmentFlow: { [key: string]: string[] } = {
+//   ombor: ["bichuv"],
+//   bichuv: ["tasnif"],
+//   tasnif: ["pechat", "autsorsPechat"],
+//   pechat: ["tasnif-2"],
+//   autsorsPechat: ["tasnif-2"],
+//   "tasnif-2": ["tikuv", "autsorsTikuv"],
+//   tikuv: ["chistka"],
+//   autsorsTikuv: ["chistka"],
+//   chistka: ["kontrol"],
+//   kontrol: ["dazmol"],
+//   dazmol: ["upakofka"],
+//   upakofka: ["ombor"],
+// };
 
 export const sendToDepartment = async (req: Request, res: Response) => {
   const {
@@ -83,17 +83,17 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       actualTargetDepartment = chistkaDepartment;
     }
 
-    // Validate department transition
-    const currentDepartment = sourceInvoice.department;
-    const possibleNextDepartments = departmentFlow[currentDepartment.toLowerCase()] || [];
+    // // Validate department transition
+    // const currentDepartment = sourceInvoice.department;
+    // const possibleNextDepartments = departmentFlow[currentDepartment.toLowerCase()] || [];
 
-    if (!possibleNextDepartments.includes(actualTargetDepartment.name)) {
-      return res.status(400).json({
-        error: `Invalid transition from ${currentDepartment} to ${
-          actualTargetDepartment.name
-        }. Valid next departments: ${possibleNextDepartments.join(", ")}`,
-      });
-    }
+    // if (!possibleNextDepartments.includes(actualTargetDepartment.name)) {
+    //   return res.status(400).json({
+    //     error: `Invalid transition from ${currentDepartment} to ${
+    //       actualTargetDepartment.name
+    //     }. Valid next departments: ${possibleNextDepartments.join(", ")}`,
+    //   });
+    // }
 
     // Find the latest status with explicit typing
     const latestStatus =
