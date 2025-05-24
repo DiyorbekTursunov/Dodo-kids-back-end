@@ -85,15 +85,22 @@ export const searchProductGroups = async (req: Request, res: Response) => {
     }
 
     // Search ProductGroups by name
-    const productGroups = await prisma.productGroup.findMany({
+    const productGroups = await prisma.product.findMany({
       where: {
-        name: {
-          contains: name.toString(),
-          mode: "insensitive",
-        },
+        name: { contains: name.toString(), mode: "insensitive" },
       },
+
       include: {
-        products: true, // Optional: include related products
+        productSetting: {
+          include: {
+            // productSettingFiles: {
+            //   include: {
+            //     file: true,
+            //   },
+            // },
+            product: true,
+          },
+        },
       },
     });
 
