@@ -50,6 +50,7 @@ interface ProductsArrayRequest {
   productGroups: ProductGroupRequest[];
 }
 
+
 // **Create multiple ProductGroups**
 export const createProducts = async (
   req: Request,
@@ -119,14 +120,6 @@ export const createProducts = async (
               productSetting: {
                 create: product.productSettings.map((setting) => ({
                   totalCount: setting.totalCount,
-                  ...(setting.files &&
-                    setting.files.length > 0 && {
-                      productSettingFiles: {
-                        create: setting.files.map((file: FileRequest) => ({
-                          file: { connect: { id: file.id } },
-                        })),
-                      },
-                    }),
                   sizeGroups: {
                     create: setting.sizeGroups.map((group) => ({
                       size: group.size,
@@ -192,6 +185,7 @@ export const createProducts = async (
     });
   }
 };
+
 
 // **Get all ProductGroups with related data**
 export const getAllProducts = async (
@@ -790,15 +784,21 @@ export const createProduct = async (
       });
     }
 
-    // Check if all files in productSettings exist
+    // Check if all colors and sizes exist
     for (const setting of productSettings) {
-      if (setting.files) {
-        for (const file of setting.files) {
-          const fileExists = await prisma.file.findUnique({
-            where: { id: file.id },
+      for (const group of setting.sizeGroups) {
+        for (const colorSize of group.colorSizes) {
+          const colorExists = await prisma.color.findUnique({
+            where: { id: colorSize.colorId },
           });
-          if (!fileExists) {
-            throw new Error(`File with ID ${file.id} does not exist`);
+          const sizeExists = await prisma.size.findUnique({
+            where: { id: colorSize.sizeId },
+          });
+          if (!colorExists) {
+            throw new Error(`Color with ID ${colorSize.colorId} does not exist`);
+          }
+          if (!sizeExists) {
+            throw new Error(`Size with ID ${colorSize.sizeId} does not exist`);
           }
         }
       }
@@ -812,14 +812,6 @@ export const createProduct = async (
         productSetting: {
           create: productSettings.map((setting: ProductSettingRequest) => ({
             totalCount: setting.totalCount,
-            ...(setting.files &&
-              setting.files.length > 0 && {
-                productSettingFiles: {
-                  create: setting.files.map((file: FileRequest) => ({
-                    file: { connect: { id: file.id } },
-                  })),
-                },
-              }),
             sizeGroups: {
               create: setting.sizeGroups.map((group) => ({
                 size: group.size,
@@ -881,7 +873,6 @@ export const createProduct = async (
     });
   }
 };
-
 // **Update a Product**
 export const updateProduct = async (
   req: Request,
