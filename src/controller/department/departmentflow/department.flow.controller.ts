@@ -5,26 +5,26 @@ const prisma = new PrismaClient();
 
 // Updated department flow map to match database names
 const departmentFlowMap: Record<string, string[]> = {
-  ombor: ["Bichuv"],
-  Bichuv: ["Tasnif"],
-  Tasnif: ["pechat", "autdorsPechat", "tikuv", "autsorsTikuv"],
-  pechat: ["Tasnif"],
-  autdorsPechat: ["Tasnif"],
-  tikuv: ["Chiska"],
-  autsorsTikuv: ["Chiska"],
-  Chiska: ["kontrol"],
+  ombor: ["bichuv"],
+  bichuv: ["tasnif"],
+  tasnif: ["pechat", "autsorsPechat", "tikuv", "autsorsTikuv"],
+  pechat: ["tasnif"],
+  autsorsPechat: ["tasnif"],
+  tikuv: ["chiska"],
+  autsorsTikuv: ["chiska"],
+  chiska: ["kontrol"],
   kontrol: ["dazmol"],
-  dazmol: ["upokofka"],
-  upokofka: ["ombor"],
+  dazmol: ["upakofka"],
+  upakofka: ["ombor"],
 };
 
 // Normalize outsourced versions to their group name
 const normalizeDepartment = (name: string): string => {
   const map: Record<string, string> = {
-    autdorsPechat: "pechat",
-    autsorsTikuv: "tikuv",
+    autdorspechat: "pechat",
+    autsorstikuv: "tikuv",
   };
-  return map[name.toLowerCase()] || name;
+  return map[name.toLowerCase()] || name.toLowerCase();
 };
 
 export const getNextDepartments = async (req: Request, res: Response) => {
@@ -44,7 +44,7 @@ export const getNextDepartments = async (req: Request, res: Response) => {
     const normalizedName = normalizeDepartment(currentDeptName);
 
     // Get next department names from the flow map
-    const nextNames = departmentFlowMap[currentDeptName] || [];
+    const nextNames = departmentFlowMap[normalizedName] || [];
     console.log("Current department:", currentDeptName);
     console.log("Next department names:", nextNames);
 
