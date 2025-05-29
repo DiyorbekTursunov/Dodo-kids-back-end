@@ -18,6 +18,7 @@ import {
 import dashboardRoutes from "./routes/dashboard.routes";
 import filterRouters from "./routes/filters.routes";
 import searchRouters from "./routes/search.routes";
+import outsourseCompanyRoutes from "./routes/outsourseCompany.routes";
 
 dotenv.config();
 
@@ -55,13 +56,17 @@ app.use("/api/files", fileRoutes); // Add this line
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/models", filterRouters);
 app.use("/api/models", searchRouters);
+app.use("/api/outsourse_company", outsourseCompanyRoutes);
 
 // Error handler
-app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: "Internal Server Error",
-    error: err.message,
+app.use((err: any, req: any, res: any, next: any) => {
+  // Check for custom status code
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(statusCode).json({
+    error: message,
+    // ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 

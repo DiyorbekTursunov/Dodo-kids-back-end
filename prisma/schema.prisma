@@ -9,16 +9,15 @@ datasource db {
 
 // File model to store file details
 model File {
-    id                   String               @id @default(uuid())
-    fileName             String
-    path                 String
-    mimeType             String
-    size                 Int
-    fileType             FileType
-    createdAt            DateTime             @default(now())
-    updatedAt            DateTime             @updatedAt
-    productGroupFiles    ProductGroupFile[]   // Link with ProductGroup
-    productSettingFiles  ProductSettingFile[] // Link with ProductSetting
+    id                String             @id @default(uuid())
+    fileName          String
+    path              String
+    mimeType          String
+    size              Int
+    fileType          FileType
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
+    productGroupFiles ProductGroupFile[] // Link with ProductGroup
 }
 
 // Enum for file types
@@ -31,7 +30,7 @@ enum FileType {
 // ProductGroup model (e.g., "A1", "A2", "A3")
 model ProductGroup {
     id                String             @id @default(uuid())
-    name              String             // e.g., "A1", "A2", "A3"
+    name              String // e.g., "A1", "A2", "A3"
     createdAt         DateTime           @default(now())
     updatedAt         DateTime           @updatedAt
     products          Product[]
@@ -53,14 +52,15 @@ model Product {
 
 // ProductSetting model to store settings for each product
 model productSetting {
-    id                  String               @id @default(uuid())
-    totalCount          Int
-    createdAt           DateTime             @default(now())
-    updatedAt           DateTime             @updatedAt
-    productId           String
-    product             Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups          SizeGroup[]
-    productSettingFiles ProductSettingFile[] // Link with File
+    id         String      @id @default(uuid())
+    totalCount Int
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    productId  String
+    product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+    sizeGroups SizeGroup[]
+
+    
 }
 
 // Junction table for many-to-many relationship between ProductGroup and File
@@ -70,15 +70,6 @@ model ProductGroupFile {
     fileId         String
     productGroup   ProductGroup @relation(fields: [productGroupId], references: [id], onDelete: Cascade)
     file           File         @relation(fields: [fileId], references: [id])
-}
-
-// Junction table for many-to-many relationship between ProductSetting and File
-model ProductSettingFile {
-    id               String         @id @default(uuid())
-    productSettingId String
-    fileId           String
-    productSetting   productSetting @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
-    file             File           @relation(fields: [fileId], references: [id])
 }
 
 // SizeGroup model to group sizes and their quantities
@@ -125,20 +116,33 @@ model Size {
     ProductColorSize ProductColorSize[]
 }
 
+model OutsourseCompany {
+    id        String    @id @default(uuid())
+    name      String    @unique
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    Invoice   Invoice[]
+}
+
 // Invoice model
 model Invoice {
-    id             String            @id @default(uuid())
-    number         Int
-    perentId       String
-    protsessIsOver Boolean           @default(false)
-    departmentId   String
-    department     String
-    productGroupId String
-    ProductGroup   ProductGroup      @relation(fields: [productGroupId], references: [id])
-    totalCount     Int
-    status         ProductProtsess[]
-    createdAt      DateTime          @default(now())
-    updatedAt      DateTime          @updatedAt
+    id                 String            @id @default(uuid())
+    number             Int
+    perentId           String
+    protsessIsOver     Boolean           @default(false)
+    departmentId       String
+    department         String
+    productGroupId     String
+    ProductGroup       ProductGroup      @relation(fields: [productGroupId], references: [id])
+    totalCount         Int
+    status             ProductProtsess[]
+    createdAt          DateTime          @default(now())
+    updatedAt          DateTime          @updatedAt
+
+    // This is for the relation with OutsourseCompany
+    isOutsource        Boolean           @default(false)
+    outsourseCompany   OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
+    outsourseCompanyId String?
 }
 
 // Department model

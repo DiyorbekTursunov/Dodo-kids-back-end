@@ -1,43 +1,30 @@
-import { authenticate } from "../middleware/authMiddleware";
-import express, { Request, Response, NextFunction } from "express";
-import { getEmployees } from "../controller/employee/employee.get_all.controller";
-import { getEmployeeById } from "../controller/employee/employee.get_id.controller";
-import { updateEmployee } from "../controller/employee/employee.edit.controller";
-import { createEmployee } from "../controller/employee/employee.create.controller";
-import { deleteEmployee } from "../controller/employee/employee.del.controller";
+// employee.routes.ts - Complete routing setup
+import { Router } from "express";
+import * as employeeController from "@/controller/employee/employee.controller";
+import { errorHandler } from "@/service/employee/employee.service";
 
-const router = express.Router();
+const router = Router();
 
-router.post(
-  "/",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    createEmployee(req, res).catch(next);
-  }
-);
+// CREATE - POST /employees
+router.post("/", employeeController.createEmployee);
 
-router.get("/", (req: Request, res: Response, next: NextFunction) => {
-  getEmployees(req, res).catch(next);
-});
+// READ - GET /employees (with query params for pagination and filtering)
+// Example: GET /employees?page=1&limit=10&departmentId=uuid
+router.get("/", employeeController.getEmployees);
 
-router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-  getEmployeeById(req, res).catch(next);
-});
+// READ - GET /employees/:id
+router.get("/:id", employeeController.getEmployeeById);
 
-router.put(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    updateEmployee(req, res).catch(next);
-  }
-);
+// UPDATE - PUT /employees/:id
+router.put("/:id", employeeController.updateEmployee);
 
-router.delete(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    deleteEmployee(req, res).catch(next);
-  }
+// DELETE - DELETE /employees/:id
+router.delete("/:id", employeeController.deleteEmployee);
+
+// UTILITY - GET /employees/department/:departmentId
+router.get(
+  "/department/:departmentId",
+  employeeController.getEmployeesByDepartment
 );
 
 export default router;

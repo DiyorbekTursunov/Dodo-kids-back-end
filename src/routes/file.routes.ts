@@ -5,6 +5,7 @@ import {
   uploadMultipleFiles,
   getFileById,
   deleteFile,
+  getAllFiles,
 } from "../controller/files/file.controller";
 import { authenticate } from "../middleware/authMiddleware"; // Assuming you have an auth middleware
 
@@ -24,5 +25,7 @@ router.get("/:id", getFileById);
 
 // Delete file
 router.delete("/:id", authenticate, deleteFile);
+
+router.get("/", getAllFiles);
 
 export default router;

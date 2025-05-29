@@ -3,17 +3,20 @@ import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || "b3c8f9e2d5a74f1a9c2e3d4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z";
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
-console.log(JWT_SECRET);
-
+if (JWT_SECRET === "default_secret") {
+  console.warn(
+    "Warning: Using default JWT secret. Please set a secure JWT_SECRET in your environment variables."
+  );
+}
 
 // Extend Express.Request to include user
 declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string;      // changed from number to string (UUID)
+        id: string; // changed from number to string (UUID)
         login: string;
         role: "ADMIN" | "USER";
       };
@@ -41,7 +44,9 @@ export const authenticate = async (
       role: "ADMIN" | "USER";
     };
 
-    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
 
     if (!user) {
       res.status(401).json({ error: "User not found" });

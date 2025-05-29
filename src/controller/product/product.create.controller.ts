@@ -148,11 +148,6 @@ export const createProducts = async (
             include: {
               productSetting: {
                 include: {
-                  productSettingFiles: {
-                    include: {
-                      file: true,
-                    },
-                  },
                   sizeGroups: {
                     include: {
                       colorSizes: {
@@ -204,11 +199,6 @@ export const getAllProducts = async (
           include: {
             productSetting: {
               include: {
-                productSettingFiles: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -262,11 +252,6 @@ export const getProductById = async (
         },
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -323,11 +308,6 @@ export const getProductGroupById = async (
           include: {
             productSetting: {
               include: {
-                productSettingFiles: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -428,11 +408,6 @@ export const updateProductSettings = async (
       include: {
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -512,9 +487,7 @@ export const deleteProductGroup = async (
         products: {
           include: {
             productSetting: {
-              include: {
-                productSettingFiles: true,
-              },
+
             },
           },
         },
@@ -556,12 +529,6 @@ export const deleteProductGroup = async (
           .flatMap((product) => product.productSetting)
           .map((setting) => setting.id);
 
-        if (productSettingIds.length > 0) {
-          await tx.productSettingFile.deleteMany({
-            where: { productSettingId: { in: productSettingIds } },
-          });
-        }
-
         await tx.productGroupFile.deleteMany({
           where: { productGroupId: id },
         });
@@ -597,12 +564,6 @@ export const deleteProductGroup = async (
       const productSettingIds = productGroup.products
         .flatMap((product) => product.productSetting)
         .map((setting) => setting.id);
-
-      if (productSettingIds.length > 0) {
-        await tx.productSettingFile.deleteMany({
-          where: { productSettingId: { in: productSettingIds } },
-        });
-      }
 
       await tx.productGroupFile.deleteMany({
         where: { productGroupId: id },
@@ -715,11 +676,6 @@ export const updateProductGroup = async (
           include: {
             productSetting: {
               include: {
-                productSettingFiles: {
-                  include: {
-                    file: true,
-                  },
-                },
                 sizeGroups: {
                   include: {
                     colorSizes: {
@@ -840,11 +796,6 @@ export const createProduct = async (
         },
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -919,11 +870,6 @@ export const updateProduct = async (
         },
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -972,11 +918,6 @@ export const getAllProductsFlat = async (
         },
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {
@@ -1028,11 +969,6 @@ export const getProductsByGroupId = async (
         },
         productSetting: {
           include: {
-            productSettingFiles: {
-              include: {
-                file: true,
-              },
-            },
             sizeGroups: {
               include: {
                 colorSizes: {

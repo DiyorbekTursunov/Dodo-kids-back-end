@@ -1,39 +1,20 @@
+import {
+  createColor,
+  deleteColor,
+  getColorById,
+  getColors,
+  updateColor,
+} from "@/controller/color/color.controller";
 import { authenticate } from "../middleware/authMiddleware";
-import { createColor } from "../controller/color/color.create.controller";
-import { deleteColor } from "../controller/color/color.delete.controller";
-import { getColors } from "../controller/color/color.get_all.controller";
-import { getColorById } from "../controller/color/color.get_id.controller";
-import { updateColor } from "../controller/color/color.update.controller";
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 
 const router = express.Router();
 
-router.post("/", (req: Request, res: Response, next: NextFunction) => {
-  createColor(req, res).catch(next);
-});
-
-router.get("/", (req: Request, res: Response, next: NextFunction) => {
-  getColors(req, res).catch(next);
-});
-
-router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-  getColorById(req, res).catch(next);
-});
-
-router.put(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    updateColor(req, res).catch(next);
-  }
-);
-
-router.delete(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    deleteColor(req, res).catch(next);
-  }
-);
+// Simplified route handlers
+router.post("/", createColor);
+router.get("/", getColors);
+router.get("/:id", getColorById);
+router.put("/:id", authenticate, updateColor);
+router.delete("/:id", authenticate, deleteColor);
 
 export default router;
