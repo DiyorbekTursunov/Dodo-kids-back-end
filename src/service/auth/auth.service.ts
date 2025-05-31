@@ -14,9 +14,9 @@ import {
   createUser,
   validatePassword,
   checkUserExists,
-} from "@/service/auth/user.service";
+} from "../../service/auth/user.service";
 import { findDepartmentById } from "./department.service";
-import { AuthResponse, RefreshResponse } from "@/types/auth/auth";
+import { AuthResponse, RefreshResponse } from "../../types/auth/auth";
 
 export const login = async (
   loginInput: string,
@@ -167,4 +167,3 @@ export const validateAccessToken = async (token: string) => {
 
 // Import single function for better tree-shaking
 import { generateAccessToken } from "./token.service";
-

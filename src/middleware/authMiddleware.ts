@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as authService from "@/service/auth/auth.service";
+import * as authService from "../service/auth/auth.service";
 
 declare global {
   namespace Express {

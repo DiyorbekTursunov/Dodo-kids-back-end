@@ -2,6 +2,10 @@ import express, { Express, Request, RequestHandler, Response } from "express";
 import dotenv from "dotenv";
 import "module-alias/register";
 import path from "path";
+import { addAliases } from 'module-alias';
+import 'module-alias/register';
+
+import { swaggerUi, specs } from "./swagger.config";
 
 import authRoutes from "./routes/auth.routes";
 import departmentRoutes from "./routes/department.routes";
@@ -19,6 +23,12 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import filterRouters from "./routes/filters.routes";
 import searchRouters from "./routes/search.routes";
 import outsourseCompanyRoutes from "./routes/outsourseCompany.routes";
+
+// Set module alias based on environment
+const isProduction = process.env.NODE_ENV === "production";
+addAliases({
+  "@": path.join(__dirname, isProduction ? "dist" : "src"),
+});
 
 dotenv.config();
 
@@ -38,6 +48,17 @@ app.get("/uploads/:filename", serveFile as RequestHandler);
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ status: "OK", message: "Server is running" });
 });
+
+// Swagger documentation
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Auth API Documentation",
+  })
+);
 
 // Root route
 app.get("/", (req: Request, res: Response) => {
