@@ -1,39 +1,19 @@
-// src/routes/authRoutes.ts
-import { authenticate } from "../middleware/authMiddleware";
-import { loginUser } from "../controller/auth/login/login.controller";
-import { registerUser } from "../controller/auth/register/register.controller";
-import express, { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../controller/auth/middeware/authRoutes";
+import { Router } from "express";
+import {
+  loginUser,
+  registerUser,
+  refreshAccessToken,
+  logoutUser,
+} from "@/controller/auth/auth.controller";
+import { authenticate } from "@/middleware/authMiddleware";
+import * as authController from "@/controller/auth/auth.controller";
 
-const router = express.Router();
+const router = Router();
 
-router.post(
-  "/register",
-//   authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    registerUser(req, res).catch(next);
-  }
-);
+router.post("/login", loginUser);
+router.post("/register", registerUser);
+router.post("/refresh", refreshAccessToken);
+router.post("/logout", logoutUser);
 
-router.get(
-  "/auth/me",
-  authenticate,
-  asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    res.status(200).json({
-      id: req.user.id,
-      login: req.user.login,
-      role: req.user.role,
-    });
-  })
-);
-
-router.post("/login", (req: Request, res: Response, next: NextFunction) => {
-  loginUser(req, res).catch(next);
-});
-
+router.get("/me", authenticate, authController.getCurrentUser);
 export default router;

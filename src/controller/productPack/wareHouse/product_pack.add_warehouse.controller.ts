@@ -15,6 +15,7 @@ export const addInvoice = async (req: Request, res: Response) => {
     invalidCount,
     invalidReason,
     employeeId,
+    isOutsource = false, // Default to false if not provided
   } = req.body;
 
   // Validate required fields
@@ -23,7 +24,8 @@ export const addInvoice = async (req: Request, res: Response) => {
     !department ||
     !productGroupId ||
     !totalCount ||
-    !employeeId
+    !employeeId ||
+    !isOutsource
   ) {
     return res.status(400).json({
       error:
@@ -36,6 +38,7 @@ export const addInvoice = async (req: Request, res: Response) => {
         invalidCount,
         invalidReason,
         employeeId,
+        isOutsource,
       },
     });
   }
@@ -90,6 +93,7 @@ export const addInvoice = async (req: Request, res: Response) => {
           totalCount: Number(totalCount),
           protsessIsOver: false,
           productGroupId,
+          isOutsource,
         },
         include: {
           ProductGroup: true,
@@ -147,4 +151,4 @@ export const addInvoice = async (req: Request, res: Response) => {
       details: "An unknown error occurred",
     });
   }
-};
+}

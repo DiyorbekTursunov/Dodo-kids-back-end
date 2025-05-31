@@ -1,22 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import * as authService from "@/service/auth/auth.service";
 
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
-
-if (JWT_SECRET === "default_secret") {
-  console.warn(
-    "Warning: Using default JWT secret. Please set a secure JWT_SECRET in your environment variables."
-  );
-}
-
-// Extend Express.Request to include user
 declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string; // changed from number to string (UUID)
+        id: string;
         login: string;
         role: "ADMIN" | "USER";
       };
@@ -24,7 +13,6 @@ declare global {
   }
 }
 
-// ✅ Authentication middleware
 export const authenticate = async (
   req: Request,
   res: Response,
@@ -33,40 +21,47 @@ export const authenticate = async (
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "No token provided" });
+      res.status(401).json({
+        error: "No token provided",
+        code: "NO_TOKEN"
+      });
       return;
     }
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
-      role: "ADMIN" | "USER";
-    };
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
-
-    if (!user) {
-      res.status(401).json({ error: "User not found" });
-      return;
-    }
-
-    req.user = {
-      id: user.id,
-      login: user.login,
-      role: user.role,
-    };
+    const user = await authService.validateAccessToken(token);
+    req.user = user;
 
     next();
   } catch (error) {
     console.error("Authentication error:", error);
-    res.status(401).json({ error: "Invalid or expired token" });
+
+    if (error instanceof Error) {
+      if (error.name === "TokenExpiredError") {
+        res.status(401).json({
+          error: "Access token expired",
+          code: "TOKEN_EXPIRED"
+        });
+        return;
+      }
+
+      if (error.message === "Invalid token type" || error.message === "User not found") {
+        res.status(401).json({
+          error: error.message,
+          code: "INVALID_TOKEN"
+        });
+        return;
+      }
+    }
+
+    res.status(401).json({
+      error: "Invalid or expired token",
+      code: "INVALID_TOKEN"
+    });
   }
 };
 
-// ✅ Admin check middleware
 export const isAdmin = (
   req: Request,
   res: Response,
