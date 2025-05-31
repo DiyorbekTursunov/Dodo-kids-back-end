@@ -2,8 +2,9 @@ import express, { Express, Request, RequestHandler, Response } from "express";
 import dotenv from "dotenv";
 import "module-alias/register";
 import path from "path";
-import { addAliases } from 'module-alias';
-import 'module-alias/register';
+import { addAliases } from "module-alias";
+import "module-alias/register";
+import cors from 'cors';
 
 import { swaggerUi, specs } from "./swagger.config";
 
@@ -39,6 +40,18 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middleware
+app.use(
+  cors({
+    origin: [
+      "https://dodo-kids-back-end-xq7q.onrender.com",
+      "http://localhost:3000",
+    ], // Allow Swagger UI and local dev
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Serve static files from the uploads directory
 app.use("/uploads", staticFilesMiddleware);

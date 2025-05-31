@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "refresh_default_secret";
 const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY = "7d";
+const REFRESH_TOKEN_EXPIRY = "90d";
 
 if (
   JWT_SECRET === "default_secret" ||
