@@ -4,7 +4,7 @@ import {
   getColorById,
   getColors,
   updateColor,
-} from "@/controller/color/color.controller";
+} from "../controller/color/color.controller";
 import { authenticate } from "../middleware/authMiddleware";
 import express from "express";
 

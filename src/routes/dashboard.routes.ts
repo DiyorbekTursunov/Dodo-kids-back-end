@@ -1,4 +1,4 @@
-import { getDashboardStatsByDateRange } from "@/controller/dashboardController/dashboard.all_stats_date.controller";
+import { getDashboardStatsByDateRange } from "../controller/dashboardController/dashboard.all_stats_date.controller";
 import express from "express";
 
 

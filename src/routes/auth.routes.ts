@@ -4,9 +4,9 @@ import {
   registerUser,
   refreshAccessToken,
   logoutUser,
-} from "@/controller/auth/auth.controller";
-import { authenticate } from "@/middleware/authMiddleware";
-import * as authController from "@/controller/auth/auth.controller";
+} from "../controller/auth/auth.controller";
+import { authenticate } from "../middleware/authMiddleware";
+import * as authController from "../controller/auth/auth.controller";
 
 const router = Router();
 

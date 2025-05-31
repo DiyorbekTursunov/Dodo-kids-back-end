@@ -5,7 +5,7 @@ import {
   getOutsourseCompanyById,
   updateOutsourseCompany,
   deleteOutsourseCompany,
-} from '@/controller/outsourseCompany/outsourse_company.controller';
+} from '../controller/outsourseCompany/outsourse_company.controller';
 
 const router = Router();
 

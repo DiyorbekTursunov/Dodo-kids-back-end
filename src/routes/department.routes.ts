@@ -5,8 +5,8 @@ import {
   getDepartmentById,
   getDepartments,
   updateDepartment,
-} from "@/controller/department/department.controller";
-import { getNextDepartments } from "@/controller/departmentflow/department_flow.controller";
+} from "../controller/department/department.controller";
+import { getNextDepartments } from "../controller/departmentflow/department_flow.controller";
 import { authenticate } from "../middleware/authMiddleware";
 
 const router = express.Router();
