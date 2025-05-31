@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as colorService from "@/service/color/color.service";
+import * as colorService from "../../service/color/color.service";
 
 export const createColor = async (
   req: Request,

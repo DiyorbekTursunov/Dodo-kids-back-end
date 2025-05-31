@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as companyService from "@/service/outsourseCompany/outsourse_company.service";
+import * as companyService from "../../service/outsourseCompany/outsourse_company.service";
 
 export const createOutsourseCompany = async (
   req: Request,
@@ -28,7 +28,7 @@ export const getAllOutsourseCompanies = async (
   try {
     const data = await companyService.getOutsourseCompaniesService();
     console.log(data);
-    
+
     res.status(200).json(data);
   } catch (err) {
     next(err);

@@ -1,6 +1,6 @@
 // employee.controller.ts - Complete CRUD version
 import { Request, Response, NextFunction } from "express";
-import * as employeeService from "@/service/employee/employee.service";
+import * as employeeService from "../../service/employee/employee.service";
 
 // CREATE - Create new employee
 export const createEmployee = async (

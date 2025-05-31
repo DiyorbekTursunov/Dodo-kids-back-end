@@ -1,4 +1,4 @@
-import { getDashboardStatsByDateRangeService } from "@/service/dashboard/dashboard.service";
+import { getDashboardStatsByDateRangeService } from "../../service/dashboard/dashboard.service";
 import { Request, Response } from "express";
 
 

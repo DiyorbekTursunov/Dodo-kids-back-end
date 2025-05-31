@@ -1,4 +1,4 @@
-import { getNextDepartmentsService } from "@/service/departmentFlow/department_flow.service";
+import { getNextDepartmentsService } from "../../service/departmentFlow/department_flow.service";
 import { NextFunction, Request, Response } from "express";
 
 export const getNextDepartments = async (
