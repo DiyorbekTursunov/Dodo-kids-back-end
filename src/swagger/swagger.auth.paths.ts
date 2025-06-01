@@ -1,7 +1,7 @@
 // swagger.auth.paths.ts
 const authPaths = {
   paths: {
-    '/auth/login': {
+    'api/auth/login': {
       post: {
         tags: ['Authentication'],
         summary: 'User login',
