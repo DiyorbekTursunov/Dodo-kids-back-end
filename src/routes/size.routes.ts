@@ -1,39 +1,22 @@
+import { Router } from "express";
 import { authenticate } from "../middleware/authMiddleware";
-import { getSizeById } from "../controller/size/size.by_id.controller";
-import { createSize } from "../controller/size/size.create.controller";
-import { deleteSize } from "../controller/size/size.delete.controller";
-import { getSizes } from "../controller/size/size.get_all.controller";
-import { updateSize } from "../controller/size/size.update.controller";
-import { Router, Request, Response, NextFunction } from "express";
+import { getSizes, getSizeById, createSize, updateSize, deleteSize } from "../controller/size/size.controller";
 
 const router = Router();
 
-router.post("/", (req: Request, res: Response, next: NextFunction) => {
-  createSize(req, res).catch(next);
-});
+// Get all sizes
+router.get("/", getSizes);
 
-router.get("/", (req: Request, res: Response, next: NextFunction) => {
-  getSizes(req, res).catch(next);
-});
+// Get size by ID
+router.get("/:id", getSizeById);
 
-router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
-  getSizeById(req, res).catch(next);
-});
+// Create a size
+router.post("/", authenticate, createSize);
 
-router.put(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    updateSize(req, res).catch(next);
-  }
-);
+// Update a size
+router.patch("/:id", authenticate, updateSize);
 
-router.delete(
-  "/:id",
-  authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    deleteSize(req, res).catch(next);
-  }
-);
+// Delete a size
+router.delete("/:id", authenticate, deleteSize);
 
 export default router;
