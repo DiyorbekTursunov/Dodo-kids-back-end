@@ -8,7 +8,7 @@ import {
   getEmployeesByDepartment,
   updateEmployee,
 } from "../controller/employee/employee.controller";
-import { authenticate } from "@/middleware/authMiddleware";
+import { authenticate } from "../middleware/authMiddleware";
 
 const router = Router();
 
