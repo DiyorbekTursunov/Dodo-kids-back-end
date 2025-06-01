@@ -1,31 +1,31 @@
-// swagger.colors.paths.ts (fixed)
-const colorPaths = {
+// swagger.size.paths.ts
+const sizePaths = {
   paths: {
-    '/api/color': {
+    '/api/size': {
       post: {
-        tags: ['Color'],
-        summary: 'Create a new color',
-        description: 'Creates a new color with the provided name',
+        tags: ['Size'],
+        summary: 'Create a new size',
+        description: 'Creates a new size with the provided name',
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/ColorRequest' },
+              schema: { $ref: '#/components/schemas/SizeRequest' },
             },
           },
         },
         responses: {
           '201': {
-            description: 'Color created successfully',
+            description: 'Size created successfully',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/Color' },
+                schema: { $ref: '#/components/schemas/Size' },
               },
             },
           },
           '400': {
-            description: 'Missing required fields',
+            description: 'Missing required fields or size already exists',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
             },
@@ -45,17 +45,17 @@ const colorPaths = {
         },
       },
       get: {
-        tags: ['Color'],
-        summary: 'Get all colors',
-        description: 'Retrieves a list of all colors',
+        tags: ['Size'],
+        summary: 'Get all sizes',
+        description: 'Retrieves a list of all sizes ordered by creation date',
         responses: {
           '200': {
-            description: 'List of colors retrieved successfully',
+            description: 'List of sizes retrieved successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'array',
-                  items: { $ref: '#/components/schemas/Color' },
+                  items: { $ref: '#/components/schemas/Size' },
                 },
               },
             },
@@ -69,31 +69,31 @@ const colorPaths = {
         },
       },
     },
-    '/api/color/{id}': {
+    '/api/size/{id}': {
       get: {
-        tags: ['Color'],
-        summary: 'Get a color by ID',
-        description: 'Retrieves a color by its ID',
+        tags: ['Size'],
+        summary: 'Get a size by ID',
+        description: 'Retrieves a size by its ID',
         parameters: [
           {
             name: 'id',
             in: 'path',
             required: true,
             schema: { type: 'string', example: '1' },
-            description: 'ID of the color to retrieve',
+            description: 'ID of the size to retrieve',
           },
         ],
         responses: {
           '200': {
-            description: 'Color retrieved successfully',
+            description: 'Size retrieved successfully',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/Color' },
+                schema: { $ref: '#/components/schemas/Size' },
               },
             },
           },
           '404': {
-            description: 'Color not found',
+            description: 'Size not found',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
             },
@@ -107,9 +107,9 @@ const colorPaths = {
         },
       },
       patch: {
-        tags: ['Color'],
-        summary: 'Update a color',
-        description: 'Updates an existing color by its ID (requires authentication)',
+        tags: ['Size'],
+        summary: 'Update a size',
+        description: 'Updates an existing size by its ID (requires authentication)',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -117,23 +117,23 @@ const colorPaths = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: '1' },
-            description: 'ID of the color to update',
+            description: 'ID of the size to update',
           },
         ],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/ColorRequest' },
+              schema: { $ref: '#/components/schemas/SizeRequest' },
             },
           },
         },
         responses: {
           '200': {
-            description: 'Color updated successfully',
+            description: 'Size updated successfully',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/Color' },
+                schema: { $ref: '#/components/schemas/Size' },
               },
             },
           },
@@ -150,7 +150,7 @@ const colorPaths = {
             },
           },
           '404': {
-            description: 'Color not found',
+            description: 'Size not found',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
             },
@@ -164,9 +164,9 @@ const colorPaths = {
         },
       },
       delete: {
-        tags: ['Color'],
-        summary: 'Delete a color',
-        description: 'Deletes a color by its ID (requires authentication)',
+        tags: ['Size'],
+        summary: 'Delete a size',
+        description: 'Deletes a size by its ID (requires authentication)',
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -174,12 +174,12 @@ const colorPaths = {
             in: 'path',
             required: true,
             schema: { type: 'string', example: '1' },
-            description: 'ID of the color to delete',
+            description: 'ID of the size to delete',
           },
         ],
         responses: {
           '204': {
-            description: 'Color deleted successfully',
+            description: 'Size deleted successfully',
           },
           '401': {
             description: 'User not authenticated',
@@ -188,7 +188,7 @@ const colorPaths = {
             },
           },
           '404': {
-            description: 'Color not found',
+            description: 'Size not found',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
             },
@@ -205,4 +205,4 @@ const colorPaths = {
   },
 };
 
-export default colorPaths;
+export default sizePaths;

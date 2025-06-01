@@ -11,7 +11,7 @@ import express from "express";
 const router = express.Router();
 
 // Simplified route handlers
-router.post("/", createColor);
+router.post("/", authenticate, createColor);
 router.get("/", getColors);
 router.get("/:id", getColorById);
 router.put("/:id", authenticate, updateColor);
