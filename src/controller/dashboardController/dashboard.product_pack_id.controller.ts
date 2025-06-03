@@ -66,7 +66,7 @@ export const getProductPackStats = async (req: Request, res: Response) => {
         department: true,
         totalCount: true,
         protsessIsOver: true,
-        ProductGroup: {
+        productGroup: {
           select: {
             name: true,
             products: {

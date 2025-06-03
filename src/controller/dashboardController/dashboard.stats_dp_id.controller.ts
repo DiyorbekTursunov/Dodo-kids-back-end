@@ -63,7 +63,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
         totalCount: true,
         protsessIsOver: true,
         department: true,
-        ProductGroup: { // Adjusted: Using ProductGroup instead of Product
+        productGroup: { // Adjusted: Using ProductGroup instead of Product
           select: {
             name: true, // Using ProductGroup name as a proxy
           },
@@ -103,7 +103,7 @@ export const getEmployeeStats = async (req: Request, res: Response) => {
             name: true,
           },
         },
-        Invoice: { // Fixed: Changed productPack to Invoice
+        invoice: { // Fixed: Changed productPack to Invoice
           select: {
             number: true, // Adjusted: Using number instead of name
           },

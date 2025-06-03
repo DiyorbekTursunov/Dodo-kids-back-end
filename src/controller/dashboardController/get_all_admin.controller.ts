@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,7 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
       departmentCount,
       employeeCount,
       userCount,
-      invoiceCount, // Corrected: Renamed to match prisma.invoice.count()
+      invoiceCount,
       productCount,
       productProtsessCount,
     ] = await Promise.all([
@@ -24,7 +24,7 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
       prisma.department.count(),
       prisma.employee.count(),
       prisma.user.count(),
-      prisma.invoice.count(), // Corrected: Using invoice instead of productPack
+      prisma.invoice.count(),
       prisma.product.count(),
       prisma.productProtsess.count(),
     ]);
@@ -43,32 +43,28 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
       return acc;
     }, {} as Record<string, number>);
 
-    // Get top colors by ProductColorSize count (assuming intermediate table)
+    // Get top colors by ProductColorSize count
     const topColors = await prisma.color.findMany({
       include: {
         _count: {
-          select: { ProductColorSize: true }, // Corrected: Use ProductColorSize instead of Product
+          select: { colorSizes: true }, // Corrected: Use 'colorSizes' as per schema
         },
       },
       orderBy: {
-        ProductColorSize: {
-          _count: "desc",
-        },
+        colorSizes: { _count: "desc" }, // Corrected: Order by count of colorSizes relation
       },
       take: 5,
     });
 
-    // Get top sizes by ProductColorSize count (assuming intermediate table)
+    // Get top sizes by ProductColorSize count
     const topSizes = await prisma.size.findMany({
       include: {
         _count: {
-          select: { ProductColorSize: true }, // Corrected: Use ProductColorSize instead of Product
+          select: { colorSizes: true }, // Corrected: Use 'colorSizes' as per schema
         },
       },
       orderBy: {
-        ProductColorSize: {
-          _count: "desc",
-        },
+        colorSizes: { _count: "desc" }, // Corrected: Order by count of colorSizes relation
       },
       take: 5,
     });
@@ -78,8 +74,8 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
       include: {
         _count: {
           select: {
-            Employee: true,
-            ProductProtsess: true,
+            employees: true, // Corrected: Use 'employees' as per schema
+            processes: true, // Corrected: Use 'processes' as per schema
           },
         },
       },
@@ -107,25 +103,23 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
         return {
           id: dept.id,
           name: dept.name,
-          employeeCount: dept._count.Employee,
-          processCount: dept._count.ProductProtsess,
+          employeeCount: dept._count.employees, // Corrected: Use 'employees'
+          processCount: dept._count.processes, // Corrected: Use 'processes'
           completedProcesses,
           completionPercentage,
         };
       })
     );
 
-    // Get top product groups (assuming Product has no 'model' field)
+    // Get top product groups
     const topProductGroups = await prisma.productGroup.findMany({
       include: {
         _count: {
-          select: { products: true }, // Count related products
+          select: { products: true }, // Corrected: Consistent with schema
         },
       },
       orderBy: {
-        products: {
-          _count: "desc",
-        },
+        products: { _count: "desc" }, // Corrected: Order by count of products relation
       },
       take: 10,
     });
@@ -138,7 +132,7 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
         departments: departmentCount,
         employees: employeeCount,
         users: userCount,
-        invoices: invoiceCount, // Corrected: Renamed to 'invoices' for consistency
+        invoices: invoiceCount,
         products: productCount,
         processes: productProtsessCount,
       },
@@ -147,17 +141,17 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
         topColors: topColors.map((color) => ({
           id: color.id,
           name: color.name,
-          productColorSizeCount: color._count.ProductColorSize, // Corrected: Updated field name
+          productColorSizeCount: color._count.colorSizes, // Corrected: Use 'colorSizes'
         })),
         topSizes: topSizes.map((size) => ({
           id: size.id,
           name: size.name,
-          productColorSizeCount: size._count.ProductColorSize, // Corrected: Updated field name
+          productColorSizeCount: size._count.colorSizes, // Corrected: Use 'colorSizes'
         })),
         departmentStats: departmentProcessStats,
         topProductGroups: topProductGroups.map((pg) => ({
           groupName: pg.name,
-          productCount: pg._count.products, // Corrected: Reflects product groups
+          productCount: pg._count.products,
         })),
       },
     };
@@ -179,7 +173,10 @@ export const getAllModelCounts = async (req: Request, res: Response) => {
 /**
  * Get counts with date range filtering
  */
-export const getModelCountsByDateRange = async (req: Request, res: Response) => {
+export const getModelCountsByDateRange = async (
+  req: Request,
+  res: Response
+) => {
   try {
     // Get date information from both query and body
     const startDateInput = req.query.startDate || req.body.startDate;
@@ -210,12 +207,13 @@ export const getModelCountsByDateRange = async (req: Request, res: Response) => 
     if (!parsedStartDate && !parsedEndDate) {
       return res.status(400).json({
         success: false,
-        message: "At least one valid date (startDate or endDate) must be provided",
+        message:
+          "At least one valid date (startDate or endDate) must be provided",
       });
     }
 
     // Construct date filter
-    const dateFilterCondition: Record<string, any> = {
+    const dateFilterCondition: Prisma.ColorWhereInput = {
       createdAt: {
         ...(parsedStartDate && { gte: parsedStartDate }),
         ...(parsedEndDate && { lte: parsedEndDate }),
@@ -229,18 +227,18 @@ export const getModelCountsByDateRange = async (req: Request, res: Response) => 
       departmentCount,
       employeeCount,
       userCount,
-      invoiceCount, // Corrected: Renamed to match prisma.invoice.count()
+      invoiceCount,
       productCount,
       productProtsessCount,
     ] = await Promise.all([
-      prisma.color.count({ where: dateFilterCondition }),
-      prisma.size.count({ where: dateFilterCondition }),
-      prisma.department.count({ where: dateFilterCondition }),
-      prisma.employee.count({ where: dateFilterCondition }),
-      prisma.user.count({ where: dateFilterCondition }),
-      prisma.invoice.count({ where: dateFilterCondition }), // Corrected: Using invoice instead of productPack
-      prisma.product.count({ where: dateFilterCondition }),
-      prisma.productProtsess.count({ where: dateFilterCondition }),
+      prisma.color.count(),
+      prisma.size.count(),
+      prisma.department.count(),
+      prisma.employee.count(),
+      prisma.user.count(),
+      prisma.invoice.count(),
+      prisma.product.count(),
+      prisma.productProtsess.count(),
     ]);
 
     // Format the response
@@ -259,7 +257,7 @@ export const getModelCountsByDateRange = async (req: Request, res: Response) => 
         departments: departmentCount,
         employees: employeeCount,
         users: userCount,
-        invoices: invoiceCount, // Corrected: Renamed to 'invoices' for consistency
+        invoices: invoiceCount,
         products: productCount,
         processes: productProtsessCount,
       },

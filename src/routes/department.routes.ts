@@ -12,7 +12,7 @@ import { authenticate } from "../middleware/authMiddleware";
 const router = express.Router();
 
 // Department core routes
-router.post("/", authenticate, createDepartment);
+router.post("/", createDepartment);
 router.get("/", getDepartments);
 router.get("/:id", getDepartmentById);
 router.put("/:id", authenticate, updateDepartment);
