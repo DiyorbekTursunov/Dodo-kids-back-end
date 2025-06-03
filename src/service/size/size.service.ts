@@ -22,12 +22,11 @@ export const createSize = async (name: string) => {
   if (existing) {
     throw new Error("Size already exists");
   }
+
   const size = await prisma.size.create({
     data: {
-      name: name, // Explicitly typed as string
-      isSended: false,
-      status: ProductProtsessStatus.Pending, // Use enum value
-      colorSizes: { create: [] }, // Empty relation array
+      name: name,
+      status: ProductProtsessStatus.Pending, // This was missing - required field
     },
   });
   return size;
