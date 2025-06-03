@@ -43,45 +43,46 @@ export const getAcceptanceProductPacks = async (
           },
         },
       },
-      select: {
-        id: true,
-        departmentId: true,
-        totalCount: true,
+      include: {
+        status: true,
         productGroup: {
-          select: {
-            id: true,
-            name: true,
+          include: {
+            productGroupFiles: {
+              include: {
+                file: true,
+              },
+            },
             products: {
-              select: {
-                id: true,
-                name: true,
+              include: {
+                productSetting: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: {
+                          include: {
+                            sizeGroup: {
+                              include: {
+                                colorSizes: {
+                                  include: {
+                                    size: true,
+                                    color: true,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
         },
-        status: {
-          where: {
-            status: "Qabul qilingan",
-          },
-          orderBy: {
-            date: "desc",
-          },
-          select: {
-            id: true,
-            status: true,
-            date: true,
-            employeeId: true,
-            departmentName: true,
-            targetDepartment: true,
-            acceptCount: true,
-            invalidCount: true,
-            invalidReason: true,
-
-          },
-        },
       },
-      skip,
-      take: size,
+      skip, // Number of records to skip
+      take: size, // Number of records to take
     });
 
     // Get total count for pagination metadata
