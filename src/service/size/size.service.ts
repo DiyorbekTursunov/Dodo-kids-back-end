@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, ProductProtsessStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -24,10 +24,10 @@ export const createSize = async (name: string) => {
   }
   const size = await prisma.size.create({
     data: {
-      name,
+      name: name,
       isSended: false,
-      colorSizes: { create: [] },
-      status: "Pending",
+      status: ProductProtsessStatus.Pending, // Explicitly use enum value
+      colorSizes: { create: [] }, // Empty array for relation
     },
   });
   return size;
