@@ -77,7 +77,7 @@ export const getConsolidatedCaseTrackerStatus = async (
     // Fetch all invoices with only the latest status record
     const productPacks = await prisma.invoice.findMany({
       include: {
-        ProductGroup: true,
+        productGroup: true,
         status: {
           orderBy: {
             date: "desc",

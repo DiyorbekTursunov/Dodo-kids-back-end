@@ -35,11 +35,37 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
       },
       include: {
         status: true,
-        ProductGroup: {
+        productGroup: {
           include: {
             productGroupFiles: {
               include: {
                 file: true,
+              },
+            },
+            products: {
+              include: {
+                productSetting: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: {
+                          include: {
+                            sizeGroup: {
+                                include: {
+                                    colorSizes: {
+                                        include: {
+                                            size: true,
+                                            color: true,
+                                        }
+                                    },
+                                }
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -64,12 +90,9 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
     });
 
     if (!productPacks.length) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "No product packs found for this department with the pagenation",
-        });
+      return res.status(404).json({
+        error: "No product packs found for this department with the pagenation",
+      });
     }
 
     // Calculate total pages

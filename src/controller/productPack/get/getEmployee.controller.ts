@@ -45,7 +45,7 @@ export const getProductPacksByEmployeeId = async (
         },
       },
       include: {
-        ProductGroup: {
+        productGroup: {
           include: {
             products: true
           },

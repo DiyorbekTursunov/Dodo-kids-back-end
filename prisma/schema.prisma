@@ -7,6 +7,27 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+// Enum for file types
+enum FileType {
+    IMAGE
+    DOCUMENT
+    OTHER
+}
+
+// Enum for process status
+enum ProductProtsessStatus {
+    Pending
+    Yuborilgan
+    ToliqYuborilmagan
+    QabulQilingan
+}
+
+// Enum for user roles
+enum userRole {
+    ADMIN
+    USER
+}
+
 // File model to store file details
 model File {
     id                String             @id @default(uuid())
@@ -17,111 +38,120 @@ model File {
     fileType          FileType
     createdAt         DateTime           @default(now())
     updatedAt         DateTime           @updatedAt
-    productGroupFiles ProductGroupFile[] // Link with ProductGroup
-}
-
-// Enum for file types
-enum FileType {
-    IMAGE
-    DOCUMENT
-    OTHER
+    productGroupFiles ProductGroupFile[]
 }
 
 // ProductGroup model (e.g., "A1", "A2", "A3")
 model ProductGroup {
-    id                String             @id @default(uuid())
-    name              String // e.g., "A1", "A2", "A3"
-    createdAt         DateTime           @default(now())
-    updatedAt         DateTime           @updatedAt
+    id                String                @id @default(uuid())
+    name              String
+    createdAt         DateTime              @default(now())
+    updatedAt         DateTime              @updatedAt
     products          Product[]
-    Invoice           Invoice[]
-    productGroupFiles ProductGroupFile[] // Link with File
+    invoices          Invoice[]
+    productGroupFiles ProductGroupFile[]
+    isSended          Boolean               @default(false)
+    status            ProductProtsessStatus
 }
 
 // Product model (individual products within a group)
 model Product {
-    id             String           @id @default(uuid())
+    id             String                @id @default(uuid())
     name           String
     allTotalCount  Int
-    createdAt      DateTime         @default(now())
-    updatedAt      DateTime         @updatedAt
+    createdAt      DateTime              @default(now())
+    updatedAt      DateTime              @updatedAt
     productGroupId String?
-    productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id])
+    productGroup   ProductGroup?         @relation(fields: [productGroupId], references: [id])
     productSetting productSetting[]
+    processes      ProductProcess[]
+    isSended       Boolean               @default(false)
+    status         ProductProtsessStatus
 }
 
 // ProductSetting model to store settings for each product
 model productSetting {
-    id         String      @id @default(uuid())
+    id         String                @id @default(uuid())
     totalCount Int
-    createdAt  DateTime    @default(now())
-    updatedAt  DateTime    @updatedAt
+    createdAt  DateTime              @default(now())
+    updatedAt  DateTime              @updatedAt
     productId  String
-    product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups SizeGroup[]
+    product    Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+    sizeGroups SizeGroup[]           // Relation to SizeGroup
+    isSended   Boolean               @default(false)
+    status     ProductProtsessStatus
+}
 
-    
+// SizeGroup model to group color-size combinations
+model SizeGroup {
+    id               String                @id @default(uuid())
+    size             String
+    quantity         Int
+    status           ProductProtsessStatus
+    createdAt        DateTime              @default(now())
+    updatedAt        DateTime              @updatedAt
+    productSettingId String
+    productSetting   productSetting        @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
+    colorSizes       ProductColorSize[]
 }
 
 // Junction table for many-to-many relationship between ProductGroup and File
 model ProductGroupFile {
-    id             String       @id @default(uuid())
+    id             String                @id @default(uuid())
     productGroupId String
     fileId         String
-    productGroup   ProductGroup @relation(fields: [productGroupId], references: [id], onDelete: Cascade)
-    file           File         @relation(fields: [fileId], references: [id])
-}
-
-// SizeGroup model to group sizes and their quantities
-model SizeGroup {
-    id               String             @id @default(uuid())
-    size             String
-    quantity         Int
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    productSettingId String
-    productSetting   productSetting     @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
-    colorSizes       ProductColorSize[]
+    productGroup   ProductGroup          @relation(fields: [productGroupId], references: [id], onDelete: Cascade)
+    file           File                  @relation(fields: [fileId], references: [id])
+    isSended       Boolean               @default(false)
+    status         ProductProtsessStatus
 }
 
 // ProductColorSize model to store color and size combinations
 model ProductColorSize {
-    id          String    @id @default(uuid())
-    quantity    Int
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
-    sizeGroupId String
-    colorId     String
-    sizeId      String
-    sizeGroup   SizeGroup @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
-    color       Color     @relation(fields: [colorId], references: [id])
-    size        Size      @relation(fields: [sizeId], references: [id])
+    id             String                @id @default(uuid())
+    quantity       Int
+    createdAt      DateTime              @default(now())
+    updatedAt      DateTime              @updatedAt
+    sizeGroupId    String
+    colorId        String
+    sizeId         String
+    sizeGroup      SizeGroup             @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
+    color          Color                 @relation(fields: [colorId], references: [id])
+    size           Size                  @relation(fields: [sizeId], references: [id])
+    processes      ColorSizeProcess[]
+    isSended       Boolean               @default(false)
+    status         ProductProtsessStatus
 }
 
 // Color model
 model Color {
-    id               String             @id @default(uuid())
-    name             String             @unique
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    ProductColorSize ProductColorSize[]
+    id         String                @id @default(uuid())
+    name       String                @unique
+    createdAt  DateTime              @default(now())
+    updatedAt  DateTime              @updatedAt
+    colorSizes ProductColorSize[]
+    isSended   Boolean               @default(false)
+    status     ProductProtsessStatus
 }
 
 // Size model
 model Size {
-    id               String             @id @default(uuid())
-    name             String             @unique
-    createdAt        DateTime           @default(now())
-    updatedAt        DateTime           @updatedAt
-    ProductColorSize ProductColorSize[]
+    id         String                @id @default(uuid())
+    name       String                @unique
+    createdAt  DateTime              @default(now())
+    updatedAt  DateTime              @updatedAt
+    colorSizes ProductColorSize[]
+    isSended   Boolean               @default(false)
+    status     ProductProtsessStatus
 }
 
+// OutsourseCompany model
 model OutsourseCompany {
     id        String    @id @default(uuid())
     name      String    @unique
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
-    Invoice   Invoice[]
+    invoices  Invoice[]
 }
 
 // Invoice model
@@ -133,26 +163,25 @@ model Invoice {
     departmentId       String
     department         String
     productGroupId     String
-    ProductGroup       ProductGroup      @relation(fields: [productGroupId], references: [id])
+    productGroup       ProductGroup      @relation(fields: [productGroupId], references: [id])
     totalCount         Int
     status             ProductProtsess[]
     createdAt          DateTime          @default(now())
     updatedAt          DateTime          @updatedAt
-
-    // This is for the relation with OutsourseCompany
     isOutsource        Boolean           @default(false)
     outsourseCompany   OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
     outsourseCompanyId String?
+    ProductProcess     ProductProcess[]
 }
 
 // Department model
 model Department {
-    id              String            @id @default(uuid())
-    name            String            @unique
-    createdAt       DateTime          @default(now())
-    updatedAt       DateTime          @updatedAt
-    Employee        Employee[]
-    ProductProtsess ProductProtsess[]
+    id        String            @id @default(uuid())
+    name      String            @unique
+    createdAt DateTime          @default(now())
+    updatedAt DateTime          @updatedAt
+    employees Employee[]
+    processes ProductProtsess[]
 }
 
 // User model
@@ -178,11 +207,11 @@ model Employee {
     user         User       @relation(fields: [userId], references: [id])
 }
 
-// ProductProtsess model
+// ProductProtsess model for invoice-level process tracking
 model ProductProtsess {
+    id                   String     @id @default(uuid())
     createdAt            DateTime   @default(now())
     updatedAt            DateTime   @updatedAt
-    id                   String     @id @default(uuid())
     date                 DateTime   @default(now())
     protsessIsOver       Boolean    @default(false)
     status               String
@@ -198,11 +227,48 @@ model ProductProtsess {
     invalidReason        String
     department           Department @relation(fields: [departmentId], references: [id])
     invoiceId            String
-    Invoice              Invoice    @relation(fields: [invoiceId], references: [id])
+    invoice              Invoice    @relation(fields: [invoiceId], references: [id])
 }
 
-// Enum for user roles
-enum userRole {
-    ADMIN
-    USER
+// Process tracking for Product
+model ProductProcess {
+    id                 String             @id @default(uuid())
+    createdAt          DateTime           @default(now())
+    updatedAt          DateTime           @updatedAt
+    protsessIsOver     Boolean            @default(false)
+    status             String
+    employeeId         String
+    departmentName     String
+    departmentId       String
+    acceptCount        Int
+    sendedCount        Int
+    invalidCount       Int
+    invalidReason      String
+    residueCount       Int
+    productId          String
+    product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+    invoiceId          String
+    invoice            Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+    colorSizeProcesses ColorSizeProcess[]
+}
+
+// Process tracking for ProductColorSize
+model ColorSizeProcess {
+    id               String           @id @default(uuid())
+    createdAt        DateTime         @default(now())
+    updatedAt        DateTime         @updatedAt
+    protsessIsOver   Boolean          @default(false)
+    status           String
+    employeeId       String
+    departmentName   String
+    departmentId     String
+    acceptCount      Int
+    sendedCount      Int
+    invalidCount     Int
+    invalidReason    String
+    residueCount     Int
+    colorSizeId      String
+    colorSize        ProductColorSize @relation(fields: [colorSizeId], references: [id], onDelete: Cascade)
+    productProcessId String
+    productProcess   ProductProcess   @relation(fields: [productProcessId], references: [id], onDelete: Cascade)
 }

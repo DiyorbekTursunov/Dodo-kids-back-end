@@ -362,7 +362,7 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
     const invoices = await prisma.invoice.findMany({
       where: queryFilter,
       include: {
-        ProductGroup: {
+        productGroup: {
           select: {
             id: true,
             name: true,

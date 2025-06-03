@@ -1,0 +1,251 @@
+{
+    "success": true,
+    "data": [
+        {
+            "id": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
+            "name": "Group A1",
+            "createdAt": "2025-06-03T03:35:59.635Z",
+            "updatedAt": "2025-06-03T03:35:59.635Z",
+            "isSended": false,
+            "status": "Pending",
+            "productGroupFiles": [
+                {
+                    "id": "1b934217-950c-4151-9a4b-5a0ccdd67e11",
+                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
+                    "fileId": "98145c9f-ae01-4d4f-a6a8-d39894dd5751",
+                    "isSended": false,
+                    "status": "Pending",
+                    "file": {
+                        "id": "98145c9f-ae01-4d4f-a6a8-d39894dd5751",
+                        "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
+                        "path": "uploads/file-1748920291219-378965413.jpg",
+                        "mimeType": "image/jpeg",
+                        "size": 310206,
+                        "fileType": "IMAGE",
+                        "createdAt": "2025-06-03T03:11:32.540Z",
+                        "updatedAt": "2025-06-03T03:11:32.540Z"
+                    }
+                }
+            ],
+            "products": [
+                {
+                    "id": "3022894b-d9d9-450e-8a6a-2ce414ba68de",
+                    "name": "T-Shirt",
+                    "allTotalCount": 200,
+                    "createdAt": "2025-06-03T03:35:59.635Z",
+                    "updatedAt": "2025-06-03T03:35:59.635Z",
+                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
+                    "isSended": false,
+                    "status": "Pending",
+                    "productSetting": [
+                        {
+                            "id": "b8b8e1e5-081f-46c6-9878-247071407686",
+                            "totalCount": 200,
+                            "createdAt": "2025-06-03T03:35:59.635Z",
+                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                            "productId": "3022894b-d9d9-450e-8a6a-2ce414ba68de",
+                            "isSended": false,
+                            "status": "Pending",
+                            "sizeGroups": [
+                                {
+                                    "id": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
+                                    "size": "Small",
+                                    "quantity": 50,
+                                    "createdAt": "2025-06-03T03:35:59.635Z",
+                                    "updatedAt": "2025-06-03T03:35:59.635Z",
+                                    "productSettingId": "b8b8e1e5-081f-46c6-9878-247071407686",
+                                    "isSended": false,
+                                    "status": "Pending",
+                                    "colorSizes": [
+                                        {
+                                            "id": "51869b67-24ab-4df7-a330-d7775f1e20cf",
+                                            "quantity": 25,
+                                            "createdAt": "2025-06-03T03:35:59.635Z",
+                                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                                            "sizeGroupId": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
+                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
+                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                            "isSended": false,
+                                            "status": "Pending",
+                                            "color": {
+                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
+                                                "name": "qizil",
+                                                "createdAt": "2025-06-03T03:34:14.630Z",
+                                                "updatedAt": "2025-06-03T03:34:14.630Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            },
+                                            "size": {
+                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                                "name": "XL",
+                                                "createdAt": "2025-06-03T03:33:57.259Z",
+                                                "updatedAt": "2025-06-03T03:33:57.259Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            }
+                                        },
+                                        {
+                                            "id": "e2a3e495-2e61-4d99-8588-cb6cc4b9ab86",
+                                            "quantity": 25,
+                                            "createdAt": "2025-06-03T03:35:59.635Z",
+                                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                                            "sizeGroupId": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
+                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
+                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                            "isSended": false,
+                                            "status": "Pending",
+                                            "color": {
+                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
+                                                "name": "qizil",
+                                                "createdAt": "2025-06-03T03:34:14.630Z",
+                                                "updatedAt": "2025-06-03T03:34:14.630Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            },
+                                            "size": {
+                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                                "name": "XL",
+                                                "createdAt": "2025-06-03T03:33:57.259Z",
+                                                "updatedAt": "2025-06-03T03:33:57.259Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
+                                    "size": "Medium",
+                                    "quantity": 100,
+                                    "createdAt": "2025-06-03T03:35:59.635Z",
+                                    "updatedAt": "2025-06-03T03:35:59.635Z",
+                                    "productSettingId": "b8b8e1e5-081f-46c6-9878-247071407686",
+                                    "isSended": false,
+                                    "status": "Pending",
+                                    "colorSizes": [
+                                        {
+                                            "id": "3d2e544d-5de0-46dd-a9f9-e20461bdb19f",
+                                            "quantity": 50,
+                                            "createdAt": "2025-06-03T03:35:59.635Z",
+                                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                                            "sizeGroupId": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
+                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
+                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                            "isSended": false,
+                                            "status": "Pending",
+                                            "color": {
+                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
+                                                "name": "qizil",
+                                                "createdAt": "2025-06-03T03:34:14.630Z",
+                                                "updatedAt": "2025-06-03T03:34:14.630Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            },
+                                            "size": {
+                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                                "name": "XL",
+                                                "createdAt": "2025-06-03T03:33:57.259Z",
+                                                "updatedAt": "2025-06-03T03:33:57.259Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            }
+                                        },
+                                        {
+                                            "id": "e4b70f50-c7f2-4bfd-a2c2-5b63ed5c8953",
+                                            "quantity": 50,
+                                            "createdAt": "2025-06-03T03:35:59.635Z",
+                                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                                            "sizeGroupId": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
+                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
+                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                            "isSended": false,
+                                            "status": "Pending",
+                                            "color": {
+                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
+                                                "name": "qizil",
+                                                "createdAt": "2025-06-03T03:34:14.630Z",
+                                                "updatedAt": "2025-06-03T03:34:14.630Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            },
+                                            "size": {
+                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                                "name": "XL",
+                                                "createdAt": "2025-06-03T03:33:57.259Z",
+                                                "updatedAt": "2025-06-03T03:33:57.259Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "74f67917-978c-4c7f-b7ed-0e6d188a4f1d",
+                    "name": "Hoodie",
+                    "allTotalCount": 150,
+                    "createdAt": "2025-06-03T03:35:59.635Z",
+                    "updatedAt": "2025-06-03T03:35:59.635Z",
+                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
+                    "isSended": false,
+                    "status": "Pending",
+                    "productSetting": [
+                        {
+                            "id": "3cf74280-0de5-4d34-b2d1-cfa06bf9073d",
+                            "totalCount": 150,
+                            "createdAt": "2025-06-03T03:35:59.635Z",
+                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                            "productId": "74f67917-978c-4c7f-b7ed-0e6d188a4f1d",
+                            "isSended": false,
+                            "status": "Pending",
+                            "sizeGroups": [
+                                {
+                                    "id": "f677a869-c76b-404c-bf05-0846eb357313",
+                                    "size": "Large",
+                                    "quantity": 75,
+                                    "createdAt": "2025-06-03T03:35:59.635Z",
+                                    "updatedAt": "2025-06-03T03:35:59.635Z",
+                                    "productSettingId": "3cf74280-0de5-4d34-b2d1-cfa06bf9073d",
+                                    "isSended": false,
+                                    "status": "Pending",
+                                    "colorSizes": [
+                                        {
+                                            "id": "8f38a0c6-1c15-428a-ae42-404273129a5c",
+                                            "quantity": 75,
+                                            "createdAt": "2025-06-03T03:35:59.635Z",
+                                            "updatedAt": "2025-06-03T03:35:59.635Z",
+                                            "sizeGroupId": "f677a869-c76b-404c-bf05-0846eb357313",
+                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
+                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                            "isSended": false,
+                                            "status": "Pending",
+                                            "color": {
+                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
+                                                "name": "qizil",
+                                                "createdAt": "2025-06-03T03:34:14.630Z",
+                                                "updatedAt": "2025-06-03T03:34:14.630Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            },
+                                            "size": {
+                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
+                                                "name": "XL",
+                                                "createdAt": "2025-06-03T03:33:57.259Z",
+                                                "updatedAt": "2025-06-03T03:33:57.259Z",
+                                                "isSended": false,
+                                                "status": "Pending"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

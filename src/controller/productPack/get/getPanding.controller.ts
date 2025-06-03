@@ -44,7 +44,7 @@ export const getPendingProductPacks = async (req: Request, res: Response) => {
         id: true,
         departmentId: true,
         totalCount: true,
-        ProductGroup: {
+        productGroup: {
           select: {
             id: true,
             name: true,

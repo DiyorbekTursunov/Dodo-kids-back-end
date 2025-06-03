@@ -59,7 +59,7 @@ export const searchInvoices = async (req: Request, res: Response) => {
     const invoices = await prisma.invoice.findMany({
       where,
       include: {
-        ProductGroup: {
+        productGroup: {
           include: {
             products: true,
           },

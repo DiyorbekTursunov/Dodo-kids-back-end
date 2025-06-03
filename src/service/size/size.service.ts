@@ -22,7 +22,14 @@ export const createSize = async (name: string) => {
   if (existing) {
     throw new Error("Size already exists");
   }
-  const size = await prisma.size.create({ data: { name } });
+  const size = await prisma.size.create({
+    data: {
+      name,
+      isSended: false,
+      colorSizes: { create: [] },
+      status: "Pending",
+    },
+  });
   return size;
 };
 

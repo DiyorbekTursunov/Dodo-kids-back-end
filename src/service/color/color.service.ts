@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// 
+//
 const throwError = (message: string, statusCode: number) => {
   const error = new Error(message) as any;
   error.statusCode = statusCode;
@@ -13,7 +13,14 @@ export const createColorService = async (name: string) => {
   const existing = await prisma.color.findUnique({ where: { name } });
   if (existing) throwError("Color already exists", 409);
 
-  return prisma.color.create({ data: { name } });
+  return prisma.color.create({
+    data: {
+      name,
+      isSended: false,
+      colorSizes: { create: [] },
+      status: "Pending",
+    },
+  });
 };
 
 export const getColorsService = () => {

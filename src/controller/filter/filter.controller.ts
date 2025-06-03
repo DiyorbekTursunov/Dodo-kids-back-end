@@ -124,7 +124,7 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
         protsessIsOver: true,
         createdAt: true,
         updatedAt: true,
-        ProductGroup: {
+        productGroup: {
           select: {
             id: true,
             name: true,

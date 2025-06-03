@@ -47,7 +47,7 @@ export const getAcceptanceProductPacks = async (
         id: true,
         departmentId: true,
         totalCount: true,
-        ProductGroup: {
+        productGroup: {
           select: {
             id: true,
             name: true,
@@ -76,7 +76,7 @@ export const getAcceptanceProductPacks = async (
             acceptCount: true,
             invalidCount: true,
             invalidReason: true,
-            
+
           },
         },
       },

@@ -1,68 +1,60 @@
 import { Request, Response } from "express";
-import { PrismaClient, ProductProtsess } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
+import { RequestBody } from "../../../types/product/product.interface";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  transactionOptions: {
+    maxWait: 5000,
+    timeout: 10000,
+  },
+});
 
-// Define allowed department transitions
-// const departmentFlow: { [key: string]: string[] } = {
-//   ombor: ["bichuv"],
-//   bichuv: ["tasnif"],
-//   tasnif: ["pechat", "autsorsPechat"],
-//   pechat: ["tasnif-2"],
-//   autsorsPechat: ["tasnif-2"],
-//   "tasnif-2": ["tikuv", "autsorsTikuv"],
-//   tikuv: ["chistka"],
-//   autsorsTikuv: ["chistka"],
-//   chistka: ["kontrol"],
-//   kontrol: ["dazmol"],
-//   dazmol: ["upakofka"],
-//   upakofka: ["ombor"],
-// };
-
-export const sendToDepartment = async (req: Request, res: Response) => {
-  const {
-    invoiceId,
-    targetDepartmentId,
-    sendCount: sendCountStr,
-    invalidCount: invalidCountStr = "0",
-    invalidReason = "",
-    employeeId,
-  } = req.body;
+export const sendToDepartment = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { invoiceId, targetDepartmentId, employeeId, products } =
+    req.body as RequestBody;
 
   // Validate required fields
-  if (!invoiceId || !targetDepartmentId || !sendCountStr || !employeeId) {
-    return res.status(400).json({ error: "Required fields are missing" });
-  }
-
-  const sendCount = Number(sendCountStr);
-  const invalidCount = Number(invalidCountStr);
-
-  // Validate numeric inputs
-  if (!Number.isInteger(sendCount) || sendCount <= 0) {
+  if (!invoiceId || !targetDepartmentId || !employeeId || !products?.length) {
     return res
       .status(400)
-      .json({ error: "sendCount must be a positive integer" });
-  }
-  if (!Number.isInteger(invalidCount) || invalidCount < 0) {
-    return res
-      .status(400)
-      .json({ error: "invalidCount must be a non-negative integer" });
+      .json({ error: "Missing required fields or products array" });
   }
 
   try {
-    // Fetch the source invoice with its status history
+    // Fetch source invoice with nested data
     const sourceInvoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
-      include: { status: true, ProductGroup: true },
+      include: {
+        status: true,
+        productGroup: {
+          include: {
+            products: {
+              include: {
+                productSetting: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: { include: { processes: true } },
+                      },
+                    },
+                  },
+                },
+                processes: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!sourceInvoice) {
       return res.status(404).json({ error: "Invoice not found" });
     }
 
-    const statusList = sourceInvoice.status;
-
-    // Fetch the target department
+    // Fetch target department
     const targetDepartment = await prisma.department.findUnique({
       where: { id: targetDepartmentId },
     });
@@ -71,7 +63,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Target department not found" });
     }
 
-    // Handle special case: redirect "avsors" to "chistka"
+    // Handle "avsors" redirect to "chistka"
     let actualTargetDepartment = targetDepartment;
     if (targetDepartment.name === "avsors") {
       const chistkaDepartment = await prisma.department.findFirst({
@@ -83,130 +75,302 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       actualTargetDepartment = chistkaDepartment;
     }
 
-    // // Validate department transition
-    // const currentDepartment = sourceInvoice.department;
-    // const possibleNextDepartments = departmentFlow[currentDepartment.toLowerCase()] || [];
+    // Transaction for process updates
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        let totalSentCount = 0;
+        let totalInvalidCount = 0;
+        const processRecords: any[] = [];
 
-    // if (!possibleNextDepartments.includes(actualTargetDepartment.name)) {
-    //   return res.status(400).json({
-    //     error: `Invalid transition from ${currentDepartment} to ${
-    //       actualTargetDepartment.name
-    //     }. Valid next departments: ${possibleNextDepartments.join(", ")}`,
-    //   });
-    // }
+        for (const productData of products) {
+          const {
+            productId,
+            acceptCount,
+            sendedCount,
+            invalidCount,
+            invalidReason,
+            colorSizes,
+          } = productData;
 
-    // Find the latest status with explicit typing
-    const latestStatus =
-      statusList.length > 0
-        ? statusList.reduce(
-            (latest: ProductProtsess, current: ProductProtsess) =>
+          // Validate product input
+          if (
+            !productId ||
+            !Number.isInteger(acceptCount) ||
+            !Number.isInteger(sendedCount) ||
+            !Number.isInteger(invalidCount)
+          ) {
+            throw new Error(`Invalid product data for productId: ${productId}`);
+          }
+
+          const product = sourceInvoice.productGroup.products.find(
+            (p) => p.id === productId
+          );
+          if (!product) {
+            throw new Error(`Product ${productId} not found`);
+          }
+
+          // Calculate available product count
+          const productSentCount = product.processes.reduce(
+            (sum, p) => sum + p.sendedCount,
+            0
+          );
+          const productInvalidCount = product.processes.reduce(
+            (sum, p) => sum + p.invalidCount,
+            0
+          );
+          const productAvailableCount =
+            product.allTotalCount - productSentCount - productInvalidCount;
+
+          if (sendedCount + invalidCount > productAvailableCount) {
+            throw new Error(
+              `Cannot send ${
+                sendedCount + invalidCount
+              } items for product ${productId}; only ${productAvailableCount} available`
+            );
+          }
+
+          // Create ProductProcess record
+          const productProcess = await tx.productProcess.create({
+            data: {
+              protsessIsOver: sendedCount + invalidCount === productAvailableCount,
+              status:
+                sendedCount + invalidCount === productAvailableCount
+                  ? "Yuborilgan"
+                  : "ToliqYuborilmagan",
+              employeeId,
+              departmentName: actualTargetDepartment.name,
+              departmentId: actualTargetDepartment.id,
+              acceptCount,
+              sendedCount,
+              invalidCount,
+              invalidReason,
+              residueCount: productAvailableCount - sendedCount - invalidCount,
+              productId,
+              invoiceId: sourceInvoice.id,
+            },
+          });
+
+          totalSentCount += sendedCount;
+          totalInvalidCount += invalidCount;
+          processRecords.push({ productId, productProcess });
+
+          // Validate color sizes total
+          const colorSizeTotalSent = colorSizes.reduce(
+            (sum, cs) => sum + cs.sendedCount,
+            0
+          );
+          const colorSizeTotalInvalid = colorSizes.reduce(
+            (sum, cs) => sum + cs.invalidCount,
+            0
+          );
+          if (
+            colorSizeTotalSent + colorSizeTotalInvalid >
+            sendedCount + invalidCount
+          ) {
+            throw new Error(
+              `Color size totals exceed product totals for product ${productId}`
+            );
+          }
+
+          for (const colorSizeData of colorSizes) {
+            const {
+              colorSizeId,
+              acceptCount: csAcceptCount,
+              sendedCount: csSendedCount,
+              invalidCount: csInvalidCount,
+              invalidReason: csInvalidReason,
+            } = colorSizeData;
+
+            // Validate color size input
+            if (
+              !colorSizeId ||
+              !Number.isInteger(csAcceptCount) ||
+              !Number.isInteger(csSendedCount) ||
+              !Number.isInteger(csInvalidCount)
+            ) {
+              throw new Error(
+                `Invalid color size data for colorSizeId: ${colorSizeId}`
+              );
+            }
+
+            // Find the colorSize across all product settings and size groups
+            let colorSize;
+            for (const setting of product.productSetting) {
+              for (const sizeGroup of setting.sizeGroups) {
+                colorSize = sizeGroup.colorSizes.find(
+                  (cs) => cs.id === colorSizeId
+                );
+                if (colorSize) break;
+              }
+              if (colorSize) break;
+            }
+
+            if (!colorSize) {
+              throw new Error(`ColorSize ${colorSizeId} not found`);
+            }
+
+            // Calculate available color size count
+            const colorSizeSentCount =
+              colorSize.processes?.reduce((sum, p) => sum + p.sendedCount, 0) ||
+              0;
+            const colorSizeInvalidCount =
+              colorSize.processes?.reduce((sum, p) => sum + p.invalidCount, 0) ||
+              0;
+            const colorSizeAvailableCount =
+              colorSize.quantity - colorSizeSentCount - colorSizeInvalidCount;
+
+            if (csSendedCount + csInvalidCount > colorSizeAvailableCount) {
+              throw new Error(
+                `Cannot send ${
+                  csSendedCount + csInvalidCount
+                } items for color size ${colorSizeId}; only ${colorSizeAvailableCount} available`
+              );
+            }
+
+            // Create ColorSizeProcess record
+            const colorSizeProcess = await tx.colorSizeProcess.create({
+              data: {
+                protsessIsOver:
+                  csSendedCount + csInvalidCount === colorSizeAvailableCount,
+                status:
+                  csSendedCount + csInvalidCount === colorSizeAvailableCount
+                    ? "Yuborilgan"
+                    : "ToliqYuborilmagan",
+                employeeId,
+                departmentName: actualTargetDepartment.name,
+                departmentId: actualTargetDepartment.id,
+                acceptCount: csAcceptCount,
+                sendedCount: csSendedCount,
+                invalidCount: csInvalidCount,
+                invalidReason: csInvalidReason,
+                residueCount:
+                  colorSizeAvailableCount - csSendedCount - csInvalidCount,
+                colorSizeId,
+                productProcessId: productProcess.id,
+              },
+            });
+
+            // Update ProductColorSize status
+            const isFullySent =
+              csSendedCount + csInvalidCount === colorSizeAvailableCount;
+            await tx.productColorSize.update({
+              where: { id: colorSizeId },
+              data: {
+                isSended: isFullySent,
+                status: isFullySent ? "Yuborilgan" : "Pending",
+              },
+            });
+
+            processRecords.push({
+              productId,
+              colorSizeId,
+              colorSizeProcess,
+            });
+          }
+        }
+
+        // Update invoice status
+        const totalInvoiceCount = sourceInvoice.totalCount;
+        const invoiceSentCount = sourceInvoice.status.reduce(
+          (sum, s) => sum + s.sendedCount,
+          0
+        );
+        const invoiceInvalidCount = sourceInvoice.status.reduce(
+          (sum, s) => sum + s.invalidCount,
+          0
+        );
+        const newInvoiceSentCount = invoiceSentCount + totalSentCount;
+        const newInvoiceInvalidCount = invoiceInvalidCount + totalInvalidCount;
+        const invoiceResidueCount =
+          totalInvoiceCount - newInvoiceSentCount - newInvoiceInvalidCount;
+
+        const latestInvoiceStatus = sourceInvoice.status[0]
+          ? sourceInvoice.status.reduce((latest, current) =>
               new Date(current.createdAt) > new Date(latest.createdAt)
                 ? current
                 : latest
-          )
-        : null;
+            )
+          : null;
 
-    if (!latestStatus) {
-      return res.status(400).json({ error: "Invoice has no status history" });
-    }
-
-    // Calculate available items
-    const totalCount = sourceInvoice.totalCount;
-    const currentlySentCount = statusList.reduce(
-      (sum, status) => sum + (status.sendedCount || 0),
-      0
-    );
-    const currentlyInvalidCount = statusList.reduce(
-      (sum, status) => sum + (status.invalidCount || 0),
-      0
-    );
-    const availableCount =
-      totalCount - currentlySentCount - currentlyInvalidCount;
-
-    // Validate send and invalid counts
-    if (sendCount + invalidCount > availableCount) {
-      return res.status(400).json({
-        error: "Cannot send more than available items",
-        available: availableCount,
-        requested: sendCount + invalidCount,
-      });
-    }
-
-    const newSendedCount = currentlySentCount + sendCount;
-    const newInvalidCount = currentlyInvalidCount + invalidCount;
-    const isComplete = newSendedCount + newInvalidCount === totalCount;
-    const residueCount = totalCount - newSendedCount - newInvalidCount;
-
-    // Perform operations in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Create new status for the source invoice
-      const newSourceStatus = await tx.productProtsess.create({
-        data: {
-          protsessIsOver: isComplete,
-          status: isComplete ? "Yuborilgan" : "To'liq yuborilmagan",
-          departmentName: sourceInvoice.department,
-          departmentId: sourceInvoice.departmentId,
-          invoiceId: sourceInvoice.id,
-          employeeId,
-          acceptCount: latestStatus.acceptCount || totalCount,
-          sendedCount: sendCount,
-          residueCount,
-          invalidCount,
-          invalidReason,
-        },
-      });
-
-      // Update source invoice if process is complete
-      if (isComplete) {
-        await tx.invoice.update({
-          where: { id: sourceInvoice.id },
-          data: { protsessIsOver: true },
+        const newSourceStatus = await tx.productProtsess.create({
+          data: {
+            protsessIsOver:
+              newInvoiceSentCount + newInvoiceInvalidCount ===
+              totalInvoiceCount,
+            status:
+              newInvoiceSentCount + newInvoiceInvalidCount === totalInvoiceCount
+                ? "Yuborilgan"
+                : "ToliqYuborilmagan",
+            departmentName: actualTargetDepartment.name,
+            departmentId: actualTargetDepartment.id,
+            invoiceId,
+            employeeId,
+            acceptCount: latestInvoiceStatus?.acceptCount || totalInvoiceCount,
+            sendedCount: totalSentCount,
+            residueCount: invoiceResidueCount,
+            invalidCount: totalInvalidCount,
+            invalidReason: products.some((p) => p.invalidReason)
+              ? "Multiple reasons"
+              : "",
+          },
         });
-      }
 
-      // Create a new invoice for the target department
-      const newInvoice = await tx.invoice.create({
-        data: {
-          perentId: sourceInvoice.perentId,
-          number: sourceInvoice.number + 1, // Increment number (consider a unique strategy if needed)
-          departmentId: actualTargetDepartment.id,
-          department: actualTargetDepartment.name,
-          productGroupId: sourceInvoice.productGroupId,
-          totalCount: sendCount,
-          protsessIsOver: false,
-          status: {
-            create: {
-              protsessIsOver: false,
-              status: "Pending",
-              departmentName: actualTargetDepartment.name,
-              departmentId: actualTargetDepartment.id,
-              targetDepartment: sourceInvoice.department,
-              acceptanceDepartment: actualTargetDepartment.name,
-              employeeId,
-              acceptCount: 0,
-              sendedCount: 0,
-              residueCount: sendCount,
-              invalidCount: 0,
-              invalidReason: "",
+        if (
+          newInvoiceSentCount + newInvoiceInvalidCount ===
+          totalInvoiceCount
+        ) {
+          await tx.invoice.update({
+            where: { id: sourceInvoice.id },
+            data: { protsessIsOver: true },
+          });
+        }
+
+        // Create new invoice for target department
+        const newInvoice = await tx.invoice.create({
+          data: {
+            perentId: sourceInvoice.perentId,
+            number: sourceInvoice.number + 1,
+            departmentId: actualTargetDepartment.id,
+            department: actualTargetDepartment.name,
+            productGroupId: sourceInvoice.productGroupId,
+            totalCount: totalSentCount,
+            protsessIsOver: false,
+            status: {
+              create: {
+                protsessIsOver: false,
+                status: "Pending",
+                departmentName: actualTargetDepartment.name,
+                departmentId: actualTargetDepartment.id,
+                targetDepartment: sourceInvoice.department,
+                acceptanceDepartment: actualTargetDepartment.name,
+                employeeId,
+                acceptCount: 0,
+                sendedCount: 0,
+                residueCount: totalSentCount,
+                invalidCount: 0,
+                invalidReason: "",
+              },
             },
           },
-        },
-        include: { status: true },
-      });
+          include: { status: true },
+        });
 
-      // Send success response
-      res.status(200).json({
-        message: `Successfully sent ${sendCount} items to ${actualTargetDepartment.name}`,
-        sourceStatus: newSourceStatus,
-        newInvoice,
-        remainingItems: residueCount,
-      });
-    });
+        return {
+          message: `Successfully sent ${totalSentCount} items to ${actualTargetDepartment.name}`,
+          sourceStatus: newSourceStatus,
+          newInvoice,
+          processRecords,
+          remainingItems: invoiceResidueCount,
+        };
+      }
+    );
+
+    return res.status(200).json(result);
   } catch (err) {
     console.error("Error sending product to department:", err);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Internal server error",
-      details: (err as Error).message,
+      details: err instanceof Error ? err.message : "Unknown error",
     });
   }
 };

@@ -26,6 +26,7 @@ export const forceDeleteAllHandler = async (_req: Request, res: Response) => {
 
       // 7. Delete all Product entries
       await tx.product.deleteMany();
+
     });
 
     return res.status(200).json({ message: 'Force delete completed successfully.' });

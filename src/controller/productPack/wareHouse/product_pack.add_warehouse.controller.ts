@@ -1,12 +1,22 @@
+// src/controllers/invoice.controller.ts
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
-// Create Invoice
+interface AddInvoiceRequestBody {
+  departmentId: string;
+  department: string;
+  productGroupId: string;
+  totalCount: number;
+  invalidCount?: number;
+  invalidReason?: string;
+  employeeId: string;
+  isOutsource?: boolean;
+}
+
 export const addInvoice = async (req: Request, res: Response) => {
-  // Destructure request body
   const {
     departmentId,
     department,
@@ -15,39 +25,19 @@ export const addInvoice = async (req: Request, res: Response) => {
     invalidCount,
     invalidReason,
     employeeId,
-    isOutsource = false, // Default to false if not provided
-  } = req.body;
+    isOutsource = false,
+  } = req.body as AddInvoiceRequestBody;
 
   // Validate required fields
-  if (
-    !departmentId ||
-    !department ||
-    !productGroupId ||
-    !totalCount ||
-    !employeeId ||
-    !isOutsource
-  ) {
+  if (!departmentId || !department || !productGroupId || totalCount == null || !employeeId) {
     return res.status(400).json({
-      error:
-        "All fields (departmentId, department, productGroupId, totalCount, employeeId) are required",
-      data: {
-        departmentId,
-        department,
-        productGroupId,
-        totalCount,
-        invalidCount,
-        invalidReason,
-        employeeId,
-        isOutsource,
-      },
+      error: "Required fields: departmentId, department, productGroupId, totalCount, employeeId",
+      data: req.body,
     });
   }
 
   // Validate numeric inputs
-  if (
-    isNaN(Number(totalCount)) ||
-    (invalidCount && isNaN(Number(invalidCount)))
-  ) {
+  if (isNaN(Number(totalCount)) || (invalidCount != null && isNaN(Number(invalidCount)))) {
     return res.status(400).json({
       error: "totalCount and invalidCount (if provided) must be numbers",
     });
@@ -70,6 +60,15 @@ export const addInvoice = async (req: Request, res: Response) => {
 
     if (!departmentExists) {
       return res.status(404).json({ error: "Department not found" });
+    }
+
+    // Check if employee exists
+    const employeeExists = await prisma.user.findUnique({
+      where: { id: employeeId },
+    });
+
+    if (!employeeExists) {
+      return res.status(404).json({ error: "Employee not found" });
     }
 
     // Generate a unique parent ID
@@ -96,7 +95,7 @@ export const addInvoice = async (req: Request, res: Response) => {
           isOutsource,
         },
         include: {
-          ProductGroup: true,
+          productGroup: true, // Fixed: Changed ProductGroup to productGroup
         },
       });
 
@@ -126,7 +125,7 @@ export const addInvoice = async (req: Request, res: Response) => {
     });
 
     // Return the created invoice with its status
-    res.status(201).json(newInvoice);
+    return res.status(201).json(newInvoice);
   } catch (err: unknown) {
     console.error("Error creating invoice:", err);
 
@@ -151,4 +150,4 @@ export const addInvoice = async (req: Request, res: Response) => {
       details: "An unknown error occurred",
     });
   }
-}
+};
