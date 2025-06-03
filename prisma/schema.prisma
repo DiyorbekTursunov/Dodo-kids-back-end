@@ -77,7 +77,7 @@ model productSetting {
     updatedAt  DateTime              @updatedAt
     productId  String
     product    Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups SizeGroup[]           // Relation to SizeGroup
+    sizeGroups SizeGroup[] // Relation to SizeGroup
     isSended   Boolean               @default(false)
     status     ProductProtsessStatus
 }
@@ -108,19 +108,19 @@ model ProductGroupFile {
 
 // ProductColorSize model to store color and size combinations
 model ProductColorSize {
-    id             String                @id @default(uuid())
-    quantity       Int
-    createdAt      DateTime              @default(now())
-    updatedAt      DateTime              @updatedAt
-    sizeGroupId    String
-    colorId        String
-    sizeId         String
-    sizeGroup      SizeGroup             @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
-    color          Color                 @relation(fields: [colorId], references: [id])
-    size           Size                  @relation(fields: [sizeId], references: [id])
-    processes      ColorSizeProcess[]
-    isSended       Boolean               @default(false)
-    status         ProductProtsessStatus
+    id          String                @id @default(uuid())
+    quantity    Int
+    createdAt   DateTime              @default(now())
+    updatedAt   DateTime              @updatedAt
+    sizeGroupId String
+    colorId     String
+    sizeId      String
+    sizeGroup   SizeGroup             @relation(fields: [sizeGroupId], references: [id], onDelete: Cascade)
+    color       Color                 @relation(fields: [colorId], references: [id])
+    size        Size                  @relation(fields: [sizeId], references: [id])
+    processes   ColorSizeProcess[]
+    isSended    Boolean               @default(false)
+    status      ProductProtsessStatus
 }
 
 // Color model

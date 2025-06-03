@@ -24,10 +24,10 @@ export const createSize = async (name: string) => {
   }
   const size = await prisma.size.create({
     data: {
-      name: name,
+      name: name, // Explicitly typed as string
       isSended: false,
-      status: ProductProtsessStatus.Pending, // Explicitly use enum value
-      colorSizes: { create: [] }, // Empty array for relation
+      status: ProductProtsessStatus.Pending, // Use enum value
+      colorSizes: { create: [] }, // Empty relation array
     },
   });
   return size;
