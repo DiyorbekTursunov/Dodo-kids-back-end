@@ -25,8 +25,10 @@ export const createSize = async (name: string) => {
 
   const size = await prisma.size.create({
     data: {
-      name: name,
-      status: ProductProtsessStatus.Pending, // This was missing - required field
+      name,
+      isSended: false,
+      colorSizes: { create: [] },
+      status: "Pending",
     },
   });
   return size;

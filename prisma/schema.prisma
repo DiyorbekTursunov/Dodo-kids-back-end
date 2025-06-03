@@ -131,7 +131,7 @@ model Color {
     updatedAt  DateTime              @updatedAt
     colorSizes ProductColorSize[]
     isSended   Boolean               @default(false)
-    status     ProductProtsessStatus
+    status     ProductProtsessStatus @default(Pending) // Add default value
 }
 
 // Size model
@@ -142,7 +142,7 @@ model Size {
     updatedAt  DateTime              @updatedAt
     colorSizes ProductColorSize[]
     isSended   Boolean               @default(false)
-    status     ProductProtsessStatus
+    status     ProductProtsessStatus @default(Pending) // Add default value
 }
 
 // OutsourseCompany model
