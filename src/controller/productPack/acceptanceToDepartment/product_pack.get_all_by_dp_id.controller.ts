@@ -89,7 +89,7 @@ export const getAcceptanceProductPacks = async (
     const totalCount = await prisma.invoice.count({
       where: {
         departmentId: String(departmentId),
-        status: {
+        status: {   
           some: {
             status: "Qabul qilingan",
           },

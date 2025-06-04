@@ -3,23 +3,28 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const departmentFlowMap: Record<string, string[]> = {
-  ombor: ["bichuv"],
   bichuv: ["tasnif"],
-  tasnif: ["pechat", "autsorsPechat", "tikuv", "autsorsTikuv"],
-  pechat: ["tasnif"],
-  autsorsPechat: ["tasnif"],
-  tikuv: ["chiska"],
-  autsorsTikuv: ["chiska"],
-  chiska: ["kontrol"],
+  tasnif: ["pechat", "pechat_usluga"], // Updated to only include pechat and pechat_usluga
+  pechat: ["vishivka", "vishivka_usluga"],
+  pechat_usluga: ["vishivka", "vishivka_usluga"],
+  vishivka: ["tikuv", "tikuv_usluga"],
+  vishivka_usluga: ["tikuv", "tikuv_usluga"],
+  tikuv: ["chistka"],
+  tikuv_usluga: ["chistka"],
+  chistka: ["kontrol"],
   kontrol: ["dazmol"],
-  dazmol: ["upakofka"],
-  upakofka: ["ombor"],
+  dazmol: ["upakovka"],
+  upakovka: ["ombor"],
+  ombor: [],
 };
 
 const normalizeDepartment = (name: string): string => {
   const map: Record<string, string> = {
-    autdorspechat: "pechat",
+    autsorspechat: "pechat",
     autsorstikuv: "tikuv",
+    pechat_usluga: "pechat_usluga",
+    vishivka_usluga: "vishivka_usluga",
+    tikuv_usluga: "tikuv_usluga",
   };
   return map[name.toLowerCase()] || name.toLowerCase();
 };
