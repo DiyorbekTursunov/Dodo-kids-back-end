@@ -7,18 +7,22 @@ import {
 
 const prisma = new PrismaClient();
 
-export const validateColorSizes = async (colorSizes: ColorSizeRequest[]): Promise<void> => {
-  const colorIds = [...new Set(colorSizes.map(cs => cs.colorId))];
-  const sizeIds = [...new Set(colorSizes.map(cs => cs.sizeId))];
+export const validateColorSizes = async (
+  colorSizes: ColorSizeRequest[]
+): Promise<void> => {
+  const colorIds = [...new Set(colorSizes.map((cs) => cs.colorId))];
+  const sizeIds = [...new Set(colorSizes.map((cs) => cs.sizeId))];
 
-  const colors = await prisma.color.findMany({ where: { id: { in: colorIds } } });
+  const colors = await prisma.color.findMany({
+    where: { id: { in: colorIds } },
+  });
   const sizes = await prisma.size.findMany({ where: { id: { in: sizeIds } } });
 
   for (const colorSize of colorSizes) {
-    if (!colors.find(c => c.id === colorSize.colorId)) {
+    if (!colors.find((c) => c.id === colorSize.colorId)) {
       throw new Error(`Color with ID ${colorSize.colorId} does not exist`);
     }
-    if (!sizes.find(s => s.id === colorSize.sizeId)) {
+    if (!sizes.find((s) => s.id === colorSize.sizeId)) {
       throw new Error(`Size with ID ${colorSize.sizeId} does not exist`);
     }
     if (colorSize.quantity < 0) {
@@ -27,7 +31,9 @@ export const validateColorSizes = async (colorSizes: ColorSizeRequest[]): Promis
   }
 };
 
-export const createProductGroups = async (data: ProductsArrayRequest): Promise<ProductGroup[]> => {
+export const createProductGroups = async (
+  data: ProductsArrayRequest
+): Promise<ProductGroup[]> => {
   const { productGroups } = data;
   if (!productGroups?.length) {
     throw new Error("productGroups array is required");
@@ -40,9 +46,13 @@ export const createProductGroups = async (data: ProductsArrayRequest): Promise<P
       throw new Error("Products are required for product group");
     }
 
-    if (productGroupData.fileIds?.length) {
-      const files = await prisma.file.findMany({ where: { id: { in: productGroupData.fileIds } } });
-      if (files.length !== productGroupData.fileIds.length) {
+    // Extract file IDs from the files array
+    const fileIds = productGroupData.files?.map((file) => file.id) || [];
+    if (fileIds.length) {
+      const files = await prisma.file.findMany({
+        where: { id: { in: fileIds } },
+      });
+      if (files.length !== fileIds.length) {
         throw new Error("One or more files do not exist");
       }
     }
@@ -53,7 +63,9 @@ export const createProductGroups = async (data: ProductsArrayRequest): Promise<P
         0
       );
       if (totalSettingsCount > product.allTotalCount) {
-        throw new Error(`Product settings total count exceeds allTotalCount for product ${product.name}`);
+        throw new Error(
+          `Product settings total count exceeds allTotalCount for product ${product.name}`
+        );
       }
 
       for (const setting of product.productSettings) {
@@ -64,7 +76,9 @@ export const createProductGroups = async (data: ProductsArrayRequest): Promise<P
             0
           );
           if (colorSizesTotal > group.quantity) {
-            throw new Error(`Color sizes quantity exceeds size group quantity for size ${group.size}`);
+            throw new Error(
+              `Color sizes quantity exceeds size group quantity for size ${group.size}`
+            );
           }
         }
       }
@@ -75,10 +89,10 @@ export const createProductGroups = async (data: ProductsArrayRequest): Promise<P
         name: productGroupData.name,
         status: productGroupData.status ?? "Pending",
         productGroupFiles: {
-          create: productGroupData.fileIds?.map((fileId: string) => ({
+          create: fileIds.map((fileId: string) => ({
             file: { connect: { id: fileId } },
             status: "Pending",
-          })) || [],
+          })),
         },
         products: {
           create: productGroupData.products.map((product) => ({
@@ -118,8 +132,8 @@ export const createProductGroups = async (data: ProductsArrayRequest): Promise<P
                 sizeGroups: {
                   include: {
                     colorSizes: {
-                      include: { color: true, size: true }
-                    }
+                      include: { color: true, size: true },
+                    },
                   },
                 },
               },
@@ -146,8 +160,8 @@ export const getAllProductGroups = async (): Promise<ProductGroup[]> => {
               sizeGroups: {
                 include: {
                   colorSizes: {
-                    include: { color: true, size: true }
-                  }
+                    include: { color: true, size: true },
+                  },
                 },
               },
             },
@@ -158,7 +172,9 @@ export const getAllProductGroups = async (): Promise<ProductGroup[]> => {
   });
 };
 
-export const getProductGroupById = async (id: string): Promise<ProductGroup | null> => {
+export const getProductGroupById = async (
+  id: string
+): Promise<ProductGroup | null> => {
   return prisma.productGroup.findUnique({
     where: { id },
     include: {
@@ -170,8 +186,8 @@ export const getProductGroupById = async (id: string): Promise<ProductGroup | nu
               sizeGroups: {
                 include: {
                   colorSizes: {
-                    include: { color: true, size: true }
-                  }
+                    include: { color: true, size: true },
+                  },
                 },
               },
             },
@@ -206,8 +222,8 @@ export const updateProductGroup = async (
               sizeGroups: {
                 include: {
                   colorSizes: {
-                    include: { color: true, size: true }
-                  }
+                    include: { color: true, size: true },
+                  },
                 },
               },
             },
@@ -218,10 +234,16 @@ export const updateProductGroup = async (
   });
 };
 
-export const deleteProductGroup = async (id: string, force: boolean = false): Promise<void> => {
+export const deleteProductGroup = async (
+  id: string,
+  force: boolean = false
+): Promise<void> => {
   const productGroup = await prisma.productGroup.findUnique({
     where: { id },
-    include: { invoices: true, products: { include: { productSetting: true } } },
+    include: {
+      invoices: true,
+      products: { include: { productSetting: true } },
+    },
   });
 
   if (!productGroup) {
@@ -237,7 +259,9 @@ export const deleteProductGroup = async (id: string, force: boolean = false): Pr
   await prisma.$transaction(async (tx) => {
     if (force && productGroup.invoices.length > 0) {
       const invoiceIds = productGroup.invoices.map((invoice) => invoice.id);
-      await tx.productProtsess.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+      await tx.productProtsess.deleteMany({
+        where: { invoiceId: { in: invoiceIds } },
+      });
       await tx.invoice.deleteMany({ where: { productGroupId: id } });
     }
 
@@ -252,8 +276,12 @@ export const deleteProductGroup = async (id: string, force: boolean = false): Pr
         },
       },
     });
-    await tx.sizeGroup.deleteMany({ where: { productSettingId: { in: productSettingIds } } });
-    await tx.productSetting.deleteMany({ where: { productId: { in: productGroup.products.map(p => p.id) } } });
+    await tx.sizeGroup.deleteMany({
+      where: { productSettingId: { in: productSettingIds } },
+    });
+    await tx.productSetting.deleteMany({
+      where: { productId: { in: productGroup.products.map((p) => p.id) } },
+    });
     await tx.product.deleteMany({ where: { productGroupId: id } });
     await tx.productGroupFile.deleteMany({ where: { productGroupId: id } });
     await tx.productGroup.delete({ where: { id } });

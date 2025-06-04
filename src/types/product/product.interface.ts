@@ -27,21 +27,20 @@ export interface ProductRequest {
   status?: ProductProtsessStatus;
 }
 
+export interface FileRequest {
+  id: string;
+}
+
 export interface ProductGroupRequest {
   name: string;
   products: ProductRequest[];
-  fileIds?: string[];
+  files?: FileRequest[]; // Updated to match request structure
   status?: ProductProtsessStatus;
 }
 
 export interface ProductsArrayRequest {
   productGroups: ProductGroupRequest[];
 }
-
-export interface FileRequest {
-  id: string;
-}
-
 
 export interface ColorSizeData {
   colorSizeId: string;
