@@ -134,3 +134,102 @@ interface DateFilter {
     lte?: Date;
   };
 }
+
+// New service for getEmployeeStats
+export const getEmployeeStatsService = async (employeeId: string): Promise<any> => {
+  try {
+    // Validate employee ID
+    if (!employeeId) {
+      throw new Error("Employee ID is required");
+    }
+
+    // Check if employee exists
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: { department: true },
+    });
+
+    if (!employee) {
+      throw new Error("Employee not found");
+    }
+
+    // Get unique invoice IDs from ProductProtsess
+    const employeeProcesses = await prisma.productProtsess.findMany({
+      where: { employeeId },
+      select: { invoiceId: true },
+      distinct: ["invoiceId"],
+    });
+
+    const invoiceIds = employeeProcesses.map((process) => process.invoiceId);
+
+    // Get invoices
+    const invoices = await prisma.invoice.findMany({
+      where: { id: { in: invoiceIds } },
+      select: {
+        id: true,
+        number: true,
+        totalCount: true,
+        protsessIsOver: true,
+        department: true,
+        productGroup: { select: { name: true } },
+      },
+    });
+
+    // Get aggregated stats
+    const stats = await prisma.productProtsess.aggregate({
+      where: { employeeId },
+      _sum: {
+        sendedCount: true,
+        invalidCount: true,
+        residueCount: true,
+        acceptCount: true,
+      },
+    });
+
+    // Get detailed process records
+    const processes = await prisma.productProtsess.findMany({
+      where: { employeeId },
+      select: {
+        id: true,
+        date: true,
+        status: true,
+        sendedCount: true,
+        invalidCount: true,
+        residueCount: true,
+        acceptCount: true,
+        invalidReason: true,
+        department: { select: { name: true } },
+        invoice: { select: { number: true } },
+      },
+      orderBy: { date: "desc" },
+    });
+
+    // Calculate total product count
+    const totalProductCount = invoices.reduce(
+      (sum, invoice) => sum + (invoice.totalCount || 0),
+      0
+    );
+
+    return {
+      employee: {
+        id: employee.id,
+        name: employee.name,
+        department: employee.department.name,
+      },
+      totalProductCount,
+      productPackCount: invoices.length,
+      stats: {
+        sendedCount: stats._sum.sendedCount || 0,
+        invalidCount: stats._sum.invalidCount || 0,
+        residueCount: stats._sum.residueCount || 0,
+        acceptCount: stats._sum.acceptCount || 0,
+      },
+      productPacks: invoices,
+      processes,
+    };
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Unknown error");
+  } finally {
+    await prisma.$disconnect();
+  }
+};
