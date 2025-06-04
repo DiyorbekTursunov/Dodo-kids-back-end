@@ -65,4 +65,5 @@ export interface RequestBody {
   targetDepartmentId: string;
   employeeId: string;
   products: ProductData[];
+  outsourseCompanyId?: string;
 }

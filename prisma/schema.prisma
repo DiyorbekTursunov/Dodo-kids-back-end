@@ -147,34 +147,28 @@ model Size {
 
 // OutsourseCompany model
 model OutsourseCompany {
-    id        String    @id @default(uuid())
-    name      String    @unique
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    invoices  Invoice[]
+    id              String            @id @default(uuid())
+    name            String            @unique
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    ProductProtsess ProductProtsess[]
 }
 
 // Invoice model
 model Invoice {
-    id                   String            @id @default(uuid())
-    number               Int
-    perentId             String
-    protsessIsOver       Boolean           @default(false)
-    departmentId         String
-    department           String
-    productGroupId       String
-    productGroup         ProductGroup      @relation(fields: [productGroupId], references: [id])
-    totalCount           Int
-    status               ProductProtsess[]
-    createdAt            DateTime          @default(now())
-    updatedAt            DateTime          @updatedAt
-    isOutsource          Boolean           @default(false)
-    ProductProcess       ProductProcess[]
-
-
-    outsourseCompanyName String?
-    outsourseCompany     OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
-    outsourseCompanyId   String?
+    id             String            @id @default(uuid())
+    number         Int
+    perentId       String
+    protsessIsOver Boolean           @default(false)
+    departmentId   String
+    department     String
+    productGroupId String
+    productGroup   ProductGroup      @relation(fields: [productGroupId], references: [id])
+    totalCount     Int
+    status         ProductProtsess[]
+    createdAt      DateTime          @default(now())
+    updatedAt      DateTime          @updatedAt
+    ProductProcess ProductProcess[]
 }
 
 // Department model
@@ -231,6 +225,11 @@ model ProductProtsess {
     department           Department @relation(fields: [departmentId], references: [id])
     invoiceId            String
     invoice              Invoice    @relation(fields: [invoiceId], references: [id])
+
+    isOutsourseCompany Boolean           @default(false)
+    outsourseCompanyId String?
+    outsourseName      String?
+    outsourseCompany   OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
 }
 
 // Process tracking for Product

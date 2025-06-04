@@ -13,7 +13,6 @@ interface AddInvoiceRequestBody {
   invalidCount?: number;
   invalidReason?: string;
   employeeId: string;
-  isOutsource?: boolean;
 }
 
 export const addInvoice = async (req: Request, res: Response) => {
@@ -25,7 +24,6 @@ export const addInvoice = async (req: Request, res: Response) => {
     invalidCount,
     invalidReason,
     employeeId,
-    isOutsource = false,
   } = req.body as AddInvoiceRequestBody;
 
   // Validate required fields
@@ -92,7 +90,6 @@ export const addInvoice = async (req: Request, res: Response) => {
           totalCount: Number(totalCount),
           protsessIsOver: false,
           productGroupId,
-          isOutsource,
         },
         include: {
           productGroup: true, // Fixed: Changed ProductGroup to productGroup

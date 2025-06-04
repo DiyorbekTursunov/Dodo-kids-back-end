@@ -30,13 +30,6 @@ export const getAllProductPacks = async (req: Request, res: Response) => {
         totalCount: true,
         createdAt: true,
         updatedAt: true,
-        isOutsource: true,
-        outsourseCompany: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         productGroup: {
           select: {
             id: true,
@@ -138,6 +131,8 @@ export const getAllProductPacks = async (req: Request, res: Response) => {
                 name: true,
               },
             },
+            outsourseName: true,
+            isOutsourseCompany: true,
           },
           orderBy: { createdAt: "desc" },
         },
