@@ -1,251 +1,490 @@
 {
-    "success": true,
-    "data": [
-        {
-            "id": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
-            "name": "Group A1",
-            "createdAt": "2025-06-03T03:35:59.635Z",
-            "updatedAt": "2025-06-03T03:35:59.635Z",
+  "data": [
+    {
+      "id": "7d829c76-b2e4-44bf-a34c-8ea69a087416",
+      "number": 1,
+      "perentId": "1a78aa65-0ef4-47a5-957f-d6a884010dd9",
+      "protsessIsOver": false,
+      "departmentId": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+      "department": "ombor",
+      "totalCount": 1000,
+      "createdAt": "2025-06-04T10:14:30.175Z",
+      "updatedAt": "2025-06-04T10:14:30.175Z",
+
+      "productGroup": {
+        "id": "ea3f70df-2e81-43ba-8c7b-d9afa54b0e6b",
+        "name": "Group A1 ",
+        "isSended": false,
+
+        "processes": [
+          {
+            "department": {
+              "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+              "name": "ombor"
+            },
+            "totalCount": 500,
+            "acceptCount": 50,
+            "sendedCount": 40,
+            "invalidCount": 5,
+            "residueCount": 455,
+
+            "status": "Pending"
+          },
+
+          {
+            "department": {
+              "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+              "name": "ombor"
+            },
+            "totalCount": 500,
+            "acceptCount": 50,
+            "sendedCount": 40,
+            "invalidCount": 5,
+            "residueCount": 455,
+
+            "status": "Qabul qilingan"
+          }
+        ],
+
+        "products": [
+          {
+            "id": "1645a1b4-e285-4e4e-a735-62e13bf42f0e",
             "isSended": false,
-            "status": "Pending",
-            "productGroupFiles": [
-                {
-                    "id": "1b934217-950c-4151-9a4b-5a0ccdd67e11",
-                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
-                    "fileId": "98145c9f-ae01-4d4f-a6a8-d39894dd5751",
-                    "isSended": false,
-                    "status": "Pending",
-                    "file": {
-                        "id": "98145c9f-ae01-4d4f-a6a8-d39894dd5751",
-                        "fileName": "futbolka_rammstein_foto_gruppy_vozle_samoleta_1_100-900x900.jpg",
-                        "path": "uploads/file-1748920291219-378965413.jpg",
-                        "mimeType": "image/jpeg",
-                        "size": 310206,
-                        "fileType": "IMAGE",
-                        "createdAt": "2025-06-03T03:11:32.540Z",
-                        "updatedAt": "2025-06-03T03:11:32.540Z"
-                    }
-                }
-            ],
-            "products": [
-                {
-                    "id": "3022894b-d9d9-450e-8a6a-2ce414ba68de",
-                    "name": "T-Shirt",
-                    "allTotalCount": 200,
-                    "createdAt": "2025-06-03T03:35:59.635Z",
-                    "updatedAt": "2025-06-03T03:35:59.635Z",
-                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
-                    "isSended": false,
-                    "status": "Pending",
-                    "productSetting": [
-                        {
-                            "id": "b8b8e1e5-081f-46c6-9878-247071407686",
-                            "totalCount": 200,
-                            "createdAt": "2025-06-03T03:35:59.635Z",
-                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                            "productId": "3022894b-d9d9-450e-8a6a-2ce414ba68de",
-                            "isSended": false,
-                            "status": "Pending",
-                            "sizeGroups": [
-                                {
-                                    "id": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
-                                    "size": "Small",
-                                    "quantity": 50,
-                                    "createdAt": "2025-06-03T03:35:59.635Z",
-                                    "updatedAt": "2025-06-03T03:35:59.635Z",
-                                    "productSettingId": "b8b8e1e5-081f-46c6-9878-247071407686",
-                                    "isSended": false,
-                                    "status": "Pending",
-                                    "colorSizes": [
-                                        {
-                                            "id": "51869b67-24ab-4df7-a330-d7775f1e20cf",
-                                            "quantity": 25,
-                                            "createdAt": "2025-06-03T03:35:59.635Z",
-                                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                                            "sizeGroupId": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
-                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
-                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                            "isSended": false,
-                                            "status": "Pending",
-                                            "color": {
-                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
-                                                "name": "qizil",
-                                                "createdAt": "2025-06-03T03:34:14.630Z",
-                                                "updatedAt": "2025-06-03T03:34:14.630Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            },
-                                            "size": {
-                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                                "name": "XL",
-                                                "createdAt": "2025-06-03T03:33:57.259Z",
-                                                "updatedAt": "2025-06-03T03:33:57.259Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            }
-                                        },
-                                        {
-                                            "id": "e2a3e495-2e61-4d99-8588-cb6cc4b9ab86",
-                                            "quantity": 25,
-                                            "createdAt": "2025-06-03T03:35:59.635Z",
-                                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                                            "sizeGroupId": "b2d3a1d9-98d9-4b9c-a19e-dfe63de1d2ea",
-                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
-                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                            "isSended": false,
-                                            "status": "Pending",
-                                            "color": {
-                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
-                                                "name": "qizil",
-                                                "createdAt": "2025-06-03T03:34:14.630Z",
-                                                "updatedAt": "2025-06-03T03:34:14.630Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            },
-                                            "size": {
-                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                                "name": "XL",
-                                                "createdAt": "2025-06-03T03:33:57.259Z",
-                                                "updatedAt": "2025-06-03T03:33:57.259Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "id": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
-                                    "size": "Medium",
-                                    "quantity": 100,
-                                    "createdAt": "2025-06-03T03:35:59.635Z",
-                                    "updatedAt": "2025-06-03T03:35:59.635Z",
-                                    "productSettingId": "b8b8e1e5-081f-46c6-9878-247071407686",
-                                    "isSended": false,
-                                    "status": "Pending",
-                                    "colorSizes": [
-                                        {
-                                            "id": "3d2e544d-5de0-46dd-a9f9-e20461bdb19f",
-                                            "quantity": 50,
-                                            "createdAt": "2025-06-03T03:35:59.635Z",
-                                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                                            "sizeGroupId": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
-                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
-                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                            "isSended": false,
-                                            "status": "Pending",
-                                            "color": {
-                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
-                                                "name": "qizil",
-                                                "createdAt": "2025-06-03T03:34:14.630Z",
-                                                "updatedAt": "2025-06-03T03:34:14.630Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            },
-                                            "size": {
-                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                                "name": "XL",
-                                                "createdAt": "2025-06-03T03:33:57.259Z",
-                                                "updatedAt": "2025-06-03T03:33:57.259Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            }
-                                        },
-                                        {
-                                            "id": "e4b70f50-c7f2-4bfd-a2c2-5b63ed5c8953",
-                                            "quantity": 50,
-                                            "createdAt": "2025-06-03T03:35:59.635Z",
-                                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                                            "sizeGroupId": "b0cd8790-3be1-4ca5-94f1-e627d8b5b68b",
-                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
-                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                            "isSended": false,
-                                            "status": "Pending",
-                                            "color": {
-                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
-                                                "name": "qizil",
-                                                "createdAt": "2025-06-03T03:34:14.630Z",
-                                                "updatedAt": "2025-06-03T03:34:14.630Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            },
-                                            "size": {
-                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                                "name": "XL",
-                                                "createdAt": "2025-06-03T03:33:57.259Z",
-                                                "updatedAt": "2025-06-03T03:33:57.259Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
+
+            "name": "Futbolka sho'rtik",
+
+            "processes": [
+              {
+                "department": {
+                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                  "name": "ombor"
                 },
-                {
-                    "id": "74f67917-978c-4c7f-b7ed-0e6d188a4f1d",
-                    "name": "Hoodie",
-                    "allTotalCount": 150,
-                    "createdAt": "2025-06-03T03:35:59.635Z",
-                    "updatedAt": "2025-06-03T03:35:59.635Z",
-                    "productGroupId": "3a22615c-ebcf-4dc4-9f46-0aa47e4a2a1a",
+                "totalCount": 500,
+                "acceptCount": 50,
+                "sendedCount": 40,
+                "invalidCount": 5,
+                "residueCount": 455,
+
+                "status": "Pending"
+              },
+
+              {
+                "department": {
+                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                  "name": "ombor"
+                },
+                "totalCount": 500,
+                "acceptCount": 50,
+                "sendedCount": 40,
+                "invalidCount": 5,
+                "residueCount": 455,
+
+                "status": "Qabul qilingan"
+              }
+            ],
+
+            "sizes": [
+              {
+                "size": {
+                  "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                  "name": "blue"
+                },
+
+                "isSended": false,
+
+                "processes": [
+                  {
+                    "department": {
+                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                      "name": "ombor"
+                    },
+                    "totalCount": 500,
+                    "acceptCount": 50,
+                    "sendedCount": 40,
+                    "invalidCount": 5,
+                    "residueCount": 455,
+
+                    "status": "Pending"
+                  },
+
+                  {
+                    "department": {
+                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                      "name": "ombor"
+                    },
+                    "totalCount": 500,
+                    "acceptCount": 50,
+                    "sendedCount": 40,
+                    "invalidCount": 5,
+                    "residueCount": 455,
+
+                    "status": "Qabul qilingan"
+                  }
+                ],
+
+                "colors": [
+                  {
+                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
+                    "isSended": false,
+
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "processes": [
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Pending"
+                      },
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Qabul qilingan"
+                      }
+                    ]
+                  },
+
+                  {
+                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
+
                     "isSended": false,
                     "status": "Pending",
-                    "productSetting": [
-                        {
-                            "id": "3cf74280-0de5-4d34-b2d1-cfa06bf9073d",
-                            "totalCount": 150,
-                            "createdAt": "2025-06-03T03:35:59.635Z",
-                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                            "productId": "74f67917-978c-4c7f-b7ed-0e6d188a4f1d",
-                            "isSended": false,
-                            "status": "Pending",
-                            "sizeGroups": [
-                                {
-                                    "id": "f677a869-c76b-404c-bf05-0846eb357313",
-                                    "size": "Large",
-                                    "quantity": 75,
-                                    "createdAt": "2025-06-03T03:35:59.635Z",
-                                    "updatedAt": "2025-06-03T03:35:59.635Z",
-                                    "productSettingId": "3cf74280-0de5-4d34-b2d1-cfa06bf9073d",
-                                    "isSended": false,
-                                    "status": "Pending",
-                                    "colorSizes": [
-                                        {
-                                            "id": "8f38a0c6-1c15-428a-ae42-404273129a5c",
-                                            "quantity": 75,
-                                            "createdAt": "2025-06-03T03:35:59.635Z",
-                                            "updatedAt": "2025-06-03T03:35:59.635Z",
-                                            "sizeGroupId": "f677a869-c76b-404c-bf05-0846eb357313",
-                                            "colorId": "b18d62f6-0078-4444-b809-951e55865095",
-                                            "sizeId": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                            "isSended": false,
-                                            "status": "Pending",
-                                            "color": {
-                                                "id": "b18d62f6-0078-4444-b809-951e55865095",
-                                                "name": "qizil",
-                                                "createdAt": "2025-06-03T03:34:14.630Z",
-                                                "updatedAt": "2025-06-03T03:34:14.630Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            },
-                                            "size": {
-                                                "id": "3adb5395-dd59-4a2a-9d0d-18cacb41d43e",
-                                                "name": "XL",
-                                                "createdAt": "2025-06-03T03:33:57.259Z",
-                                                "updatedAt": "2025-06-03T03:33:57.259Z",
-                                                "isSended": false,
-                                                "status": "Pending"
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
+
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "processes": [
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Pending"
+                      },
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Qabul qilingan"
+                      }
                     ]
-                }
+                  }
+                ]
+              },
+              {
+                "id": "e2f97c5e-1c56-4ca8-a4ba-c4574b11bd44",
+                "size": "XS",
+                "totalCount": 500,
+                "status": "Pending",
+                "colorSizes": [
+                  {
+                    "id": "eb99b6be-e851-4c77-9b0d-ae71dbf75e91",
+                    "totalCount": 250,
+                    "isSended": false,
+                    "status": "Pending",
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "size": {
+                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
+                      "name": "XS",
+                      "isSended": false,
+                      "status": "Pending"
+                    },
+                    "processes": []
+                  },
+                  {
+                    "id": "37e4b4b5-1947-4226-b1ac-5e5e20df8d9f",
+                    "totalCount": 250,
+                    "isSended": false,
+                    "status": "Pending",
+                    "color": {
+                      "id": "95dbf74e-99da-4ee2-babd-a96eb31b5e8b",
+                      "name": "red"
+                    },
+                    "size": {
+                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
+                      "name": "XS",
+                      "isSended": false,
+                      "status": "Pending"
+                    },
+                    "processes": []
+                  }
+                ]
+              }
             ]
+          },
+          {
+            "id": "1645a1b4-e285-4e4e-a735-62e13bf42f0e",
+            "isSended": false,
+
+            "processes": [
+              {
+                "department": {
+                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                  "name": "ombor"
+                },
+                "totalCount": 500,
+                "acceptCount": 50,
+                "sendedCount": 40,
+                "invalidCount": 5,
+                "residueCount": 455,
+
+                "status": "Pending"
+              },
+
+              {
+                "department": {
+                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                  "name": "ombor"
+                },
+                "totalCount": 500,
+                "acceptCount": 50,
+                "sendedCount": 40,
+                "invalidCount": 5,
+                "residueCount": 455,
+
+                "status": "Qabul qilingan"
+              }
+            ],
+
+            "sizes": [
+              {
+                "size": {
+                  "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                  "name": "blue"
+                },
+
+                "isSended": false,
+
+                "processes": [
+                  {
+                    "department": {
+                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                      "name": "ombor"
+                    },
+                    "totalCount": 500,
+                    "acceptCount": 50,
+                    "sendedCount": 40,
+                    "invalidCount": 5,
+                    "residueCount": 455,
+
+                    "status": "Pending"
+                  },
+
+                  {
+                    "department": {
+                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                      "name": "ombor"
+                    },
+                    "totalCount": 500,
+                    "acceptCount": 50,
+                    "sendedCount": 40,
+                    "invalidCount": 5,
+                    "residueCount": 455,
+
+                    "status": "Qabul qilingan"
+                  }
+                ],
+
+                "colors": [
+                  {
+                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
+                    "isSended": false,
+
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "processes": [
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Pending"
+                      },
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Qabul qilingan"
+                      }
+                    ]
+                  },
+
+                  {
+                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
+
+                    "isSended": false,
+                    "status": "Pending",
+
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "processes": [
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Pending"
+                      },
+                      {
+                        "department": {
+                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+                          "name": "ombor"
+                        },
+                        "totalCount": 500,
+                        "acceptCount": 50,
+                        "sendedCount": 40,
+                        "invalidCount": 5,
+                        "residueCount": 455,
+
+                        "status": "Qabul qilingan"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "e2f97c5e-1c56-4ca8-a4ba-c4574b11bd44",
+                "size": "XS",
+                "totalCount": 500,
+                "status": "Pending",
+                "colorSizes": [
+                  {
+                    "id": "eb99b6be-e851-4c77-9b0d-ae71dbf75e91",
+                    "totalCount": 250,
+                    "isSended": false,
+                    "status": "Pending",
+                    "color": {
+                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
+                      "name": "blue"
+                    },
+                    "size": {
+                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
+                      "name": "XS",
+                      "isSended": false,
+                      "status": "Pending"
+                    },
+                    "processes": []
+                  },
+                  {
+                    "id": "37e4b4b5-1947-4226-b1ac-5e5e20df8d9f",
+                    "totalCount": 250,
+                    "isSended": false,
+                    "status": "Pending",
+                    "color": {
+                      "id": "95dbf74e-99da-4ee2-babd-a96eb31b5e8b",
+                      "name": "red"
+                    },
+                    "size": {
+                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
+                      "name": "XS",
+                      "isSended": false,
+                      "status": "Pending"
+                    },
+                    "processes": []
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+
+        "productGroupFiles": [
+          {
+            "id": "3cdb2dd4-b191-4026-bb0e-4c5ec5bc9a83",
+            "file": {
+              "id": "32666207-189e-4213-86ff-43a329b5716a",
+              "fileName": "c81e5ce3-a5b1-4715-9e17-695d60417604.jpg",
+              "path": "uploads/files-1749031978092-984021099.jpg",
+              "mimeType": "image/jpeg",
+              "size": 79071,
+              "fileType": "IMAGE"
+            }
+          }
+        ]
+      },
+
+      "status": [
+        {
+          "id": "c4e985e6-4cb4-4f2c-8b6d-d3ec880266ff",
+          "status": "Qabul qilingan",
+          "date": "2025-06-04T10:14:30.348Z",
+          "protsessIsOver": false,
+          "acceptCount": 1000,
+          "sendedCount": 0,
+          "invalidCount": 0,
+          "residueCount": 1000,
+          "invalidReason": "",
+          "department": {
+            "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
+            "name": "ombor"
+          },
+          "outsourseName": null,
+          "isOutsourseCompany": false
         }
-    ]
+      ]
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
 }

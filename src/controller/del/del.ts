@@ -6,27 +6,41 @@ const prisma = new PrismaClient();
 export const forceDeleteAllHandler = async (_req: Request, res: Response) => {
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Delete all ProductProtsess entries
+      // Delete ColorSizeProcess (references ProductColorSize and ProductProcess)
+      await tx.colorSizeProcess.deleteMany();
+
+      // Delete ProductProcess (references Product and Invoice)
+      await tx.productProcess.deleteMany();
+
+      // Delete ProductProtsess (references Invoice and possibly OutsourseCompany)
       await tx.productProtsess.deleteMany();
 
-      // 2. Delete all Invoice entries (to satisfy foreign key constraints)
+      // Delete Invoice (references ProductGroup)
       await tx.invoice.deleteMany();
 
-      // 3. Delete all ProductGroup entries
-      await tx.productGroup.deleteMany();
-
-      // 4. Delete all ProductColorSize entries
+      // Delete ProductColorSize (references SizeGroup)
       await tx.productColorSize.deleteMany();
 
-      // 5. Delete all SizeGroup entries
+      // Delete SizeGroup (references productSetting)
       await tx.sizeGroup.deleteMany();
 
-      // 6. Delete all ProductSetting entries
+      // Delete productSetting (references Product)
       await tx.productSetting.deleteMany();
 
-      // 7. Delete all Product entries
+      // Delete Product (references ProductGroup)
       await tx.product.deleteMany();
 
+      // Delete ProductGroupFile (references ProductGroup and File)
+      await tx.productGroupFile.deleteMany();
+
+      // Delete ProductGroup
+      await tx.productGroup.deleteMany();
+
+      // Delete File
+      await tx.file.deleteMany();
+
+      // Delete OutsourseCompany
+      await tx.outsourseCompany.deleteMany();
     });
 
     return res.status(200).json({ message: 'Force delete completed successfully.' });

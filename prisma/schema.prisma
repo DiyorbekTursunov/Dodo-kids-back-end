@@ -52,6 +52,7 @@ model ProductGroup {
     productGroupFiles ProductGroupFile[]
     isSended          Boolean               @default(false)
     status            ProductProtsessStatus
+    processes         ProductProtsess[]     @relation("ProductGroupProcesses") // Add this relation
 }
 
 // Product model (individual products within a group)
@@ -206,11 +207,11 @@ model Employee {
 
 // ProductProtsess model for invoice-level process tracking
 model ProductProtsess {
-    id                   String     @id @default(uuid())
-    createdAt            DateTime   @default(now())
-    updatedAt            DateTime   @updatedAt
-    date                 DateTime   @default(now())
-    protsessIsOver       Boolean    @default(false)
+    id                   String            @id @default(uuid())
+    createdAt            DateTime          @default(now())
+    updatedAt            DateTime          @updatedAt
+    date                 DateTime          @default(now())
+    protsessIsOver       Boolean           @default(false)
     status               String
     employeeId           String
     departmentName       String
@@ -222,14 +223,15 @@ model ProductProtsess {
     invalidCount         Int
     residueCount         Int
     invalidReason        String
-    department           Department @relation(fields: [departmentId], references: [id])
+    department           Department        @relation(fields: [departmentId], references: [id])
     invoiceId            String
-    invoice              Invoice    @relation(fields: [invoiceId], references: [id])
-
-    isOutsourseCompany Boolean           @default(false)
-    outsourseCompanyId String?
-    outsourseName      String?
-    outsourseCompany   OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
+    invoice              Invoice           @relation(fields: [invoiceId], references: [id])
+    isOutsourseCompany   Boolean           @default(false)
+    outsourseCompanyId   String?
+    outsourseName        String?
+    outsourseCompany     OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
+    productGroup         ProductGroup?     @relation("ProductGroupProcesses", fields: [productGroupId], references: [id])
+    productGroupId       String? // Add foreign key
 }
 
 // Process tracking for Product
@@ -247,6 +249,7 @@ model ProductProcess {
     invalidCount       Int
     invalidReason      String
     residueCount       Int
+    totalCount         Int // Add this field
     productId          String
     product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
     invoiceId          String
