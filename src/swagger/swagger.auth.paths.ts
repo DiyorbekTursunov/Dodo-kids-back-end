@@ -1,7 +1,7 @@
 // swagger.auth.paths.ts
 const authPaths = {
   paths: {
-    'api/auth/login': {
+    '/api/auth/login': {
       post: {
         tags: ['Authentication'],
         summary: 'User login',
@@ -50,7 +50,7 @@ const authPaths = {
         },
       },
     },
-    '/auth/register': {
+    '/api/auth/register': {
       post: {
         tags: ['Authentication'],
         summary: 'User registration',
@@ -106,7 +106,7 @@ const authPaths = {
         },
       },
     },
-    '/auth/refresh': {
+    '/api/auth/refresh': {
       post: {
         tags: ['Authentication'],
         summary: 'Refresh access token',
@@ -155,7 +155,7 @@ const authPaths = {
         },
       },
     },
-    '/auth/logout': {
+    '/api/auth/logout': {
       post: {
         tags: ['Authentication'],
         summary: 'User logout',
@@ -191,7 +191,7 @@ const authPaths = {
         },
       },
     },
-    '/auth/me': {
+    '/api/auth/me': {
       get: {
         tags: ['Authentication'],
         summary: 'Get current user',

@@ -3,7 +3,11 @@ import swaggerUiExpress from "swagger-ui-express";
 import authPaths from "./swagger/swagger.auth.paths";
 import colorPaths from "./swagger/swagger.colors.paths";
 import sizePaths from "./swagger/swagger.size.paths";
-import dashboardPaths from "./swagger/swagger.dashboard.paths"; // Add new paths
+import dashboardPaths from "./swagger/swagger.dashboard.paths";
+import employeePaths from "./swagger/swagger.employee.paths";
+import filePaths from "./swagger/swagger.file.paths";
+import departmentPaths from "./swagger/swagger.department.paths";
+import filterPaths from "./swagger/swagger.filter.paths"; // Add filter paths
 
 const swaggerDefinition = {
   openapi: "3.0.0",
@@ -31,7 +35,7 @@ const swaggerDefinition = {
       },
     },
     schemas: {
-      // Existing schemas
+      // Existing schemas (auth, color, size)
       LoginRequest: {
         type: "object",
         required: ["login", "password"],
@@ -119,7 +123,7 @@ const swaggerDefinition = {
           message: { type: "string", example: "Operation completed successfully" },
         },
       },
-      // New schemas for dashboard endpoints
+      // Existing dashboard schemas
       DateRangeRequest: {
         type: "object",
         properties: {
@@ -260,9 +264,9 @@ const swaggerDefinition = {
                         },
                       },
                     },
-                    },
                   },
                 },
+              },
               stats: {
                 type: "object",
                 properties: {
@@ -457,13 +461,343 @@ const swaggerDefinition = {
           },
         },
       },
+      // Existing employee schemas
+      CreateEmployeeRequest: {
+        type: "object",
+        required: ["login", "password", "role", "departmentId"],
+        properties: {
+          login: { type: "string", example: "john.doe" },
+          password: { type: "string", example: "password123" },
+          role: { type: "string", enum: ["ADMIN", "USER"], example: "USER" },
+          departmentId: { type: "string", example: "dept123" },
+          name: { type: "string", example: "John Doe", nullable: true },
+        },
+      },
+      CreateEmployeeResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Employee registered successfully" },
+          token: { type: "string", example: "jwt-token" },
+          user: { $ref: "#/components/schemas/EmployeeResponse" },
+        },
+      },
+      UpdateEmployeeRequest: {
+        type: "object",
+        properties: {
+          login: { type: "string", example: "john.doe.updated", nullable: true },
+          password: { type: "string", example: "newpassword123", nullable: true },
+          role: { type: "string", enum: ["ADMIN", "USER"], example: "ADMIN", nullable: true },
+          departmentId: { type: "string", example: "dept456", nullable: true },
+          name: { type: "string", example: "John Doe Updated", nullable: true },
+        },
+      },
+      UpdateEmployeeResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Employee updated successfully" },
+          user: { $ref: "#/components/schemas/EmployeeResponse" },
+        },
+      },
+      DeleteEmployeeResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Employee deleted successfully" },
+          deletedEmployee: {
+            type: "object",
+            properties: {
+              id: { type: "string", example: "emp123" },
+              login: { type: "string", example: "john.doe" },
+              employeeName: { type: "string", example: "John Doe" },
+            },
+          },
+        },
+      },
+      EmployeeResponse: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "emp123" },
+          login: { type: "string", example: "john.doe" },
+          role: { type: "string", example: "USER" },
+          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          employee: {
+            type: "object",
+            properties: {
+              id: { type: "string", example: "emp123" },
+              name: { type: "string", example: "John Doe" },
+              departmentId: { type: "string", example: "dept123" },
+              createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+              updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+              department: {
+                type: "object",
+                properties: {
+                  id: { type: "string", example: "dept123" },
+                  name: { type: "string", example: "Production" },
+                },
+              },
+            },
+          },
+        },
+      },
+      GetEmployeesResponse: {
+        type: "object",
+        properties: {
+          employees: {
+            type: "array",
+            items: { $ref: "#/components/schemas/EmployeeResponse" },
+          },
+          pagination: {
+            type: "object",
+            properties: {
+              currentPage: { type: "integer", example: 1 },
+              totalPages: { type: "integer", example: 5 },
+              totalItems: { type: "integer", example: 50 },
+              itemsPerPage: { type: "integer", example: 10 },
+            },
+          },
+        },
+      },
+      EmployeesByDepartmentResponse: {
+        type: "object",
+        properties: {
+          department: {
+            type: "object",
+            properties: {
+              id: { type: "string", example: "dept123" },
+              name: { type: "string", example: "Production" },
+            },
+          },
+          employees: {
+            type: "array",
+            items: { $ref: "#/components/schemas/EmployeeResponse" },
+          },
+          count: { type: "integer", example: 10 },
+        },
+      },
+      // Existing file schemas
+      FileResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "File uploaded successfully" },
+          file: { $ref: "#/components/schemas/FileDetailsResponse" },
+        },
+      },
+      MultipleFilesResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Files uploaded successfully" },
+          files: {
+            type: "array",
+            items: { $ref: "#/components/schemas/FileDetailsResponse" },
+          },
+        },
+      },
+      FileDetailsResponse: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "file123" },
+          fileName: { type: "string", example: "invoice.pdf" },
+          path: { type: "string", example: "http://localhost:3000/Uploads/file-1234567890.pdf" },
+          mimeType: { type: "string", example: "application/pdf" },
+          size: { type: "integer", example: 1024000 },
+          fileType: { type: "string", enum: ["IMAGE", "DOCUMENT", "OTHER"], example: "DOCUMENT" },
+          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          url: { type: "string", example: "http://localhost:3000/api/files/file123/download" },
+          staticUrl: { type: "string", example: "http://localhost:3000/Uploads/file-1234567890.pdf" },
+        },
+      },
+      GetAllFilesResponse: {
+        type: "object",
+        properties: {
+          files: {
+            type: "array",
+            items: { $ref: "#/components/schemas/FileDetailsResponse" },
+          },
+          pagination: {
+            type: "object",
+            properties: {
+              currentPage: { type: "integer", example: 1 },
+              totalPages: { type: "integer", example: 5 },
+              totalCount: { type: "integer", example: 50 },
+              hasNextPage: { type: "boolean", example: true },
+              hasPrevPage: { type: "boolean", example: false },
+            },
+          },
+        },
+      },
+      // Existing department schemas
+      CreateDepartmentRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: { type: "string", example: "Production" },
+        },
+      },
+      UpdateDepartmentRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: { type: "string", example: "Production Updated" },
+        },
+      },
+      DepartmentResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Department created successfully" },
+          data: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
+        },
+      },
+      DeleteDepartmentResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Department deleted successfully" },
+          data: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
+        },
+      },
+      DepartmentDetailsResponse: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "dept123" },
+          name: { type: "string", example: "Production" },
+          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+        },
+      },
+      GetDepartmentsResponse: {
+        type: "object",
+        properties: {
+          departments: {
+            type: "array",
+            items: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
+          },
+        },
+      },
+      GetNextDepartmentsResponse: {
+        type: "object",
+        properties: {
+          nextDepartments: {
+            type: "array",
+            items: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
+          },
+        },
+      },
+      // New filter schemas
+      ConsolidatedProductPack: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "pack123" },
+          department: { type: "string", example: "pechat" },
+          logicalId: { type: "integer", example: 3 },
+          protsessIsOver: { type: "boolean", example: false },
+          perentId: { type: "string", example: "parent123" },
+          ProductGroup: {
+            type: "object",
+            properties: {
+              id: { type: "string", example: "group123" },
+              name: { type: "string", example: "A1" },
+              colors: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", example: "color123" },
+                    name: { type: "string", example: "Blue" },
+                  },
+                },
+              },
+              sizes: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", example: "size123" },
+                    name: { type: "string", example: "Medium" },
+                  },
+                },
+              },
+            },
+          },
+          totalCount: { type: "integer", example: 100 },
+          sendedCount: { type: "integer", example: 80 },
+          acceptCount: { type: "integer", example: 70 },
+          residueCount: { type: "integer", example: 10 },
+          isSent: { type: "boolean", example: true },
+          status: { type: "string", example: "Yuborilgan" },
+          isOutsourseCompany: { type: "boolean", example: false },
+          outsourseCompanyId: { type: "string", example: null, nullable: true },
+          outsourseName: { type: "string", example: null, nullable: true },
+        },
+      },
+      GroupedProductPack: {
+        type: "object",
+        properties: {
+          perentId: { type: "string", example: "parent123" },
+          data: {
+            type: "array",
+            items: { $ref: "#/components/schemas/ConsolidatedProductPack" },
+          },
+        },
+      },
+      FilteredProductPacksResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          count: { type: "integer", example: 2 },
+          totalCount: { type: "integer", example: 50 },
+          data: {
+            type: "array",
+            items: { $ref: "#/components/schemas/GroupedProductPack" },
+          },
+          pagination: {
+            type: "object",
+            properties: {
+              currentPage: { type: "integer", example: 1 },
+              pageSize: { type: "integer", example: 10 },
+              totalPages: { type: "integer", example: 5 },
+              hasNextPage: { type: "boolean", example: true },
+              hasPrevPage: { type: "boolean", example: false },
+              totalItems: { type: "integer", example: 50 },
+            },
+          },
+          filters: {
+            type: "object",
+            properties: {
+              applied: {
+                type: "object",
+                properties: {
+                  startDate: { type: "string", example: "2025-06-01", nullable: true },
+                  endDate: { type: "string", example: "2025-06-04", nullable: true },
+                  searchName: { type: "string", example: "Shirt", nullable: true },
+                  departmentId: { type: "string", example: "dept123", nullable: true },
+                  logicalId: { type: "integer", example: 3, nullable: true },
+                  status: { type: "string", example: "Yuborilgan", nullable: true },
+                  includePending: { type: "boolean", example: true },
+                  colorId: { type: "string", example: "color123", nullable: true },
+                  sizeId: { type: "string", example: "size123", nullable: true },
+                  isOutsourseCompany: { type: "boolean", example: false, nullable: true },
+                  sortBy: { type: "string", example: "createdAt" },
+                  sortOrder: { type: "string", example: "desc" },
+                  page: { type: "integer", example: 1 },
+                  pageSize: { type: "integer", example: 10 },
+                },
+              },
+              resultsAfterFiltering: { type: "integer", example: 50 },
+            },
+          },
+        },
+      },
     },
   },
   paths: {
     ...authPaths.paths,
     ...colorPaths.paths,
     ...sizePaths.paths,
-    ...dashboardPaths.paths, // Add dashboard paths
+    ...departmentPaths.paths,
+    ...employeePaths.paths,
+    ...filePaths.paths,
+    ...filterPaths.paths, // Add filter paths
+    ...dashboardPaths.paths,
   },
 };
 

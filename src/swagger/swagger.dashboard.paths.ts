@@ -1,6 +1,6 @@
 const dashboardPaths = {
   paths: {
-    "/dashboard": {
+    "/api/dashboard": {
       get: {
         tags: ["Dashboard"],
         summary: "Get dashboard statistics by date range",
@@ -28,7 +28,7 @@ const dashboardPaths = {
             description: "Dashboard statistics retrieved successfully",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/DashboardStatsResponse" },
+                schema: { $ref: "#/components/schema/apis/DashboardStatsResponse" },
               },
             },
           },
@@ -92,7 +92,7 @@ const dashboardPaths = {
         },
       },
     },
-    "/product-pack/{id}": {
+    "/api/product-pack/{id}": {
       get: {
         tags: ["Dashboard"],
         summary: "Get statistics for a specific invoice",
@@ -136,7 +136,7 @@ const dashboardPaths = {
         },
       },
     },
-    "/employee/{employeeId}": {
+    "/api/employee/{employeeId}": {
       get: {
         tags: ["Dashboard"],
         summary: "Get statistics for a specific employee",
@@ -180,7 +180,7 @@ const dashboardPaths = {
         },
       },
     },
-    "/model-counts": {
+    "/api/model-counts": {
       get: {
         tags: ["Dashboard"],
         summary: "Get counts for all models",
