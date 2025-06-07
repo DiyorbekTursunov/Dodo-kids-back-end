@@ -3,8 +3,9 @@ import { createBichuvController } from "../controller/productPack/wareHouse/prod
 import { sendProduct } from "../controller/productPack/sendToDepartment/product_pack.send.controller";
 import { getAllProductPacks } from "../controller/productPack/wareHouse/product_pack.get_all_warehouse.controller";
 import { getSentProductPacks } from "../controller/productPack/sendToDepartment/product_pack.get_all_send_by_db_id.controller";
-import { acceptProductPack } from "@/controller/productPack/acceptanceToDepartment/product_pack.acceptance.controller";
-import { getAcceptedProductPacks } from "@/controller/productPack/acceptanceToDepartment/product_pack.get_all_by_dp_id.controller";
+import { acceptProductPack } from "../controller/productPack/acceptanceToDepartment/product_pack.acceptance.controller";
+import { getAcceptedProductPacks } from "../controller/productPack/acceptanceToDepartment/product_pack.get_all_by_dp_id.controller";
+import { getPendingProductPacks } from "../controller/productPack/get/getPanding.controller";
 
 const router = Router();
 
@@ -16,9 +17,9 @@ router.post(
   }
 );
 
-// Get all product packs for acceptance to department
+// Get all product packs for warehouse
 router.get(
-  "/product_pack/get-all-warehouse",
+  "/get-all-warehouse",
   (req: Request, res: Response, next: NextFunction) => {
     getAllProductPacks(req, res).catch(next);
   }
@@ -40,19 +41,28 @@ router.get(
   }
 );
 
+// Accept product pack
 router.post(
-  "/product_pack/acceptance-to-department",
+  "/acceptance-to-department",
   (req: Request, res: Response, next: NextFunction) => {
     acceptProductPack(req, res).catch(next);
   }
 );
 
+// Get accepted product packs by department
 router.get(
-  "/product_pack/acceptance-to-department",
+  "/acceptance-to-department",
   (req: Request, res: Response, next: NextFunction) => {
     getAcceptedProductPacks(req, res).catch(next);
   }
 );
 
+// Get pending product packs by department
+router.get(
+  "/panding-to-department",
+  (req: Request, res: Response, next: NextFunction) => {
+    getPendingProductPacks(req, res).catch(next);
+  }
+);
 
 export default router;

@@ -40,39 +40,44 @@ export const getPendingProductPacks = async (req: Request, res: Response) => {
           },
         },
       },
-      select: {
-        id: true,
-        departmentId: true,
-        totalCount: true,
+      include: {
+        status: {
+          where: { status: "Pending" },
+          orderBy: { date: "desc" },
+        },
         productGroup: {
-          select: {
-            id: true,
-            name: true,
-            products: {
-              select: {
-                id: true,
-                name: true,
+          include: {
+            productGroupFiles: {
+              include: {
+                file: true,
               },
             },
-          },
-        },
-        status: {
-          where: {
-            status: "Pending",
-          },
-          orderBy: {
-            date: "desc",
-          },
-          select: {
-            id: true,
-            status: true,
-            date: true,
-            employeeId: true,
-            departmentName: true,
-            targetDepartment: true,
-            acceptCount: true,
-            invalidCount: true,
-            invalidReason: true,
+            products: {
+              include: {
+                productSettings: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: {
+                          include: {
+                            sizeGroup: {
+                              include: {
+                                colorSizes: {
+                                  include: {
+                                    size: true,
+                                    color: true,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -94,7 +99,7 @@ export const getPendingProductPacks = async (req: Request, res: Response) => {
 
     if (!productPacks.length) {
       return res.status(404).json({
-        error: "No product packs found for this department with the pagination",
+        error: "No pending product packs found for this department with the pagination",
       });
     }
 
@@ -103,7 +108,7 @@ export const getPendingProductPacks = async (req: Request, res: Response) => {
 
     // Return paginated response
     res.status(200).json({
-      message: "Product packs retrieved successfully",
+      message: "Pending product packs retrieved successfully",
       data: productPacks,
       pagination: {
         currentPage: pageNum,
@@ -113,15 +118,10 @@ export const getPendingProductPacks = async (req: Request, res: Response) => {
       },
     });
   } catch (err) {
-    console.error("Error fetching pending product packs:", {
-      error: err,
-      departmentId,
-      page,
-      pageSize,
-    });
+    console.error("Error fetching pending product packs:", err);
     res.status(500).json({
       error: "Internal server error",
-      details: err instanceof Error ? err.message : "Unknown error",
+      details: (err as Error).message,
     });
   }
 };
