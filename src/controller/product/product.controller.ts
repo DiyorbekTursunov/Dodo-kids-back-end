@@ -5,6 +5,7 @@ import {
   getProducts,
   updateProduct,
   deleteProduct,
+  getAllProductGroups,
 } from "../../service/product/product.service";
 import { z } from "zod";
 import { ProductProtsessStatus, Prisma } from "@prisma/client";
@@ -145,5 +146,24 @@ export async function deleteProductHandler(req: Request, res: Response) {
     } else {
       res.status(400).json({ message: (error as Error).message });
     }
+  }
+}
+
+// Handler to get all ProductGroups
+export async function getAllProductGroupsHandler(req: Request, res: Response) {
+  try {
+    const productGroups = await getAllProductGroups();
+    res.status(200).json({
+      success: true,
+      count: productGroups.length,
+      data: productGroups,
+    });
+  } catch (error) {
+    console.error("Error fetching product groups:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch product groups",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

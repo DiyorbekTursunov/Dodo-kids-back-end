@@ -196,3 +196,33 @@ export async function deleteProduct(id: string): Promise<void> {
     where: { id },
   });
 }
+
+export async function getAllProductGroups(): Promise<ProductGroup[]> {
+  return prisma.productGroup.findMany({
+    include: {
+      products: {
+        include: {
+          productSettings: {
+            include: {
+              sizeGroups: {
+                include: {
+                  colorSizes: {
+                    include: {
+                      color: true,
+                      size: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      productGroupFiles: {
+        include: {
+          file: true,
+        },
+      },
+    },
+  });
+}
