@@ -101,7 +101,6 @@ export async function createProductGroup(
     data: {
       name: data.name,
       status: "Default",
-      isSended: data.isSended,
       productGroupFiles: {
         create: data.files.map((file) => ({
           file: { connect: { id: file.id } },
