@@ -6,17 +6,18 @@ import fs from "fs";
 
 const prisma = new PrismaClient();
 
+// Define a consistent uploads directory
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), "uploads");
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
     }
 
-    console.log("Upload directory:", uploadDir);
-    cb(null, uploadDir);
+    console.log("Upload directory:", UPLOADS_DIR);
+    cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -84,6 +85,11 @@ const getFileType = (mimeType: string): FileType => {
   }
 };
 
+// Helper function to get absolute file path
+const getAbsoluteFilePath = (filename: string): string => {
+  return path.join(UPLOADS_DIR, filename);
+};
+
 // Helper function to generate file URL
 const generateFileUrl = (req: Request, fileId: string): string => {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -119,11 +125,11 @@ export const uploadFile = async (
       }
     }
 
-    const relativePath = `uploads/${req.file.filename}`; // Store relative path
+    // Store just the filename, not the full path
     const file = await prisma.file.create({
       data: {
         fileName: req.file.originalname,
-        path: relativePath, // Store uploads/filename
+        path: req.file.filename, // Store just the filename
         mimeType: req.file.mimetype,
         size: req.file.size,
         fileType: getFileType(req.file.mimetype),
@@ -132,9 +138,9 @@ export const uploadFile = async (
 
     const fileWithUrls = {
       ...file,
-      path: generateStaticFileUrl(req, req.file.filename), // Return static URL
+      path: generateStaticFileUrl(req, req.file.filename),
       url: generateFileUrl(req, file.id),
-      staticUrl: generateStaticFileUrl(req, req.file.filename), // Desired URL format
+      staticUrl: generateStaticFileUrl(req, req.file.filename),
     };
 
     res.status(201).json({
@@ -181,7 +187,7 @@ export const uploadMultipleFiles = async (
         return prisma.file.create({
           data: {
             fileName: file.originalname,
-            path: `uploads/${file.filename}`, // Store relative path
+            path: file.filename, // Store just the filename
             mimeType: file.mimetype,
             size: file.size,
             fileType: getFileType(file.mimetype),
@@ -249,7 +255,7 @@ export const getAllFiles = async (
     const filesWithUrls = files.map((file) => ({
       ...file,
       url: generateFileUrl(req, file.id),
-      staticUrl: generateStaticFileUrl(req, path.basename(file.path)),
+      staticUrl: generateStaticFileUrl(req, file.path), // file.path now contains just the filename
     }));
 
     const totalPages = Math.ceil(totalCount / limitNum);
@@ -291,9 +297,9 @@ export const getFileById = async (
 
     const fileWithUrls = {
       ...file,
-      path: generateStaticFileUrl(req, path.basename(file.path)),
+      path: generateStaticFileUrl(req, file.path), // file.path now contains just the filename
       url: generateFileUrl(req, file.id),
-      staticUrl: generateStaticFileUrl(req, path.basename(file.path)),
+      staticUrl: generateStaticFileUrl(req, file.path),
     };
 
     res.status(200).json(fileWithUrls);
@@ -322,11 +328,14 @@ export const downloadFile = async (
       return;
     }
 
-    const absolutePath = path.join(process.cwd(), file.path);
+    // Use the helper function to get absolute path
+    const absolutePath = getAbsoluteFilePath(file.path);
+
     console.log("Attempting to serve file:", {
       id: file.id,
-      path: file.path,
+      filename: file.path,
       absolutePath,
+      uploadsDir: UPLOADS_DIR,
       exists: fs.existsSync(absolutePath),
     });
 
@@ -334,8 +343,10 @@ export const downloadFile = async (
       console.error("File not found on filesystem:", absolutePath);
       res.status(404).json({
         message: "File not found on server",
+        fileName: file.path,
         filePath: absolutePath,
-        currentDir: process.cwd(),
+        uploadsDir: UPLOADS_DIR,
+        uploadsExists: fs.existsSync(UPLOADS_DIR),
       });
       return;
     }
@@ -376,7 +387,9 @@ export const deleteFile = async (
       return;
     }
 
-    fs.unlink(path.join(process.cwd(), file.path), async (err) => {
+    const absolutePath = getAbsoluteFilePath(file.path);
+
+    fs.unlink(absolutePath, async (err) => {
       if (err) {
         console.error("Error deleting file from filesystem:", err);
       }
@@ -389,6 +402,61 @@ export const deleteFile = async (
     });
   } catch (error) {
     console.error("Error deleting file:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: (error as Error).message,
+    });
+  }
+};
+
+// Additional route handler for serving static files directly
+export const serveStaticFile = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { filename } = req.params;
+    const absolutePath = getAbsoluteFilePath(filename);
+
+    console.log("Serving static file:", {
+      filename,
+      absolutePath,
+      exists: fs.existsSync(absolutePath),
+    });
+
+    if (!fs.existsSync(absolutePath)) {
+      res.status(404).json({
+        message: "File not found",
+        fileName: filename,
+        filePath: absolutePath,
+        uploadsDir: UPLOADS_DIR,
+        uploadsExists: fs.existsSync(UPLOADS_DIR),
+      });
+      return;
+    }
+
+    // Get file stats to determine content type and size
+    const stats = fs.statSync(absolutePath);
+    const ext = path.extname(filename).toLowerCase();
+
+    let contentType = "application/octet-stream";
+    if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
+    else if (ext === ".png") contentType = "image/png";
+    else if (ext === ".gif") contentType = "image/gif";
+    else if (ext === ".webp") contentType = "image/webp";
+    else if (ext === ".pdf") contentType = "application/pdf";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Length", stats.size);
+
+    if (contentType.startsWith("image/")) {
+      res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+    }
+
+    const fileStream = fs.createReadStream(absolutePath);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error("Error serving static file:", error);
     res.status(500).json({
       message: "Internal Server Error",
       error: (error as Error).message,
