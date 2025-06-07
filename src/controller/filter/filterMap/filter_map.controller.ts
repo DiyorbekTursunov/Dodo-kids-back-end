@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
+// Initialize Prisma client
 const prisma = new PrismaClient();
 
+// Department order mapping
 const departmentOrderMap: Record<string, { logicalId: number; allowedNext: string[] }> = {
   bichuv: { logicalId: 1, allowedNext: ["tasnif"] },
   tasnif: { logicalId: 2, allowedNext: ["pechat", "pechatusluga"] },
@@ -19,6 +21,7 @@ const departmentOrderMap: Record<string, { logicalId: number; allowedNext: strin
   ombor: { logicalId: 10, allowedNext: [] },
 };
 
+// Normalize department names
 const normalizeDepartment = (name: string): string => {
   const map: Record<string, string> = {
     autsorspechat: "pechat",
@@ -34,16 +37,6 @@ const normalizeDepartment = (name: string): string => {
 interface CaseTrackerFilterParams {
   startDate?: string;
   endDate?: string;
-  searchName?: string;
-  departmentId?: string;
-  logicalId?: number;
-  status?: string;
-  includePending?: boolean;
-  colorId?: string;
-  sizeId?: string;
-  isOutsourseCompany?: boolean;
-  sortBy?: "createdAt" | "totalCount";
-  sortOrder?: "asc" | "desc";
   page?: number;
   pageSize?: number;
 }
@@ -59,7 +52,7 @@ interface RawProductPack {
     id: string;
     name: string;
     products: {
-      productSetting: {
+      productSettings: {
         sizeGroups: {
           colorSizes: {
             color: { id: string; name: string };
@@ -78,14 +71,14 @@ interface RawProductPack {
     sendedCount: number;
     invalidCount: number;
     residueCount: number;
-    invalidReason: string;
+    invalidReason: string | null;
     isOutsourseCompany: boolean;
     outsourseCompanyId: string | null;
     outsourseName: string | null;
   }[];
 }
 
-// Formatted data interface
+// Formatted data interface (excludes productSettings)
 interface FormattedProductPack {
   id: string;
   department: string;
@@ -110,7 +103,7 @@ interface FormattedProductPack {
   outsourseName: string | null;
 }
 
-// Consolidated data interface
+// Consolidated data interface (excludes productSettings)
 interface ConsolidatedProductPack {
   id: string;
   department: string;
@@ -134,24 +127,14 @@ interface ConsolidatedProductPack {
   outsourseName: string | null;
 }
 
-// Extract and validate filter parameters
-function extractCaseTrackerFilterParams(req: Request): CaseTrackerFilterParams {
+// Extract filter parameters
+function extractFilterParams(req: Request): CaseTrackerFilterParams {
   const safeGetValue = (key: string): string | undefined =>
-    req.query[key] as string | undefined || (req.body && req.body[key] ? String(req.body[key]) : undefined);
+    req.query[key] as string | undefined;
 
   return {
     startDate: safeGetValue("startDate"),
     endDate: safeGetValue("endDate"),
-    searchName: safeGetValue("searchName") || safeGetValue("search") || safeGetValue("name") || safeGetValue("productName"),
-    departmentId: safeGetValue("departmentId"),
-    logicalId: safeGetValue("logicalId") ? parseInt(safeGetValue("logicalId")!) : undefined,
-    status: safeGetValue("status"),
-    includePending: safeGetValue("includePending") !== "false" && safeGetValue("includePending") !== "0",
-    colorId: safeGetValue("colorId"),
-    sizeId: safeGetValue("sizeId"),
-    isOutsourseCompany: safeGetValue("isOutsourseCompany") !== undefined ? safeGetValue("isOutsourseCompany") === "true" : undefined,
-    sortBy: (safeGetValue("sortBy") as "createdAt" | "totalCount") || "createdAt",
-    sortOrder: (safeGetValue("sortOrder") as "asc" | "desc") || "desc",
     page: safeGetValue("page") ? parseInt(safeGetValue("page")!) : 1,
     pageSize: safeGetValue("pageSize") ? parseInt(safeGetValue("pageSize")!) : 10,
   };
@@ -179,70 +162,6 @@ function buildQueryFilter(filters: CaseTrackerFilterParams): any {
     }
   }
 
-  // Department filter
-  if (filters.departmentId) {
-    queryFilter.departmentId = filters.departmentId;
-  }
-
-  // Logical ID filter
-  if (filters.logicalId) {
-    const deptNames = Object.entries(departmentOrderMap)
-      .filter(([_, config]) => config.logicalId === filters.logicalId)
-      .map(([name]) => name);
-    if (deptNames.length === 0) {
-      throw new Error(`No departments found for logicalId: ${filters.logicalId}`);
-    }
-    queryFilter.department = { in: deptNames, mode: "insensitive" };
-  }
-
-  // Color and size filtering
-  if (filters.colorId || filters.sizeId) {
-    queryFilter.productGroup = {
-      products: {
-        some: {
-          productSetting: {
-            some: {
-              sizeGroups: {
-                some: {
-                  colorSizes: {
-                    some: {
-                      ...(filters.colorId ? { colorId: filters.colorId } : {}),
-                      ...(filters.sizeId ? { sizeId: filters.sizeId } : {}),
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-  }
-
-  // Name search filter
-  if (filters.searchName?.trim()) {
-    const searchTerm = filters.searchName.trim();
-    queryFilter.OR = [
-      { number: { contains: searchTerm, mode: "insensitive" } },
-      { productGroup: { name: { contains: searchTerm, mode: "insensitive" } } },
-    ];
-  }
-
-  // Status filter
-  if (filters.status && filters.includePending) {
-    queryFilter.status = { some: { status: filters.status } };
-  } else if (!filters.includePending) {
-    queryFilter.status = { some: { status: { not: "Pending" } } };
-  }
-
-  // Outsourcing filter
-  if (filters.isOutsourseCompany !== undefined) {
-    queryFilter.status = {
-      ...queryFilter.status,
-      some: { isOutsourseCompany: filters.isOutsourseCompany },
-    };
-  }
-
   return queryFilter;
 }
 
@@ -268,7 +187,7 @@ function formatInvoiceData(pack: RawProductPack): FormattedProductPack {
   const sizes: { id: string; name: string }[] = [];
 
   pack.productGroup?.products?.forEach((product) => {
-    product.productSetting?.forEach((ps) => {
+    product.productSettings?.forEach((ps) => {
       ps.sizeGroups?.forEach((sg) => {
         sg.colorSizes?.forEach((cs) => {
           if (cs.color && !colorsSet.has(cs.color.id)) {
@@ -359,9 +278,10 @@ function consolidateAndGroupPacks(formattedPacks: FormattedProductPack[]): { per
   }));
 }
 
-export const getCaseTrackerStatus = async (req: Request, res: Response) => {
+// Get consolidated case tracker status by date range
+export const getConsolidatedCaseTrackerStatus = async (req: Request, res: Response) => {
   try {
-    const filters = extractCaseTrackerFilterParams(req);
+    const filters = extractFilterParams(req);
     const queryFilter = buildQueryFilter(filters);
 
     // Calculate pagination
@@ -383,7 +303,7 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
             name: true,
             products: {
               select: {
-                productSetting: {
+                productSettings: {
                   select: {
                     sizeGroups: {
                       select: {
@@ -420,7 +340,7 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
           },
         },
       },
-      orderBy: { [filters.sortBy!]: filters.sortOrder! },
+      orderBy: { createdAt: "desc" },
       skip,
       take: filters.pageSize!,
     });
@@ -449,16 +369,12 @@ export const getCaseTrackerStatus = async (req: Request, res: Response) => {
         hasPrevPage,
         totalItems: totalCount,
       },
-      filters: {
-        applied: filters,
-        resultsAfterFiltering: formattedPacks.length,
-      },
     });
   } catch (error) {
-    console.error("Error fetching case tracker status:", error);
+    console.error("Error fetching consolidated case tracker status:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch case tracker status",
+      message: "Failed to fetch consolidated case tracker status",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

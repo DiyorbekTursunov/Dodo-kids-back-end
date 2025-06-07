@@ -20,7 +20,7 @@ export const getProductPackById = async (req: Request, res: Response) => {
             },
             products: {
               include: {
-                productSetting: {
+                productSettings: {
                   include: {
                     sizeGroups: {
                       include: {

@@ -1,4 +1,3 @@
-// src/controllers/productPack.controller.ts
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
@@ -12,7 +11,7 @@ export const getProductPacksByEmployeeId = async (
   const { employeeId } = req.params;
 
   try {
-    // First verify if the employee exists
+    // Verify if the employee exists
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
     });
@@ -32,22 +31,31 @@ export const getProductPacksByEmployeeId = async (
       distinct: ["invoiceId"], // Get unique product pack IDs
     });
 
-    // Get the unique product pack IDs
-    const productPackIds = productProcesses.map(
-      (process) => process.invoiceId
-    );
+    // Get the unique product pack IDs, filtering out null values
+    const productPackIds = productProcesses
+      .map((process) => process.invoiceId)
+      .filter((id): id is string => id !== null); // Ensure only non-null strings
 
-    // Now fetch all those product packs with their details
+    // If no valid product pack IDs, return empty response
+    if (productPackIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+      });
+    }
+
+    // Fetch all product packs with their details
     const productPacks = await prisma.invoice.findMany({
       where: {
         id: {
-          in: productPackIds,
+          in: productPackIds, // Now typed as string[]
         },
       },
       include: {
         productGroup: {
           include: {
-            products: true
+            products: true,
           },
         },
         status: {
@@ -63,7 +71,7 @@ export const getProductPacksByEmployeeId = async (
     const formattedPacks = productPacks.map((pack) => ({
       ...pack,
       latestStatus: pack.status[0] || null,
-      status: undefined,
+      status: undefined, // Remove the status array from response
     }));
 
     return res.status(200).json({
