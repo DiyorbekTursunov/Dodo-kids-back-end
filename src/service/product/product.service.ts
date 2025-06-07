@@ -1,7 +1,12 @@
-import { PrismaClient, Product, ProductProtsessStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  Product,
+  ProductGroup,
+  ProductProtsessStatus,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
-
+// Input interfaces
 interface ColorSizeInput {
   colorId: string;
   quantity: number;
@@ -20,77 +25,114 @@ interface ProductSettingInput {
   status: ProductProtsessStatus;
   sizeGroups: SizeGroupInput[];
 }
-
-interface CreateProductInput {
-  name: string;
-  allTotalCount: number;
-  status: ProductProtsessStatus;
-  productGroupId: string;
-  productSettings: ProductSettingInput[];
-}
-
 interface UpdateProductInput {
   name?: string;
   allTotalCount?: number;
   status?: ProductProtsessStatus;
 }
 
-export async function createProduct(data: CreateProductInput): Promise<Product> {
-  const productGroup = await prisma.productGroup.findUnique({
-    where: { id: data.productGroupId },
-  });
-  if (!productGroup) {
-    throw new Error('Product group not found');
-  }
+interface ProductInput {
+  name: string;
+  allTotalCount: number;
+  status: ProductProtsessStatus;
+  productSettings: ProductSettingInput[];
+}
 
+interface FileInput {
+  id: string;
+}
+
+interface CreateProductGroupInput {
+  name: string;
+  status: ProductProtsessStatus;
+  isSended: boolean;
+  files: FileInput[];
+  products: ProductInput[];
+}
+
+// Function to create a ProductGroup with nested Products and associated Files
+export async function createProductGroup(
+  data: CreateProductGroupInput
+): Promise<ProductGroup> {
+  // Collect all sizeIds and colorIds from the input
   const sizeIds = new Set<string>();
   const colorIds = new Set<string>();
-  for (const setting of data.productSettings) {
-    for (const sizeGroup of setting.sizeGroups) {
-      sizeIds.add(sizeGroup.sizeId);
-      for (const colorSize of sizeGroup.colorSizes) {
-        colorIds.add(colorSize.colorId);
+  const fileIds = new Set<string>();
+
+  for (const product of data.products) {
+    for (const setting of product.productSettings) {
+      for (const sizeGroup of setting.sizeGroups) {
+        sizeIds.add(sizeGroup.sizeId);
+        for (const colorSize of sizeGroup.colorSizes) {
+          colorIds.add(colorSize.colorId);
+        }
       }
     }
   }
 
+  for (const file of data.files) {
+    fileIds.add(file.id);
+  }
+
+  // Validate sizeIds exist in the database
   const existingSizes = await prisma.size.findMany({
     where: { id: { in: Array.from(sizeIds) } },
   });
   if (existingSizes.length !== sizeIds.size) {
-    throw new Error('One or more sizeIds do not exist');
+    throw new Error("One or more sizeIds do not exist");
   }
 
+  // Validate colorIds exist in the database
   const existingColors = await prisma.color.findMany({
     where: { id: { in: Array.from(colorIds) } },
   });
   if (existingColors.length !== colorIds.size) {
-    throw new Error('One or more colorIds do not exist');
+    throw new Error("One or more colorIds do not exist");
   }
 
-  return prisma.product.create({
+  // Validate fileIds exist in the database
+  const existingFiles = await prisma.file.findMany({
+    where: { id: { in: Array.from(fileIds) } },
+  });
+  if (existingFiles.length !== fileIds.size) {
+    throw new Error("One or more fileIds do not exist");
+  }
+
+  // Create the ProductGroup with nested Products and associated Files
+  return prisma.productGroup.create({
     data: {
       name: data.name,
-      allTotalCount: data.allTotalCount,
       status: data.status,
-      productGroup: {
-        connect: { id: data.productGroupId },
+      isSended: data.isSended,
+      productGroupFiles: {
+        create: data.files.map((file) => ({
+          file: { connect: { id: file.id } },
+          status: "Default", // Default status for ProductGroupFile
+          isSended: false, // Default value
+        })),
       },
-      productSettings: {
-        create: data.productSettings.map(setting => ({
-          totalCount: setting.totalCount,
-          status: setting.status,
-          sizeGroups: {
-            create: setting.sizeGroups.map(sizeGroup => ({
-              size: { connect: { id: sizeGroup.sizeId } },
-              quantity: sizeGroup.quantity,
-              status: sizeGroup.status,
-              colorSizes: {
-                create: sizeGroup.colorSizes.map(colorSize => ({
-                  color: { connect: { id: colorSize.colorId } },
-                  quantity: colorSize.quantity,
-                  status: colorSize.status,
+      products: {
+        create: data.products.map((product) => ({
+          name: product.name,
+          allTotalCount: product.allTotalCount,
+          status: product.status,
+          productSettings: {
+            create: product.productSettings.map((setting) => ({
+              totalCount: setting.totalCount,
+              status: setting.status,
+              sizeGroups: {
+                create: setting.sizeGroups.map((sizeGroup) => ({
                   size: { connect: { id: sizeGroup.sizeId } },
+                  quantity: sizeGroup.quantity,
+                  status: sizeGroup.status,
+                  colorSizes: {
+                    create: sizeGroup.colorSizes.map((colorSize) => ({
+                      color: { connect: { id: colorSize.colorId } },
+                      quantity: colorSize.quantity,
+                      status: colorSize.status,
+                      size: { connect: { id: sizeGroup.sizeId } },
+                    })),
+                  },
                 })),
               },
             })),
@@ -99,12 +141,19 @@ export async function createProduct(data: CreateProductInput): Promise<Product> 
       },
     },
     include: {
-      productSettings: {
+      products: {
         include: {
-          sizeGroups: {
-            include: { colorSizes: true },
+          productSettings: {
+            include: {
+              sizeGroups: {
+                include: { colorSizes: true },
+              },
+            },
           },
         },
+      },
+      productGroupFiles: {
+        include: { file: true },
       },
     },
   });
@@ -131,7 +180,10 @@ export async function getProducts(): Promise<Product[]> {
   });
 }
 
-export async function updateProduct(id: string, data: UpdateProductInput): Promise<Product> {
+export async function updateProduct(
+  id: string,
+  data: UpdateProductInput
+): Promise<Product> {
   return prisma.product.update({
     where: { id },
     data,
