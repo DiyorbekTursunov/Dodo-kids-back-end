@@ -36,15 +36,18 @@ const normalizeDepartment = (name: string): string => {
   return map[name.toLowerCase()] || name.toLowerCase();
 };
 
+interface ColorSizeData {
+  colorId: string;
+  sizeId: string;
+  sendedCount: number;
+  invalidCount?: number;
+}
+
 interface ProductData {
   productId: string;
   sendedCount: number;
   invalidCount?: number;
-  colorSizes: {
-    colorSizeId: string;
-    sendedCount: number;
-    invalidCount?: number;
-  }[];
+  colorSizes: ColorSizeData[];
 }
 
 interface RequestBody {
@@ -97,7 +100,7 @@ const transformInvoice = (invoice: any) => {
           residueCount: process.residueCount,
           status: process.status,
         })),
-        sizes: product.productSetting.flatMap((setting: any) =>
+        sizes: product.productSettings.flatMap((setting: any) =>
           setting.sizeGroups.map((sizeGroup: any) => ({
             id: sizeGroup.id,
             size: { id: sizeGroup.size?.id, name: sizeGroup.size?.name },
@@ -158,7 +161,7 @@ const transformInvoice = (invoice: any) => {
   };
 };
 
-export const sendToDepartment = async (
+export const sendProduct = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
@@ -188,7 +191,7 @@ export const sendToDepartment = async (
             products: {
               include: {
                 processes: true,
-                productSetting: {
+                productSettings: {
                   include: {
                     sizeGroups: {
                       include: {
@@ -203,6 +206,7 @@ export const sendToDepartment = async (
             },
             productGroupFiles: { include: { file: true } },
             invoices: { include: { status: true } },
+            processes: true,
           },
         },
       },
@@ -233,8 +237,7 @@ export const sendToDepartment = async (
     // Validate department flow
     const sourceDeptName = normalizeDepartment(sourceInvoice.department);
     const targetDeptName = normalizeDepartment(targetDepartment.name);
-    const allowedNextDepts = departmentFlowMap[sourceDeptName] || [];
-    if (!allowedNextDepts.includes(targetDeptName)) {
+    if (!departmentFlowMap[sourceDeptName]?.includes(targetDeptName)) {
       return res.status(400).json({
         error: `Invalid department transition: ${sourceInvoice.department} cannot send to ${targetDepartment.name}`,
       });
@@ -262,19 +265,18 @@ export const sendToDepartment = async (
             departmentId: actualTargetDepartment.id,
             protsessIsOver: false,
           },
-          include: { ProductProcess: true, status: true },
+          include: { ProductProcess: true, status: true, productGroup: true },
         });
 
         let targetInvoice = existingInvoice;
         let totalSentCount = 0;
         let totalInvalidCount = 0;
 
-        // Create new invoice if none exists
         if (!targetInvoice) {
           targetInvoice = await tx.invoice.create({
             data: {
               perentId: sourceInvoice.perentId,
-              number: sourceInvoice.number + 1,
+              number: await getNextInvoiceNumber(tx),
               departmentId: actualTargetDepartment.id,
               department: actualTargetDepartment.name,
               productGroupId: sourceInvoice.productGroupId,
@@ -296,12 +298,17 @@ export const sendToDepartment = async (
                   date: new Date(),
                   isOutsourseCompany: !!outsourseCompany,
                   outsourseCompanyId: outsourseCompany?.id,
-                  outsourseName: outsourseCompany?.name,
+                  outsourseName: outsourseCompany?.name ?? null,
+                  totalCount: 0,
                 },
               },
             },
-            include: { ProductProcess: true, status: true },
+            include: { ProductProcess: true, status: true, productGroup: true },
           });
+        }
+
+        if (!targetInvoice) {
+          throw new Error("Failed to create or find target invoice");
         }
 
         for (const productData of products) {
@@ -329,11 +336,11 @@ export const sendToDepartment = async (
 
           // Calculate available product count
           const productSentCount = product.processes.reduce(
-            (sum, p) => sum + p.sendedCount,
+            (sum: number, p: any) => sum + p.sendedCount,
             0
           );
           const productInvalidCount = product.processes.reduce(
-            (sum, p) => sum + p.invalidCount,
+            (sum: number, p: any) => sum + p.invalidCount,
             0
           );
           const availableProductCount =
@@ -351,35 +358,33 @@ export const sendToDepartment = async (
           const acceptCount = sendedCount;
 
           // Update or create ProductProcess
-          const existingProductProcess = targetInvoice.ProductProcess?.find(
+          let productProcess = targetInvoice.ProductProcess?.find(
             (pp) => pp.productId === productId
           );
 
-          let productProcess;
-          if (existingProductProcess) {
+          if (productProcess) {
             productProcess = await tx.productProcess.update({
-              where: { id: existingProductProcess.id },
+              where: { id: productProcess.id },
               data: {
-                sendedCount: existingProductProcess.sendedCount + sendedCount,
-                invalidCount:
-                  existingProductProcess.invalidCount + invalidCount,
+                sendedCount: productProcess.sendedCount + sendedCount,
+                invalidCount: productProcess.invalidCount + invalidCount,
                 invalidReason,
                 residueCount:
                   availableProductCount -
-                  (existingProductProcess.sendedCount + sendedCount) -
-                  (existingProductProcess.invalidCount + invalidCount),
+                  (productProcess.sendedCount + sendedCount) -
+                  (productProcess.invalidCount + invalidCount),
                 totalCount: availableProductCount,
-                acceptCount: existingProductProcess.acceptCount + acceptCount,
+                acceptCount: productProcess.acceptCount + acceptCount,
                 protsessIsOver:
-                  existingProductProcess.sendedCount +
+                  productProcess.sendedCount +
                     sendedCount +
-                    existingProductProcess.invalidCount +
+                    productProcess.invalidCount +
                     invalidCount ===
                   availableProductCount,
                 status:
-                  existingProductProcess.sendedCount +
+                  productProcess.sendedCount +
                     sendedCount +
-                    existingProductProcess.invalidCount +
+                    productProcess.invalidCount +
                     invalidCount ===
                   availableProductCount
                     ? "Yuborilgan"
@@ -402,8 +407,7 @@ export const sendToDepartment = async (
                 sendedCount,
                 invalidCount,
                 invalidReason,
-                residueCount:
-                  availableProductCount - sendedCount - invalidCount,
+                residueCount: availableProductCount - sendedCount - invalidCount,
                 totalCount: availableProductCount,
                 productId,
                 invoiceId: targetInvoice.id,
@@ -416,11 +420,11 @@ export const sendToDepartment = async (
 
           // Validate color size totals
           const colorSizeTotalSent = colorSizes.reduce(
-            (sum, cs) => sum + cs.sendedCount,
+            (sum: number, cs: ColorSizeData) => sum + cs.sendedCount,
             0
           );
           const colorSizeTotalInvalid = colorSizes.reduce(
-            (sum, cs) => sum + (cs.invalidCount ?? 0),
+            (sum: number, cs: ColorSizeData) => sum + (cs.invalidCount ?? 0),
             0
           );
           if (
@@ -434,26 +438,29 @@ export const sendToDepartment = async (
 
           for (const colorSizeData of colorSizes) {
             const {
-              colorSizeId,
+              colorId,
+              sizeId,
               sendedCount: csSendedCount,
               invalidCount: csInvalidCount = 0,
             } = colorSizeData;
 
             if (
-              !colorSizeId ||
+              !colorId ||
+              !sizeId ||
               !Number.isInteger(csSendedCount) ||
               !Number.isInteger(csInvalidCount)
             ) {
               throw new Error(
-                `Invalid color size data for colorSizeId: ${colorSizeId}`
+                `Invalid color size data for colorId: ${colorId}, sizeId: ${sizeId}`
               );
             }
 
+            // Find ProductColorSize by colorId and sizeId
             let colorSize;
-            for (const setting of product.productSetting) {
+            for (const setting of product.productSettings) {
               for (const sizeGroup of setting.sizeGroups) {
                 colorSize = sizeGroup.colorSizes.find(
-                  (cs) => cs.id === colorSizeId
+                  (cs: any) => cs.colorId === colorId && cs.sizeId === sizeId
                 );
                 if (colorSize) break;
               }
@@ -461,15 +468,19 @@ export const sendToDepartment = async (
             }
 
             if (!colorSize) {
-              throw new Error(`ColorSize ${colorSizeId} not found`);
+              throw new Error(
+                `ColorSize with colorId: ${colorId} and sizeId: ${sizeId} not found`
+              );
             }
 
             const colorSizeSentCount =
-              colorSize.processes?.reduce((sum, p) => sum + p.sendedCount, 0) ||
-              0;
+              colorSize.processes?.reduce(
+                (sum: number, p: any) => sum + p.sendedCount,
+                0
+              ) || 0;
             const colorSizeInvalidCount =
               colorSize.processes?.reduce(
-                (sum, p) => sum + p.invalidCount,
+                (sum: number, p: any) => sum + p.invalidCount,
                 0
               ) || 0;
             const availableColorSizeCount =
@@ -479,7 +490,7 @@ export const sendToDepartment = async (
               throw new Error(
                 `Cannot send ${
                   csSendedCount + csInvalidCount
-                } items for color size ${colorSizeId}; only ${availableColorSizeCount} available`
+                } items for color size (colorId: ${colorId}, sizeId: ${sizeId}); only ${availableColorSizeCount} available`
               );
             }
 
@@ -502,7 +513,7 @@ export const sendToDepartment = async (
                 invalidReason,
                 residueCount:
                   availableColorSizeCount - csSendedCount - csInvalidCount,
-                colorSizeId,
+                colorSizeId: colorSize.id,
                 productProcessId: productProcess.id,
               },
             });
@@ -510,12 +521,54 @@ export const sendToDepartment = async (
             const isFullySent =
               csSendedCount + csInvalidCount === availableColorSizeCount;
             await tx.productColorSize.update({
-              where: { id: colorSizeId },
+              where: { id: colorSize.id },
               data: {
                 isSended: isFullySent,
-                status: isFullySent ? "Yuborilgan" : "Pending",
+                status: isFullySent ? "Yuborilgan" : "ToliqYuborilmagan",
               },
             });
+
+            // Update SizeGroup status
+            const sizeGroup = product.productSettings
+              .flatMap((setting: any) => setting.sizeGroups)
+              .find((sg: any) => sg.id === colorSize.sizeGroupId);
+            if (sizeGroup) {
+              const sizeGroupColorSizes = await tx.productColorSize.findMany({
+                where: { sizeGroupId: sizeGroup.id },
+                select: { isSended: true },
+              });
+              const sizeGroupFullySent = sizeGroupColorSizes.every(
+                (cs: any) => cs.isSended
+              );
+              await tx.sizeGroup.update({
+                where: { id: sizeGroup.id },
+                data: {
+                  isSended: sizeGroupFullySent,
+                  status: sizeGroupFullySent ? "Yuborilgan" : "ToliqYuborilmagan",
+                },
+              });
+            }
+
+            // Update ProductSetting status
+            const productSetting = product.productSettings.find((ps: any) =>
+              ps.sizeGroups.some((sg: any) => sg.id === colorSize.sizeGroupId)
+            );
+            if (productSetting) {
+              const productSettingSizeGroups = await tx.sizeGroup.findMany({
+                where: { productSettingId: productSetting.id },
+                select: { isSended: true },
+              });
+              const productSettingFullySent = productSettingSizeGroups.every(
+                (sg: any) => sg.isSended
+              );
+              await tx.productSetting.update({
+                where: { id: productSetting.id },
+                data: {
+                  isSended: productSettingFullySent,
+                  status: productSettingFullySent ? "Yuborilgan" : "ToliqYuborilmagan",
+                },
+              });
+            }
           }
 
           const remainingProductCount =
@@ -524,19 +577,35 @@ export const sendToDepartment = async (
             where: { id: productId },
             data: {
               isSended: remainingProductCount === 0,
-              status: remainingProductCount === 0 ? "Yuborilgan" : "Pending",
+              status: remainingProductCount === 0 ? "Yuborilgan" : "ToliqYuborilmagan",
             },
           });
         }
 
+        // Update ProductGroup status
+        const productGroupProducts = await tx.product.findMany({
+          where: { productGroupId: sourceInvoice.productGroupId },
+          select: { isSended: true },
+        });
+        const productGroupFullySent = productGroupProducts.every(
+          (p: any) => p.isSended
+        );
+        await tx.productGroup.update({
+          where: { id: sourceInvoice.productGroupId },
+          data: {
+            isSended: productGroupFullySent,
+            status: productGroupFullySent ? "Yuborilgan" : "ToliqYuborilmagan",
+          },
+        });
+
         // Update source invoice status
         const totalInvoiceCount = sourceInvoice.totalCount;
         const invoiceSentCount = sourceInvoice.status.reduce(
-          (sum, s) => sum + s.sendedCount,
+          (sum: number, s: any) => sum + s.sendedCount,
           0
         );
         const invoiceInvalidCount = sourceInvoice.status.reduce(
-          (sum, s) => sum + s.invalidCount,
+          (sum: number, s: any) => sum + s.invalidCount,
           0
         );
         const newInvoiceSentCount = invoiceSentCount + totalSentCount;
@@ -547,8 +616,7 @@ export const sendToDepartment = async (
         await tx.productProtsess.create({
           data: {
             protsessIsOver:
-              newInvoiceSentCount + newInvoiceInvalidCount ===
-              totalInvoiceCount,
+              newInvoiceSentCount + newInvoiceInvalidCount === totalInvoiceCount,
             status:
               newInvoiceSentCount + newInvoiceInvalidCount === totalInvoiceCount
                 ? "Yuborilgan"
@@ -565,13 +633,13 @@ export const sendToDepartment = async (
             date: new Date(),
             isOutsourseCompany: !!outsourseCompany,
             outsourseCompanyId: outsourseCompany?.id,
-            outsourseName: outsourseCompany?.name,
+            outsourseName: outsourseCompany?.name ?? null,
+            totalCount: totalInvoiceCount,
           },
         });
 
         if (
-          newInvoiceSentCount + newInvoiceInvalidCount ===
-          totalInvoiceCount
+          newInvoiceSentCount + newInvoiceInvalidCount === totalInvoiceCount
         ) {
           await tx.invoice.update({
             where: { id: sourceInvoice.id },
@@ -620,7 +688,7 @@ export const sendToDepartment = async (
                     updatedAt: true,
                   },
                 },
-                productSetting: {
+                productSettings: {
                   include: {
                     sizeGroups: {
                       include: {
@@ -652,6 +720,7 @@ export const sendToDepartment = async (
                 },
               },
             },
+            processes: true,
           },
         },
       },
@@ -675,5 +744,22 @@ export const sendToDepartment = async (
       error: "Internal server error",
       details: err instanceof Error ? err.message : "Unknown error",
     });
+
+
+  } finally {
+    await prisma.$disconnect();
   }
 };
+
+/**
+ * Retrieves the next available invoice number.
+ * @param tx - Prisma transaction client
+ * @returns Promise<number> - The next invoice number
+ */
+async function getNextInvoiceNumber(tx: Prisma.TransactionClient): Promise<number> {
+  const lastInvoice = await tx.invoice.findFirst({
+    orderBy: { number: "desc" },
+    select: { number: true },
+  });
+  return (lastInvoice?.number || 0) + 1;
+}

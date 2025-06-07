@@ -4,7 +4,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Department order map with logical IDs
-const departmentOrderMap: Record<string, { logicalId: number; allowedNext: string[] }> = {
+const departmentOrderMap: Record<
+  string,
+  { logicalId: number; allowedNext: string[] }
+> = {
   bichuv: { logicalId: 1, allowedNext: ["tasnif"] },
   tasnif: { logicalId: 2, allowedNext: ["pechat", "pechatusluga"] },
   pechat: { logicalId: 3, allowedNext: ["vishivka", "vishivkausluga"] },
@@ -36,10 +39,10 @@ type ProductPackFilterParams = {
   colorId?: string;
   sizeId?: string;
   departmentId?: string;
-  logicalId?: number; // Added for logical ID filtering
+  logicalId?: number;
   productName?: string;
   status?: string;
-  isOutsourseCompany?: boolean; // Added for outsourcing filter
+  isOutsourseCompany?: boolean;
   sortBy: "createdAt" | "totalCount";
   sortOrder: "asc" | "desc";
   startDate?: string;
@@ -54,7 +57,7 @@ interface ProcessedInvoice {
   number: number;
   departmentId: string;
   department: string;
-  logicalId: number; // Added logical ID
+  logicalId: number;
   totalCount: number;
   protsessIsOver: boolean;
   createdAt: Date;
@@ -66,7 +69,7 @@ interface ProcessedInvoice {
       id: string;
       name: string;
       allTotalCount: number;
-      productSetting: {
+      productSettings: {
         id: string;
         totalCount: number;
         sizeGroups: {
@@ -93,13 +96,128 @@ interface ProcessedInvoice {
     sendedCount: number;
     invalidCount: number;
     residueCount: number;
-    invalidReason: string;
-    isOutsourseCompany: boolean; // Added outsourcing fields
+    invalidReason: string | null; // Change this to allow null
+    isOutsourseCompany: boolean;
     outsourseCompanyId: string | null;
     outsourseName: string | null;
   }[];
   processedStatus: string;
 }
+
+export const getSentProductPacks = async (req: Request, res: Response) => {
+  const { departmentId, page = "1", pageSize = "10" } = req.query;
+
+  if (!departmentId) {
+    return res.status(400).json({ error: "Department ID is required" });
+  }
+
+  const pageNum = parseInt(page as string, 10);
+  const size = parseInt(pageSize as string, 10);
+
+  if (isNaN(pageNum) || isNaN(size) || pageNum < 1 || size < 1) {
+    return res.status(400).json({ error: "Invalid page or pageSize" });
+  }
+
+  try {
+    // Calculate skip value for pagination
+    const skip = (pageNum - 1) * size;
+
+    // Fetch paginated product packs
+    const productPacks = await prisma.invoice.findMany({
+      where: {
+        departmentId: String(departmentId),
+        status: {
+          some: {
+            status: {
+              in: ["Yuborilgan", "To'liq yuborilmagan"],
+            },
+          },
+        },
+      },
+      include: {
+        status: true,
+        productGroup: {
+          include: {
+            productGroupFiles: {
+              include: {
+                file: true,
+              },
+            },
+            products: {
+              include: {
+                productSettings: {
+                  include: {
+                    sizeGroups: {
+                      include: {
+                        colorSizes: {
+                          include: {
+                            sizeGroup: {
+                              include: {
+                                colorSizes: {
+                                  include: {
+                                    size: true,
+                                    color: true,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      skip,
+      take: size,
+    });
+
+    // Get total count for pagination metadata
+    const totalCount = await prisma.invoice.count({
+      where: {
+        departmentId: String(departmentId),
+        status: {
+          some: {
+            status: {
+              in: ["Yuborilgan", "To'liq yuborilmagan"],
+            },
+          },
+        },
+      },
+    });
+
+    if (!productPacks.length) {
+      return res.status(404).json({
+        error: "No product packs found for this department with the pagination",
+      });
+    }
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / size);
+
+    // Return paginated response
+    res.status(200).json({
+      message: "Product packs retrieved successfully",
+      data: productPacks,
+      pagination: {
+        currentPage: pageNum,
+        pageSize: size,
+        totalCount,
+        totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching product packs:", err);
+    res.status(500).json({
+      error: "Internal server error",
+      details: (err as Error).message,
+    });
+  }
+};
 
 export const getFilteredProductPacks = async (req: Request, res: Response) => {
   try {
@@ -118,7 +236,9 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
         .filter(([_, config]) => config.logicalId === filters.logicalId)
         .map(([name]) => name);
       if (deptNames.length === 0) {
-        throw new Error(`No departments found for logicalId: ${filters.logicalId}`);
+        throw new Error(
+          `No departments found for logicalId: ${filters.logicalId}`
+        );
       }
       where.department = { in: deptNames, mode: "insensitive" };
     }
@@ -141,13 +261,15 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
         ...where.productGroup,
         products: {
           some: {
-            productSetting: {
+            productSettings: {
               some: {
                 sizeGroups: {
                   some: {
                     colorSizes: {
                       some: {
-                        ...(filters.colorId ? { colorId: filters.colorId } : {}),
+                        ...(filters.colorId
+                          ? { colorId: filters.colorId }
+                          : {}),
                         ...(filters.sizeId ? { sizeId: filters.sizeId } : {}),
                       },
                     },
@@ -230,14 +352,16 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
                 id: true,
                 name: true,
                 allTotalCount: true,
-                productSetting: {
+                productSettings: {
                   select: {
                     id: true,
                     totalCount: true,
                     sizeGroups: {
                       select: {
                         id: true,
-                        size: true,
+                        size: {
+                          select: { name: true },
+                        },
                         quantity: true,
                         colorSizes: {
                           select: {
@@ -310,6 +434,19 @@ export const getFilteredProductPacks = async (req: Request, res: Response) => {
         ...invoice,
         logicalId,
         processedStatus: statusValue,
+        productGroup: {
+          ...invoice.productGroup,
+          products: invoice.productGroup.products.map((product) => ({
+            ...product,
+            productSettings: product.productSettings.map((setting) => ({
+              ...setting,
+              sizeGroups: setting.sizeGroups.map((sizeGroup) => ({
+                ...sizeGroup,
+                size: sizeGroup.size.name, // Map size.name to size
+              })),
+            })),
+          })),
+        },
       };
     });
 
@@ -341,7 +478,9 @@ function extractProductPackFilterParams(req: Request): ProductPackFilterParams {
     colorId: req.query.colorId as string | undefined,
     sizeId: req.query.sizeId as string | undefined,
     departmentId: req.query.departmentId as string | undefined,
-    logicalId: req.query.logicalId ? parseInt(req.query.logicalId as string) : undefined,
+    logicalId: req.query.logicalId
+      ? parseInt(req.query.logicalId as string)
+      : undefined,
     productName: req.query.productName as string | undefined,
     status: req.query.status as string | undefined,
     isOutsourseCompany:

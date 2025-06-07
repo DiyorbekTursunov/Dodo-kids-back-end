@@ -13,7 +13,8 @@ import departmentRoutes from "./routes/department.routes";
 import colorRoutes from "./routes/color.routes";
 import sizeRoutes from "./routes/size.routes";
 import productRoutes from "./routes/product.routes";
-import productPackRoutes from "./routes/product_pack.routes";
+// import productPackRoutes from "./routes/product_pack.routes";
+import invoiceRoutes from "./routes/invoice.routes";
 import employeeRoutes from "./routes/employee.routes";
 import fileRoutes from "./routes/file.routes"; // Add this line
 import {
@@ -84,7 +85,7 @@ app.use("/api/department", departmentRoutes);
 app.use("/api/color", colorRoutes);
 app.use("/api/size", sizeRoutes);
 app.use("/api/product", productRoutes);
-app.use("/api/product_pack", productPackRoutes);
+app.use("/api/product_pack", invoiceRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/files", fileRoutes); // Add this line
 app.use("/api/dashboard", dashboardRoutes);

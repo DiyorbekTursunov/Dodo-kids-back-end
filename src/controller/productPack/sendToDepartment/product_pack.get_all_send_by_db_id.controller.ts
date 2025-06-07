@@ -44,21 +44,22 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
             },
             products: {
               include: {
-                productSetting: {
+                productSettings: {
+                  // Changed from productSetting to productSettings
                   include: {
                     sizeGroups: {
                       include: {
                         colorSizes: {
                           include: {
                             sizeGroup: {
-                                include: {
-                                    colorSizes: {
-                                        include: {
-                                            size: true,
-                                            color: true,
-                                        }
-                                    },
-                                }
+                              include: {
+                                colorSizes: {
+                                  include: {
+                                    size: true,
+                                    color: true,
+                                  },
+                                },
+                              },
                             },
                           },
                         },
@@ -71,8 +72,8 @@ export const getSentProductPacks = async (req: Request, res: Response) => {
           },
         },
       },
-      skip, // Number of records to skip
-      take: size, // Number of records to take
+      skip,
+      take: size,
     });
 
     // Get total count for pagination metadata

@@ -7,7 +7,8 @@ import dashboardPaths from "./swagger/swagger.dashboard.paths";
 import employeePaths from "./swagger/swagger.employee.paths";
 import filePaths from "./swagger/swagger.file.paths";
 import departmentPaths from "./swagger/swagger.department.paths";
-import filterPaths from "./swagger/swagger.filter.paths"; // Add filter paths
+import filterPaths from "./swagger/swagger.filter.paths";
+import productPackPaths from "./swagger/swagger.productPack.paths";
 
 const swaggerDefinition = {
   openapi: "3.0.0",
@@ -120,7 +121,10 @@ const swaggerDefinition = {
       SuccessResponse: {
         type: "object",
         properties: {
-          message: { type: "string", example: "Operation completed successfully" },
+          message: {
+            type: "string",
+            example: "Operation completed successfully",
+          },
         },
       },
       // Existing dashboard schemas
@@ -232,23 +236,35 @@ const swaggerDefinition = {
                                       type: "object",
                                       properties: {
                                         size: { type: "string", example: "M" },
-                                        quantity: { type: "integer", example: 25 },
+                                        quantity: {
+                                          type: "integer",
+                                          example: 25,
+                                        },
                                         colorSizes: {
                                           type: "array",
                                           items: {
                                             type: "object",
                                             properties: {
-                                              quantity: { type: "integer", example: 25 },
+                                              quantity: {
+                                                type: "integer",
+                                                example: 25,
+                                              },
                                               color: {
                                                 type: "object",
                                                 properties: {
-                                                  name: { type: "string", example: "Blue" },
+                                                  name: {
+                                                    type: "string",
+                                                    example: "Blue",
+                                                  },
                                                 },
                                               },
                                               size: {
                                                 type: "object",
                                                 properties: {
-                                                  name: { type: "string", example: "Medium" },
+                                                  name: {
+                                                    type: "string",
+                                                    example: "Medium",
+                                                  },
                                                 },
                                               },
                                             },
@@ -282,7 +298,11 @@ const swaggerDefinition = {
                   type: "object",
                   properties: {
                     id: { type: "string", example: "process123" },
-                    date: { type: "string", format: "date-time", example: "2025-06-01T09:00:00Z" },
+                    date: {
+                      type: "string",
+                      format: "date-time",
+                      example: "2025-06-01T09:00:00Z",
+                    },
                     status: { type: "string", example: "Yuborilgan" },
                     sendedCount: { type: "integer", example: 40 },
                     invalidCount: { type: "integer", example: 5 },
@@ -353,7 +373,11 @@ const swaggerDefinition = {
                   type: "object",
                   properties: {
                     id: { type: "string", example: "process123" },
-                    date: { type: "string", format: "date-time", example: "2025-06-01T09:00:00Z" },
+                    date: {
+                      type: "string",
+                      format: "date-time",
+                      example: "2025-06-01T09:00:00Z",
+                    },
                     status: { type: "string", example: "Yuborilgan" },
                     sendedCount: { type: "integer", example: 40 },
                     invalidCount: { type: "integer", example: 5 },
@@ -476,7 +500,10 @@ const swaggerDefinition = {
       CreateEmployeeResponse: {
         type: "object",
         properties: {
-          message: { type: "string", example: "Employee registered successfully" },
+          message: {
+            type: "string",
+            example: "Employee registered successfully",
+          },
           token: { type: "string", example: "jwt-token" },
           user: { $ref: "#/components/schemas/EmployeeResponse" },
         },
@@ -484,9 +511,22 @@ const swaggerDefinition = {
       UpdateEmployeeRequest: {
         type: "object",
         properties: {
-          login: { type: "string", example: "john.doe.updated", nullable: true },
-          password: { type: "string", example: "newpassword123", nullable: true },
-          role: { type: "string", enum: ["ADMIN", "USER"], example: "ADMIN", nullable: true },
+          login: {
+            type: "string",
+            example: "john.doe.updated",
+            nullable: true,
+          },
+          password: {
+            type: "string",
+            example: "newpassword123",
+            nullable: true,
+          },
+          role: {
+            type: "string",
+            enum: ["ADMIN", "USER"],
+            example: "ADMIN",
+            nullable: true,
+          },
           departmentId: { type: "string", example: "dept456", nullable: true },
           name: { type: "string", example: "John Doe Updated", nullable: true },
         },
@@ -518,16 +558,32 @@ const swaggerDefinition = {
           id: { type: "string", example: "emp123" },
           login: { type: "string", example: "john.doe" },
           role: { type: "string", example: "USER" },
-          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
-          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
           employee: {
             type: "object",
             properties: {
               id: { type: "string", example: "emp123" },
               name: { type: "string", example: "John Doe" },
               departmentId: { type: "string", example: "dept123" },
-              createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
-              updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+              createdAt: {
+                type: "string",
+                format: "date-time",
+                example: "2025-06-01T10:00:00Z",
+              },
+              updatedAt: {
+                type: "string",
+                format: "date-time",
+                example: "2025-06-01T10:00:00Z",
+              },
               department: {
                 type: "object",
                 properties: {
@@ -597,14 +653,35 @@ const swaggerDefinition = {
         properties: {
           id: { type: "string", example: "file123" },
           fileName: { type: "string", example: "invoice.pdf" },
-          path: { type: "string", example: "http://localhost:3000/Uploads/file-1234567890.pdf" },
+          path: {
+            type: "string",
+            example: "http://localhost:3000/Uploads/file-1234567890.pdf",
+          },
           mimeType: { type: "string", example: "application/pdf" },
           size: { type: "integer", example: 1024000 },
-          fileType: { type: "string", enum: ["IMAGE", "DOCUMENT", "OTHER"], example: "DOCUMENT" },
-          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
-          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
-          url: { type: "string", example: "http://localhost:3000/api/files/file123/download" },
-          staticUrl: { type: "string", example: "http://localhost:3000/Uploads/file-1234567890.pdf" },
+          fileType: {
+            type: "string",
+            enum: ["IMAGE", "DOCUMENT", "OTHER"],
+            example: "DOCUMENT",
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
+          url: {
+            type: "string",
+            example: "http://localhost:3000/api/files/file123/download",
+          },
+          staticUrl: {
+            type: "string",
+            example: "http://localhost:3000/Uploads/file-1234567890.pdf",
+          },
         },
       },
       GetAllFilesResponse: {
@@ -644,14 +721,20 @@ const swaggerDefinition = {
       DepartmentResponse: {
         type: "object",
         properties: {
-          message: { type: "string", example: "Department created successfully" },
+          message: {
+            type: "string",
+            example: "Department created successfully",
+          },
           data: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
         },
       },
       DeleteDepartmentResponse: {
         type: "object",
         properties: {
-          message: { type: "string", example: "Department deleted successfully" },
+          message: {
+            type: "string",
+            example: "Department deleted successfully",
+          },
           data: { $ref: "#/components/schemas/DepartmentDetailsResponse" },
         },
       },
@@ -660,8 +743,16 @@ const swaggerDefinition = {
         properties: {
           id: { type: "string", example: "dept123" },
           name: { type: "string", example: "Production" },
-          createdAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
-          updatedAt: { type: "string", format: "date-time", example: "2025-06-01T10:00:00Z" },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            example: "2025-06-01T10:00:00Z",
+          },
         },
       },
       GetDepartmentsResponse: {
@@ -766,16 +857,48 @@ const swaggerDefinition = {
               applied: {
                 type: "object",
                 properties: {
-                  startDate: { type: "string", example: "2025-06-01", nullable: true },
-                  endDate: { type: "string", example: "2025-06-04", nullable: true },
-                  searchName: { type: "string", example: "Shirt", nullable: true },
-                  departmentId: { type: "string", example: "dept123", nullable: true },
+                  startDate: {
+                    type: "string",
+                    example: "2025-06-01",
+                    nullable: true,
+                  },
+                  endDate: {
+                    type: "string",
+                    example: "2025-06-04",
+                    nullable: true,
+                  },
+                  searchName: {
+                    type: "string",
+                    example: "Shirt",
+                    nullable: true,
+                  },
+                  departmentId: {
+                    type: "string",
+                    example: "dept123",
+                    nullable: true,
+                  },
                   logicalId: { type: "integer", example: 3, nullable: true },
-                  status: { type: "string", example: "Yuborilgan", nullable: true },
+                  status: {
+                    type: "string",
+                    example: "Yuborilgan",
+                    nullable: true,
+                  },
                   includePending: { type: "boolean", example: true },
-                  colorId: { type: "string", example: "color123", nullable: true },
-                  sizeId: { type: "string", example: "size123", nullable: true },
-                  isOutsourseCompany: { type: "boolean", example: false, nullable: true },
+                  colorId: {
+                    type: "string",
+                    example: "color123",
+                    nullable: true,
+                  },
+                  sizeId: {
+                    type: "string",
+                    example: "size123",
+                    nullable: true,
+                  },
+                  isOutsourseCompany: {
+                    type: "boolean",
+                    example: false,
+                    nullable: true,
+                  },
                   sortBy: { type: "string", example: "createdAt" },
                   sortOrder: { type: "string", example: "desc" },
                   page: { type: "integer", example: 1 },
@@ -796,8 +919,9 @@ const swaggerDefinition = {
     ...departmentPaths.paths,
     ...employeePaths.paths,
     ...filePaths.paths,
-    ...filterPaths.paths, // Add filter paths
+    ...filterPaths.paths,
     ...dashboardPaths.paths,
+    ...productPackPaths,
   },
 };
 

@@ -1,4 +1,3 @@
-// src/controllers/invoice.controller.ts
 import { Request, Response } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 
@@ -48,6 +47,10 @@ export const acceptProductPack = async (req: Request, res: Response) => {
     const employeeId = user.employee.id;
     const employeeDepartment = user.employee.department;
 
+    if (!employeeDepartment) {
+      return res.status(400).json({ error: "Employee department not found" });
+    }
+
     // Find invoice with status and product group
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
@@ -58,7 +61,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
             products: {
               include: {
                 processes: true,
-                productSetting: {
+                productSettings: {
                   include: {
                     sizeGroups: {
                       include: {
@@ -84,10 +87,10 @@ export const acceptProductPack = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invoice does not have a pending status" });
     }
 
-    // Check if final "ombor" step from "upakofka"
+    // Check if final "ombor" step from "upakovka"
     const isFinalOmbor =
       invoice.department.toLowerCase() === "ombor" &&
-      pendingStatus.targetDepartment?.toLowerCase() === "upakofka";
+      pendingStatus.targetDepartment?.toLowerCase() === "upakovka";
 
     // Transaction to update all relevant records
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -108,6 +111,11 @@ export const acceptProductPack = async (req: Request, res: Response) => {
           invalidCount < 0
         ) {
           throw new Error(`Invalid data for productId: ${productId}`);
+        }
+
+        // Validate colorSizes array
+        if (!colorSizes?.length && (acceptCount > 0 || invalidCount > 0)) {
+          throw new Error(`Color sizes required for product ${productId} when acceptCount or invalidCount is non-zero`);
         }
 
         const product = invoice.productGroup.products.find((p) => p.id === productId);
@@ -182,7 +190,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
 
           // Find the colorSize
           let colorSize;
-          for (const setting of product.productSetting) {
+          for (const setting of product.productSettings) {
             for (const sizeGroup of setting.sizeGroups) {
               colorSize = sizeGroup.colorSizes.find((cs) => cs.id === colorSizeId);
               if (colorSize) break;
@@ -242,10 +250,9 @@ export const acceptProductPack = async (req: Request, res: Response) => {
         }
 
         // Update Product status
-        const productAvailableCount =
-          product.allTotalCount -
-          product.processes.reduce((sum, p) => sum + p.sendedCount, 0) -
-          product.processes.reduce((sum, p) => sum + p.invalidCount, 0);
+        const productSentCount = product.processes.reduce((sum, p) => sum + p.sendedCount, 0);
+        const productInvalidCount = product.processes.reduce((sum, p) => sum + p.invalidCount, 0);
+        const productAvailableCount = product.allTotalCount - productSentCount - productInvalidCount;
         await tx.product.update({
           where: { id: productId },
           data: {
@@ -255,7 +262,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
         });
       }
 
-      // Update invoice-level ProductProtsess
+      // Update invoice-level Status
       const totalSentCount = pendingStatus.sendedCount;
       if (totalAcceptCount + totalInvalidCount > totalSentCount) {
         throw new Error(
@@ -265,11 +272,13 @@ export const acceptProductPack = async (req: Request, res: Response) => {
 
       const residueCount = totalSentCount - totalAcceptCount - totalInvalidCount;
 
-      await tx.productProtsess.delete({
+      // Delete pending status
+      await tx.status.delete({
         where: { id: pendingStatus.id },
       });
 
-      const newStatus = await tx.productProtsess.create({
+      // Create new status
+      const newStatus = await tx.status.create({
         data: {
           departmentName: employeeDepartment.name,
           protsessIsOver: isFinalOmbor || residueCount === 0,
@@ -283,7 +292,11 @@ export const acceptProductPack = async (req: Request, res: Response) => {
           residueCount,
           invalidCount: totalInvalidCount,
           invalidReason: products.some((p) => p.invalidReason) ? "Multiple reasons" : "",
+          totalCount: totalSentCount,
           date: new Date(),
+          isOutsourseCompany: pendingStatus.isOutsourseCompany,
+          outsourseCompanyId: pendingStatus.outsourseCompanyId,
+          outsourseName: pendingStatus.outsourseName,
         },
       });
 
@@ -320,5 +333,7 @@ export const acceptProductPack = async (req: Request, res: Response) => {
       error: "Internal server error",
       details: err instanceof Error ? err.message : "Unknown error",
     });
+  } finally {
+    await prisma.$disconnect();
   }
 };

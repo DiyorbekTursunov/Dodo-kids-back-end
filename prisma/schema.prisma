@@ -17,9 +17,10 @@ enum FileType {
 // Enum for process status
 enum ProductProtsessStatus {
     Pending
-    Yuborilgan
-    ToliqYuborilmagan
     QabulQilingan
+    Yuborilgan
+    ToliqYuborilmagan // Add this if it's intended
+    Default
 }
 
 // Enum for user roles
@@ -39,9 +40,11 @@ model File {
     createdAt         DateTime           @default(now())
     updatedAt         DateTime           @updatedAt
     productGroupFiles ProductGroupFile[]
+    products          Product[]          @relation("ProductFiles")
+    productId         String?
 }
 
-// ProductGroup model (e.g., "A1", "A2", "A3")
+// ProductGroup model (e.g., "Group 1")
 model ProductGroup {
     id                String                @id @default(uuid())
     name              String
@@ -51,49 +54,53 @@ model ProductGroup {
     invoices          Invoice[]
     productGroupFiles ProductGroupFile[]
     isSended          Boolean               @default(false)
-    status            ProductProtsessStatus
-    processes         ProductProtsess[]     @relation("ProductGroupProcesses") // Add this relation
+    status            ProductProtsessStatus @default(Default)
+    processes         ProductProtsess[]     @relation("ProductGroupProcesses")
 }
 
-// Product model (individual products within a group)
+// Product model (e.g., "Product 1")
 model Product {
-    id             String                @id @default(uuid())
-    name           String
-    allTotalCount  Int
-    createdAt      DateTime              @default(now())
-    updatedAt      DateTime              @updatedAt
-    productGroupId String?
-    productGroup   ProductGroup?         @relation(fields: [productGroupId], references: [id])
-    productSetting productSetting[]
-    processes      ProductProcess[]
-    isSended       Boolean               @default(false)
-    status         ProductProtsessStatus
+    id              String                @id @default(uuid())
+    name            String
+    allTotalCount   Int
+    createdAt       DateTime              @default(now())
+    updatedAt       DateTime              @updatedAt
+    productGroupId  String?
+    productGroup    ProductGroup?         @relation(fields: [productGroupId], references: [id])
+    productSettings ProductSetting[] // Renamed and pluralized
+    processes       ProductProcess[]
+    isSended        Boolean               @default(false)
+    status          ProductProtsessStatus @default(Default) // Added default
+
+    files File[] @relation("ProductFiles")
 }
 
-// ProductSetting model to store settings for each product
-model productSetting {
+// ProductSetting model (settings for each product)
+model ProductSetting {
     id         String                @id @default(uuid())
     totalCount Int
     createdAt  DateTime              @default(now())
     updatedAt  DateTime              @updatedAt
     productId  String
     product    Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
-    sizeGroups SizeGroup[] // Relation to SizeGroup
+    sizeGroups SizeGroup[]
     isSended   Boolean               @default(false)
-    status     ProductProtsessStatus
+    status     ProductProtsessStatus @default(QabulQilingan) // Added default
 }
 
-// SizeGroup model to group color-size combinations
+// SizeGroup model (e.g., sizes with sizeId "size_123")
 model SizeGroup {
     id               String                @id @default(uuid())
-    size             String
+    sizeId           String
+    size             Size                  @relation(fields: [sizeId], references: [id])
     quantity         Int
-    status           ProductProtsessStatus
+    status           ProductProtsessStatus @default(Default) // Added default
     createdAt        DateTime              @default(now())
     updatedAt        DateTime              @updatedAt
     productSettingId String
-    productSetting   productSetting        @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
+    productSetting   ProductSetting        @relation(fields: [productSettingId], references: [id], onDelete: Cascade)
     colorSizes       ProductColorSize[]
+    isSended         Boolean               @default(false)
 }
 
 // Junction table for many-to-many relationship between ProductGroup and File
@@ -104,10 +111,10 @@ model ProductGroupFile {
     productGroup   ProductGroup          @relation(fields: [productGroupId], references: [id], onDelete: Cascade)
     file           File                  @relation(fields: [fileId], references: [id])
     isSended       Boolean               @default(false)
-    status         ProductProtsessStatus
+    status         ProductProtsessStatus @default(Default) // Added default
 }
 
-// ProductColorSize model to store color and size combinations
+// ProductColorSize model (e.g., colorSizes with colorId "color_456")
 model ProductColorSize {
     id          String                @id @default(uuid())
     quantity    Int
@@ -121,7 +128,7 @@ model ProductColorSize {
     size        Size                  @relation(fields: [sizeId], references: [id])
     processes   ColorSizeProcess[]
     isSended    Boolean               @default(false)
-    status      ProductProtsessStatus
+    status      ProductProtsessStatus @default(Default) // Added default
 }
 
 // Color model
@@ -132,7 +139,7 @@ model Color {
     updatedAt  DateTime              @updatedAt
     colorSizes ProductColorSize[]
     isSended   Boolean               @default(false)
-    status     ProductProtsessStatus @default(Pending) // Add default value
+    status     ProductProtsessStatus @default(Default)
 }
 
 // Size model
@@ -143,7 +150,8 @@ model Size {
     updatedAt  DateTime              @updatedAt
     colorSizes ProductColorSize[]
     isSended   Boolean               @default(false)
-    status     ProductProtsessStatus @default(Pending) // Add default value
+    status     ProductProtsessStatus @default(Default)
+    SizeGroup  SizeGroup[]
 }
 
 // OutsourseCompany model
@@ -153,23 +161,25 @@ model OutsourseCompany {
     createdAt       DateTime          @default(now())
     updatedAt       DateTime          @updatedAt
     ProductProtsess ProductProtsess[]
+    status          Status[] // Added relation
 }
 
 // Invoice model
 model Invoice {
-    id             String            @id @default(uuid())
-    number         Int
-    perentId       String
-    protsessIsOver Boolean           @default(false)
-    departmentId   String
-    department     String
-    productGroupId String
-    productGroup   ProductGroup      @relation(fields: [productGroupId], references: [id])
-    totalCount     Int
-    status         ProductProtsess[]
-    createdAt      DateTime          @default(now())
-    updatedAt      DateTime          @updatedAt
-    ProductProcess ProductProcess[]
+    id              String            @id @default(uuid())
+    number          Int
+    perentId        String
+    protsessIsOver  Boolean           @default(false)
+    departmentId    String
+    department      String
+    productGroupId  String
+    productGroup    ProductGroup      @relation(fields: [productGroupId], references: [id])
+    totalCount      Int
+    status          Status[] // Changed from ProductProtsess[]
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    ProductProcess  ProductProcess[]
+    ProductProtsess ProductProtsess[]
 }
 
 // Department model
@@ -180,6 +190,7 @@ model Department {
     updatedAt DateTime          @updatedAt
     employees Employee[]
     processes ProductProtsess[]
+    status    Status[] // Added relation
 }
 
 // User model
@@ -203,10 +214,11 @@ model Employee {
     updatedAt    DateTime   @updatedAt
     department   Department @relation(fields: [departmentId], references: [id])
     user         User       @relation(fields: [userId], references: [id])
+    status       Status[] // Added relation
 }
 
-// ProductProtsess model for invoice-level process tracking
-model ProductProtsess {
+// New Status model for invoice-level process tracking
+model Status {
     id                   String            @id @default(uuid())
     createdAt            DateTime          @default(now())
     updatedAt            DateTime          @updatedAt
@@ -222,7 +234,8 @@ model ProductProtsess {
     sendedCount          Int
     invalidCount         Int
     residueCount         Int
-    invalidReason        String
+    totalCount           Int
+    invalidReason        String?
     department           Department        @relation(fields: [departmentId], references: [id])
     invoiceId            String
     invoice              Invoice           @relation(fields: [invoiceId], references: [id])
@@ -230,8 +243,37 @@ model ProductProtsess {
     outsourseCompanyId   String?
     outsourseName        String?
     outsourseCompany     OutsourseCompany? @relation(fields: [outsourseCompanyId], references: [id])
-    productGroup         ProductGroup?     @relation("ProductGroupProcesses", fields: [productGroupId], references: [id])
-    productGroupId       String? // Add foreign key
+    employee             Employee          @relation(fields: [employeeId], references: [id])
+}
+
+// ProductProtsess model (retained for other uses, e.g., product group processes)
+model ProductProtsess {
+    id                   String                @id @default(uuid())
+    createdAt            DateTime              @default(now())
+    updatedAt            DateTime              @updatedAt
+    date                 DateTime              @default(now())
+    protsessIsOver       Boolean               @default(false)
+    status               ProductProtsessStatus // Ensure this is the type
+    employeeId           String
+    departmentName       String
+    targetDepartment     String?
+    acceptanceDepartment String?
+    departmentId         String
+    acceptCount          Int
+    sendedCount          Int
+    invalidCount         Int
+    residueCount         Int
+    totalCount           Int
+    invalidReason        String
+    department           Department            @relation(fields: [departmentId], references: [id])
+    invoiceId            String?
+    invoice              Invoice?              @relation(fields: [invoiceId], references: [id])
+    isOutsourseCompany   Boolean               @default(false)
+    outsourseCompanyId   String?
+    outsourseName        String?
+    outsourseCompany     OutsourseCompany?     @relation(fields: [outsourseCompanyId], references: [id])
+    productGroup         ProductGroup?         @relation("ProductGroupProcesses", fields: [productGroupId], references: [id])
+    productGroupId       String?
 }
 
 // Process tracking for Product
@@ -249,7 +291,7 @@ model ProductProcess {
     invalidCount       Int
     invalidReason      String
     residueCount       Int
-    totalCount         Int // Add this field
+    totalCount         Int
     productId          String
     product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
     invoiceId          String

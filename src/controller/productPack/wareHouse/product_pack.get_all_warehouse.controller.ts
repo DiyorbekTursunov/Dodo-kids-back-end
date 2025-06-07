@@ -7,13 +7,14 @@ const prisma = new PrismaClient();
 export const getAllProductPacks = async (req: Request, res: Response) => {
   try {
     // Extract query parameters for pagination and filtering
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, departmentId } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    // Build the where clause for filtering (optional)
-    const where = status
-      ? { status: { some: { status: String(status) } } }
-      : {};
+    // Build the where clause for filtering
+    const where: any = {
+      ...(status && { status: { some: { status: String(status) } } }),
+      ...(departmentId && { departmentId: String(departmentId) }),
+    };
 
     const invoices = await prisma.invoice.findMany({
       where,
@@ -43,7 +44,7 @@ export const getAllProductPacks = async (req: Request, res: Response) => {
                 allTotalCount: true,
                 isSended: true,
                 status: true,
-                productSetting: {
+                productSettings: {
                   select: {
                     id: true,
                     totalCount: true,
@@ -76,7 +77,6 @@ export const getAllProductPacks = async (req: Request, res: Response) => {
                               },
                             },
                             processes: {
-                              // Add ColorSizeProcess to track status changes
                               select: {
                                 id: true,
                                 status: true,

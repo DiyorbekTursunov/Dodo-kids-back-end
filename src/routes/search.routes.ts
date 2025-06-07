@@ -8,9 +8,9 @@ import {
 const router = express.Router();
 
 // Product Pack filter route
-router.get("/search", (req: Request, res: Response, next: NextFunction) => {
-  searchInvoices(req, res).catch(next);
-});
+    router.get("/search", (req: Request, res: Response, next: NextFunction) => {
+    searchInvoices(req, res).catch(next);
+    });
 
 router.get(
   "/product-groups",

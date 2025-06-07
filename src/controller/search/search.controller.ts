@@ -88,7 +88,7 @@ export const searchInvoices = async (req: Request, res: Response) => {
           include: {
             products: {
               include: {
-                productSetting: {
+                productSettings: {
                   include: {
                     sizeGroups: {
                       include: {
@@ -179,7 +179,7 @@ export const searchProductGroups = async (req: Request, res: Response) => {
       include: {
         products: {
           include: {
-            productSetting: {
+            productSettings: {
               include: {
                 sizeGroups: {
                   include: {

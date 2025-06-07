@@ -1,150 +1,84 @@
-// src/controllers/invoice.controller.ts
 import { Request, Response } from "express";
-import { PrismaClient, Prisma } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
+import { createBichuvInvoice, CreateInvoiceInput } from "../../../service/bichuvInvoiceService/bichuvInvoice.service";
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  transactionOptions: {
+    maxWait: 10000,
+    timeout: 60000,
+  },
+});
 
-interface AddInvoiceRequestBody {
-  departmentId: string;
-  department: string;
-  productGroupId: string;
-  totalCount: number;
-  invalidCount?: number;
-  invalidReason?: string;
-  employeeId: string;
-}
+// Transformation function to shape the invoice response
+const transformInvoice = (invoice: any) => ({
+  id: invoice.id,
+  number: invoice.number,
+  perentId: invoice.perentId,
+  protsessIsOver: invoice.protsessIsOver,
+  departmentId: invoice.departmentId,
+  department: invoice.department,
+  productGroupId: invoice.productGroupId,
+  totalCount: invoice.totalCount,
+  createdAt: invoice.createdAt,
+  updatedAt: invoice.updatedAt,
+});
 
-export const addInvoice = async (req: Request, res: Response) => {
-  const {
-    departmentId,
-    department,
-    productGroupId,
-    totalCount,
-    invalidCount,
-    invalidReason,
-    employeeId,
-  } = req.body as AddInvoiceRequestBody;
+/**
+ * Controller to create a new Bichuv invoice
+ * @param req Express request object containing invoice data
+ * @param res Express response object
+ * @returns Response with created invoice details
+ */
+export const createBichuvController = async (req: Request, res: Response): Promise<Response> => {
+  const { departmentId, productGroupId, totalCount, invalidCount, invalidReason, employeeId } = req.body as CreateInvoiceInput;
 
-  // Validate required fields
-  if (!departmentId || !department || !productGroupId || totalCount == null || !employeeId) {
-    return res.status(400).json({
-      error: "Required fields: departmentId, department, productGroupId, totalCount, employeeId",
-      data: req.body,
-    });
-  }
-
-  // Validate numeric inputs
-  if (isNaN(Number(totalCount)) || (invalidCount != null && isNaN(Number(invalidCount)))) {
-    return res.status(400).json({
-      error: "totalCount and invalidCount (if provided) must be numbers",
-    });
+  // Validate input
+  if (
+    !departmentId ||
+    !productGroupId ||
+    !employeeId ||
+    totalCount === undefined ||
+    invalidCount === undefined ||
+    invalidReason === undefined
+  ) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
 
   try {
-    // Check if product group exists
-    const productGroup = await prisma.productGroup.findUnique({
-      where: { id: productGroupId },
+    // Create invoice using service
+    const invoiceId = await createBichuvInvoice({
+      departmentId,
+      productGroupId,
+      totalCount,
+      invalidCount,
+      invalidReason,
+      employeeId,
     });
 
-    if (!productGroup) {
-      return res.status(404).json({ error: "Product group not found" });
-    }
-
-    // Check if department exists
-    const departmentExists = await prisma.department.findUnique({
-      where: { id: departmentId },
+    // Fetch created invoice for response
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        productGroup: true,
+      },
     });
 
-    if (!departmentExists) {
-      return res.status(404).json({ error: "Department not found" });
+    if (!invoice) {
+      return res.status(500).json({ error: "Failed to fetch created invoice" });
     }
 
-    // Check if employee exists
-    const employeeExists = await prisma.user.findUnique({
-      where: { id: employeeId },
+    const transformedInvoice = transformInvoice(invoice);
+    return res.status(201).json({
+      data: [transformedInvoice],
+      meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
     });
-
-    if (!employeeExists) {
-      return res.status(404).json({ error: "Employee not found" });
-    }
-
-    // Generate a unique parent ID
-    const perentId = uuidv4();
-
-    // Generate a unique invoice number
-    const lastInvoice = await prisma.invoice.findFirst({
-      orderBy: { number: "desc" },
-    });
-    const newInvoiceNumber = lastInvoice ? lastInvoice.number + 1 : 1;
-
-    // Create the invoice and product process in a transaction
-    const newInvoice = await prisma.$transaction(async (tx) => {
-      // Create the invoice
-      const invoice = await tx.invoice.create({
-        data: {
-          perentId,
-          number: newInvoiceNumber,
-          departmentId,
-          department,
-          totalCount: Number(totalCount),
-          protsessIsOver: false,
-          productGroupId,
-        },
-        include: {
-          productGroup: true, // Fixed: Changed ProductGroup to productGroup
-        },
-      });
-
-      // Create the product process
-      const productProcess = await tx.productProtsess.create({
-        data: {
-          departmentName: department,
-          status: "Qabul qilingan",
-          departmentId,
-          invoiceId: invoice.id,
-          targetDepartment: department,
-          acceptanceDepartment: department,
-          employeeId,
-          acceptCount: Number(totalCount),
-          sendedCount: 0,
-          residueCount: Number(totalCount) - (Number(invalidCount) || 0),
-          invalidCount: Number(invalidCount) || 0,
-          invalidReason: invalidReason || "",
-        },
-      });
-
-      // Return invoice with product process in status array
-      return {
-        ...invoice,
-        status: [productProcess],
-      };
-    });
-
-    // Return the created invoice with its status
-    return res.status(201).json(newInvoice);
-  } catch (err: unknown) {
-    console.error("Error creating invoice:", err);
-
-    // Handle Prisma-specific errors
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2002") {
-        return res.status(409).json({ error: "Duplicate entry detected" });
-      }
-    }
-
-    // Handle generic errors
-    if (err instanceof Error) {
-      return res.status(500).json({
-        error: "Internal server error",
-        details: err.message,
-      });
-    }
-
-    // Fallback for unknown errors
+  } catch (error) {
+    console.error("Error creating Bichuv invoice:", error);
     return res.status(500).json({
       error: "Internal server error",
-      details: "An unknown error occurred",
+      details: error instanceof Error ? error.message : "Unknown error",
     });
+  } finally {
+    await prisma.$disconnect();
   }
 };

@@ -1,482 +1,105 @@
 {
   "data": [
     {
-      "id": "7d829c76-b2e4-44bf-a34c-8ea69a087416",
-      "number": 1,
-      "perentId": "1a78aa65-0ef4-47a5-957f-d6a884010dd9",
+      "id": "inv_67890",
+      "number": 2,
+      "perentId": "inv_12345",
       "protsessIsOver": false,
-      "departmentId": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-      "department": "ombor",
-      "totalCount": 1000,
-      "createdAt": "2025-06-04T10:14:30.175Z",
-      "updatedAt": "2025-06-04T10:14:30.175Z",
-
+      "departmentId": "dept_67890",
+      "department": "tikuv",
+      "totalCount": 50,
+      "createdAt": "2025-06-05T08:07:00.000Z",
+      "updatedAt": "2025-06-05T08:07:00.000Z",
       "productGroup": {
-        "id": "ea3f70df-2e81-43ba-8c7b-d9afa54b0e6b",
-        "name": "Group A1 ",
+        "id": "pg_11111",
+        "name": "T-Shirts",
         "isSended": false,
-
         "processes": [
           {
-            "department": {
-              "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-              "name": "ombor"
-            },
-            "totalCount": 500,
+            "department": { "id": "dept_67890", "name": "tikuv" },
+            "totalCount": 50,
             "acceptCount": 50,
-            "sendedCount": 40,
+            "sendedCount": 50,
             "invalidCount": 5,
-            "residueCount": 455,
-
-            "status": "Pending"
-          },
-
-          {
-            "department": {
-              "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-              "name": "ombor"
-            },
-            "totalCount": 500,
-            "acceptCount": 50,
-            "sendedCount": 40,
-            "invalidCount": 5,
-            "residueCount": 455,
-
-            "status": "Qabul qilingan"
+            "residueCount": 0,
+            "status": "Yuborilgan"
           }
         ],
-
         "products": [
           {
-            "id": "1645a1b4-e285-4e4e-a735-62e13bf42f0e",
-            "isSended": false,
-
-            "name": "Futbolka sho'rtik",
-
+            "id": "prod_11111",
+            "name": "Cotton T-Shirt",
+            "isSended": true,
             "processes": [
               {
-                "department": {
-                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                  "name": "ombor"
-                },
-                "totalCount": 500,
+                "department": { "id": "dept_67890", "name": "tikuv" },
+                "totalCount": 50,
                 "acceptCount": 50,
-                "sendedCount": 40,
+                "sendedCount": 50,
                 "invalidCount": 5,
-                "residueCount": 455,
-
-                "status": "Pending"
-              },
-
-              {
-                "department": {
-                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                  "name": "ombor"
-                },
-                "totalCount": 500,
-                "acceptCount": 50,
-                "sendedCount": 40,
-                "invalidCount": 5,
-                "residueCount": 455,
-
-                "status": "Qabul qilingan"
+                "residueCount": 0,
+                "status": "Yuborilgan"
               }
             ],
-
             "sizes": [
               {
-                "size": {
-                  "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                  "name": "blue"
-                },
-
-                "isSended": false,
-
+                "id": "sg_22222",
+                "size": { "id": "size_33333", "name": "Medium" },
+                "isSended": true,
+                "totalCount": 50,
+                "status": "Yuborilgan",
                 "processes": [
                   {
-                    "department": {
-                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                      "name": "ombor"
-                    },
-                    "totalCount": 500,
+                    "department": { "id": "dept_67890", "name": "tikuv" },
+                    "totalCount": 50,
                     "acceptCount": 50,
-                    "sendedCount": 40,
+                    "sendedCount": 50,
                     "invalidCount": 5,
-                    "residueCount": 455,
-
-                    "status": "Pending"
-                  },
-
-                  {
-                    "department": {
-                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                      "name": "ombor"
-                    },
-                    "totalCount": 500,
-                    "acceptCount": 50,
-                    "sendedCount": 40,
-                    "invalidCount": 5,
-                    "residueCount": 455,
-
-                    "status": "Qabul qilingan"
+                    "residueCount": 0,
+                    "status": "Yuborilgan"
                   }
                 ],
-
+                
                 "colors": [
                   {
-                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
-                    "isSended": false,
-
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
+                    "id": "cs_22222",
+                    "totalCount": 50,
+                    "isSended": true,
+                    "status": "Yuborilgan",
+                    "color": { "id": "color_44444", "name": "Blue" },
                     "processes": [
                       {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
+                        "department": { "id": "dept_67890", "name": "tikuv" },
+                        "totalCount": 50,
                         "acceptCount": 50,
-                        "sendedCount": 40,
+                        "sendedCount": 50,
                         "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Pending"
-                      },
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Qabul qilingan"
+                        "residueCount": 0,
+                        "status": "Yuborilgan"
                       }
                     ]
-                  },
-
-                  {
-                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
-
-                    "isSended": false,
-                    "status": "Pending",
-
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
-                    "processes": [
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Pending"
-                      },
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Qabul qilingan"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "e2f97c5e-1c56-4ca8-a4ba-c4574b11bd44",
-                "size": "XS",
-                "totalCount": 500,
-                "status": "Pending",
-                "colorSizes": [
-                  {
-                    "id": "eb99b6be-e851-4c77-9b0d-ae71dbf75e91",
-                    "totalCount": 250,
-                    "isSended": false,
-                    "status": "Pending",
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
-                    "size": {
-                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
-                      "name": "XS",
-                      "isSended": false,
-                      "status": "Pending"
-                    },
-                    "processes": []
-                  },
-                  {
-                    "id": "37e4b4b5-1947-4226-b1ac-5e5e20df8d9f",
-                    "totalCount": 250,
-                    "isSended": false,
-                    "status": "Pending",
-                    "color": {
-                      "id": "95dbf74e-99da-4ee2-babd-a96eb31b5e8b",
-                      "name": "red"
-                    },
-                    "size": {
-                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
-                      "name": "XS",
-                      "isSended": false,
-                      "status": "Pending"
-                    },
-                    "processes": []
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "id": "1645a1b4-e285-4e4e-a735-62e13bf42f0e",
-            "isSended": false,
-
-            "processes": [
-              {
-                "department": {
-                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                  "name": "ombor"
-                },
-                "totalCount": 500,
-                "acceptCount": 50,
-                "sendedCount": 40,
-                "invalidCount": 5,
-                "residueCount": 455,
-
-                "status": "Pending"
-              },
-
-              {
-                "department": {
-                  "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                  "name": "ombor"
-                },
-                "totalCount": 500,
-                "acceptCount": 50,
-                "sendedCount": 40,
-                "invalidCount": 5,
-                "residueCount": 455,
-
-                "status": "Qabul qilingan"
-              }
-            ],
-
-            "sizes": [
-              {
-                "size": {
-                  "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                  "name": "blue"
-                },
-
-                "isSended": false,
-
-                "processes": [
-                  {
-                    "department": {
-                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                      "name": "ombor"
-                    },
-                    "totalCount": 500,
-                    "acceptCount": 50,
-                    "sendedCount": 40,
-                    "invalidCount": 5,
-                    "residueCount": 455,
-
-                    "status": "Pending"
-                  },
-
-                  {
-                    "department": {
-                      "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                      "name": "ombor"
-                    },
-                    "totalCount": 500,
-                    "acceptCount": 50,
-                    "sendedCount": 40,
-                    "invalidCount": 5,
-                    "residueCount": 455,
-
-                    "status": "Qabul qilingan"
-                  }
-                ],
-
-                "colors": [
-                  {
-                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
-                    "isSended": false,
-
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
-                    "processes": [
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Pending"
-                      },
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Qabul qilingan"
-                      }
-                    ]
-                  },
-
-                  {
-                    "id": "5ff77570-9455-4ec2-8904-8233636e642c",
-
-                    "isSended": false,
-                    "status": "Pending",
-
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
-                    "processes": [
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Pending"
-                      },
-                      {
-                        "department": {
-                          "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-                          "name": "ombor"
-                        },
-                        "totalCount": 500,
-                        "acceptCount": 50,
-                        "sendedCount": 40,
-                        "invalidCount": 5,
-                        "residueCount": 455,
-
-                        "status": "Qabul qilingan"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "e2f97c5e-1c56-4ca8-a4ba-c4574b11bd44",
-                "size": "XS",
-                "totalCount": 500,
-                "status": "Pending",
-                "colorSizes": [
-                  {
-                    "id": "eb99b6be-e851-4c77-9b0d-ae71dbf75e91",
-                    "totalCount": 250,
-                    "isSended": false,
-                    "status": "Pending",
-                    "color": {
-                      "id": "0abf0748-a9da-463a-a88e-5008a2e1edc7",
-                      "name": "blue"
-                    },
-                    "size": {
-                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
-                      "name": "XS",
-                      "isSended": false,
-                      "status": "Pending"
-                    },
-                    "processes": []
-                  },
-                  {
-                    "id": "37e4b4b5-1947-4226-b1ac-5e5e20df8d9f",
-                    "totalCount": 250,
-                    "isSended": false,
-                    "status": "Pending",
-                    "color": {
-                      "id": "95dbf74e-99da-4ee2-babd-a96eb31b5e8b",
-                      "name": "red"
-                    },
-                    "size": {
-                      "id": "8fc6aa18-b0ca-4788-ac9e-3a7ba250218c",
-                      "name": "XS",
-                      "isSended": false,
-                      "status": "Pending"
-                    },
-                    "processes": []
                   }
                 ]
               }
             ]
           }
         ],
-
-        "productGroupFiles": [
-          {
-            "id": "3cdb2dd4-b191-4026-bb0e-4c5ec5bc9a83",
-            "file": {
-              "id": "32666207-189e-4213-86ff-43a329b5716a",
-              "fileName": "c81e5ce3-a5b1-4715-9e17-695d60417604.jpg",
-              "path": "uploads/files-1749031978092-984021099.jpg",
-              "mimeType": "image/jpeg",
-              "size": 79071,
-              "fileType": "IMAGE"
-            }
-          }
-        ]
+        "productGroupFiles": []
       },
-
       "status": [
         {
-          "id": "c4e985e6-4cb4-4f2c-8b6d-d3ec880266ff",
-          "status": "Qabul qilingan",
-          "date": "2025-06-04T10:14:30.348Z",
+          "id": "status_77777",
+          "status": "Pending",
+          "date": "2025-06-05T08:07:00.000Z",
           "protsessIsOver": false,
-          "acceptCount": 1000,
-          "sendedCount": 0,
-          "invalidCount": 0,
-          "residueCount": 1000,
-          "invalidReason": "",
-          "department": {
-            "id": "6da655c9-d6f8-45c0-b7b5-2704a7d68708",
-            "name": "ombor"
-          },
-          "outsourseName": null,
-          "isOutsourseCompany": false
+          "acceptCount": 50,
+          "sendedCount": 50,
+          "invalidCount": 5,
+          "residueCount": 0,
+          "invalidReason": "Defective stitching",
+          "department": { "id": "dept_67890", "name": "tikuv" },
+          "outsourseName": "OutsourseCo",
+          "isOutsourseCompany": true
         }
       ]
     }

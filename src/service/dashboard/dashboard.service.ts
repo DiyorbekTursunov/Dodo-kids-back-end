@@ -140,12 +140,10 @@ export const getProductPackStatsService = async (
   invoiceId: string
 ): Promise<any> => {
   try {
-    // Validate invoice ID
     if (!invoiceId) {
       throw new Error("Invoice ID is required");
     }
 
-    // Check if invoice exists
     const invoiceExists = await prisma.invoice.findUnique({
       where: { id: invoiceId },
     });
@@ -154,7 +152,6 @@ export const getProductPackStatsService = async (
       throw new Error("Invoice not found");
     }
 
-    // Get aggregated stats for ProductProtsess
     const stats = await prisma.productProtsess.aggregate({
       where: { invoiceId },
       _sum: {
@@ -165,13 +162,12 @@ export const getProductPackStatsService = async (
       },
     });
 
-    // Get individual process records
     const processes = await prisma.productProtsess.findMany({
       where: { invoiceId },
       select: {
         id: true,
         date: true,
-        status: true,
+        status: true, // Returns ProductProtsessStatus (e.g., "Yuborilgan", "Yuborilmagan")
         sendedCount: true,
         invalidCount: true,
         residueCount: true,
@@ -182,7 +178,6 @@ export const getProductPackStatsService = async (
       orderBy: { date: "desc" },
     });
 
-    // Get invoice details
     const invoiceDetails = await prisma.invoice.findUnique({
       where: { id: invoiceId },
       select: {
@@ -196,18 +191,22 @@ export const getProductPackStatsService = async (
             products: {
               select: {
                 name: true,
-                productSetting: {
-                  select: {
-                    totalCount: true,
+                productSettings: {
+                  include: {
                     sizeGroups: {
-                      select: {
-                        size: true,
-                        quantity: true,
+                      include: {
                         colorSizes: {
-                          select: {
-                            quantity: true,
-                            color: { select: { name: true } },
-                            size: { select: { name: true } },
+                          include: {
+                            sizeGroup: {
+                              include: {
+                                colorSizes: {
+                                  include: {
+                                    size: true,
+                                    color: true,
+                                  },
+                                },
+                              },
+                            },
                           },
                         },
                       },
@@ -370,33 +369,29 @@ export const getEmployeeStatsService = async (
   employeeId: string
 ): Promise<any> => {
   try {
-    // Validate employee ID
-    if (!employeeId) {
-      throw new Error("Employee ID is required");
-    }
+    if (!employeeId) throw new Error("Employee ID is required");
 
-    // Check if employee exists
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
       include: { department: true },
     });
 
-    if (!employee) {
-      throw new Error("Employee not found");
-    }
+    if (!employee) throw new Error("Employee not found");
 
-    // Get unique invoice IDs from ProductProtsess
     const employeeProcesses = await prisma.productProtsess.findMany({
       where: { employeeId },
       select: { invoiceId: true },
       distinct: ["invoiceId"],
     });
 
-    const invoiceIds = employeeProcesses.map((process) => process.invoiceId);
+    const invoiceIds = employeeProcesses
+      .map((process) => process.invoiceId)
+      .filter((id): id is string => id !== null); // Filter out null invoiceIds
 
-    // Get invoices
     const invoices = await prisma.invoice.findMany({
-      where: { id: { in: invoiceIds } },
+      where: {
+        id: { in: invoiceIds }, // Fixed: invoiceIds is string[]
+      },
       select: {
         id: true,
         number: true,
@@ -407,7 +402,6 @@ export const getEmployeeStatsService = async (
       },
     });
 
-    // Get aggregated stats
     const stats = await prisma.productProtsess.aggregate({
       where: { employeeId },
       _sum: {
@@ -418,7 +412,6 @@ export const getEmployeeStatsService = async (
       },
     });
 
-    // Get detailed process records
     const processes = await prisma.productProtsess.findMany({
       where: { employeeId },
       select: {
@@ -436,7 +429,6 @@ export const getEmployeeStatsService = async (
       orderBy: { date: "desc" },
     });
 
-    // Calculate total product count
     const totalProductCount = invoices.reduce(
       (sum, invoice) => sum + (invoice.totalCount || 0),
       0
