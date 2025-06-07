@@ -1,63 +1,51 @@
-import { Request, Response } from 'express';
-import { createProductGroup, getProductById, getProducts, updateProduct, deleteProduct } from '../../service/product/product.service';
-import { z } from 'zod';
-import { ProductProtsessStatus, Prisma } from '@prisma/client';
+import { Request, Response } from "express";
+import {
+  createProductGroup,
+  getProductById,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+} from "../../service/product/product.service";
+import { z } from "zod";
+import { ProductProtsessStatus, Prisma } from "@prisma/client";
 
-// Schema for color sizes within size groups
+// Zod schemas
 const colorSizeSchema = z.object({
   colorId: z.string(),
   quantity: z.number().int().min(0),
-  status: z.nativeEnum(ProductProtsessStatus),
+  status: z.nativeEnum(ProductProtsessStatus).optional(), // Optional status
 });
 
-// Schema for size groups within product settings
 const sizeGroupSchema = z.object({
   sizeId: z.string(),
   quantity: z.number().int().min(0),
-  status: z.nativeEnum(ProductProtsessStatus),
+  status: z.nativeEnum(ProductProtsessStatus).optional(), // Optional status
   colorSizes: z.array(colorSizeSchema),
 });
 
-// Schema for product settings
 const productSettingSchema = z.object({
   totalCount: z.number().int().min(0),
-  status: z.nativeEnum(ProductProtsessStatus),
+  status: z.nativeEnum(ProductProtsessStatus).optional(), // Optional status
   sizeGroups: z.array(sizeGroupSchema),
 });
 
-// Schema for products within a product group
 const productSchema = z.object({
   name: z.string().min(1),
   allTotalCount: z.number().int().min(0),
-  status: z.nativeEnum(ProductProtsessStatus),
+  status: z.nativeEnum(ProductProtsessStatus).optional(), // Optional status
   productSettings: z.array(productSettingSchema),
 });
 
-// Schema for files
 const fileSchema = z.object({
   id: z.string(),
 });
 
-// Schema for creating a product group
 const createProductGroupSchema = z.object({
   name: z.string().min(1),
-  status: z.nativeEnum(ProductProtsessStatus),
-  isSended: z.boolean(),
+  status: z.nativeEnum(ProductProtsessStatus).optional(), // Optional status
+  isSended: z.boolean().optional(), // Optional isSended
   files: z.array(fileSchema),
   products: z.array(productSchema),
-});
-
-// Schema for creating a product (unchanged for backward compatibility)
-const createProductSchema = z.object({
-  name: z.string().min(1),
-  allTotalCount: z.number().int().min(0),
-  status: z.nativeEnum(ProductProtsessStatus),
-  productGroup: z.object({
-    name: z.string().min(1),
-    status: z.nativeEnum(ProductProtsessStatus).optional(),
-    isSended: z.boolean().optional(),
-  }),
-  productSettings: z.array(productSettingSchema),
 });
 
 // Schema for updating a product (unchanged)
@@ -66,7 +54,7 @@ const updateProductSchema = z.object({
   allTotalCount: z.number().int().min(0).optional(),
 });
 
-// Handler to create a product group
+// Handler to create a ProductGroup
 export async function createProductGroupHandler(req: Request, res: Response) {
   try {
     const data = createProductGroupSchema.parse(req.body);
@@ -102,7 +90,7 @@ export async function getProductHandler(req: Request, res: Response) {
     const { id } = req.params;
     const product = await getProductById(id);
     if (!product) {
-      res.status(404).json({ message: 'Product not found' });
+      res.status(404).json({ message: "Product not found" });
     } else {
       res.json(product);
     }
@@ -131,8 +119,11 @@ export async function updateProductHandler(req: Request, res: Response) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ message: error.errors });
-    } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ message: 'Product not found' });
+    } else if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).json({ message: "Product not found" });
     } else {
       res.status(400).json({ message: (error as Error).message });
     }
@@ -146,8 +137,11 @@ export async function deleteProductHandler(req: Request, res: Response) {
     await deleteProduct(id);
     res.status(204).send();
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      res.status(404).json({ message: 'Product not found' });
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      res.status(404).json({ message: "Product not found" });
     } else {
       res.status(400).json({ message: (error as Error).message });
     }

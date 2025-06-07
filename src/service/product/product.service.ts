@@ -6,25 +6,27 @@ import {
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
 // Input interfaces
 interface ColorSizeInput {
   colorId: string;
   quantity: number;
-  status: ProductProtsessStatus;
+  status?: ProductProtsessStatus; // Optional, defaults to Default
 }
 
 interface SizeGroupInput {
   sizeId: string;
   quantity: number;
-  status: ProductProtsessStatus;
+  status?: ProductProtsessStatus; // Optional, defaults to Default
   colorSizes: ColorSizeInput[];
 }
 
 interface ProductSettingInput {
   totalCount: number;
-  status: ProductProtsessStatus;
+  status?: ProductProtsessStatus; // Optional, defaults to Default
   sizeGroups: SizeGroupInput[];
 }
+
 interface UpdateProductInput {
   name?: string;
   allTotalCount?: number;
@@ -34,6 +36,7 @@ interface UpdateProductInput {
 interface ProductInput {
   name: string;
   allTotalCount: number;
+  status?: ProductProtsessStatus; // Optional, defaults to Default
   productSettings: ProductSettingInput[];
 }
 
@@ -43,7 +46,8 @@ interface FileInput {
 
 interface CreateProductGroupInput {
   name: string;
-  isSended: boolean;
+  status?: ProductProtsessStatus; // Optional, defaults to Default
+  isSended?: boolean; // Optional, defaults to false
   files: FileInput[];
   products: ProductInput[];
 }
@@ -52,7 +56,7 @@ interface CreateProductGroupInput {
 export async function createProductGroup(
   data: CreateProductGroupInput
 ): Promise<ProductGroup> {
-  // Collect all sizeIds and colorIds from the input
+  // Collect all sizeIds, colorIds, and fileIds from the input
   const sizeIds = new Set<string>();
   const colorIds = new Set<string>();
   const fileIds = new Set<string>();
@@ -100,33 +104,33 @@ export async function createProductGroup(
   return prisma.productGroup.create({
     data: {
       name: data.name,
-      status: "Default",
+      status: data.status || "Default", // Default to 'Default' if not provided
       productGroupFiles: {
         create: data.files.map((file) => ({
           file: { connect: { id: file.id } },
-          status: "Default", // Default status for ProductGroupFile
-          isSended: false, // Default value
+          status: "Pending", // Default status for ProductGroupFile
+          isSended: data.isSended || false, // Default to false if not provided
         })),
       },
       products: {
         create: data.products.map((product) => ({
           name: product.name,
           allTotalCount: product.allTotalCount,
-          status: "Default",
+          status: product.status || "Pending", // Default to 'Pending' if not provided
           productSettings: {
             create: product.productSettings.map((setting) => ({
               totalCount: setting.totalCount,
-              status: "Default",
+              status: setting.status || "Pending", // Default to 'Pending' if not provided
               sizeGroups: {
                 create: setting.sizeGroups.map((sizeGroup) => ({
                   size: { connect: { id: sizeGroup.sizeId } },
                   quantity: sizeGroup.quantity,
-                  status: "Default",
+                  status: sizeGroup.status || "Pending", // Default to 'Pending' if not provided
                   colorSizes: {
                     create: sizeGroup.colorSizes.map((colorSize) => ({
                       color: { connect: { id: colorSize.colorId } },
                       quantity: colorSize.quantity,
-                      status: "Default",
+                      status: colorSize.status || "Pending", // Default to 'Pending' if not provided
                       size: { connect: { id: sizeGroup.sizeId } },
                     })),
                   },
