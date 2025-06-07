@@ -64,7 +64,6 @@ const createProductSchema = z.object({
 const updateProductSchema = z.object({
   name: z.string().min(1).optional(),
   allTotalCount: z.number().int().min(0).optional(),
-  status: z.nativeEnum(ProductProtsessStatus).optional(),
 });
 
 // Handler to create a product group

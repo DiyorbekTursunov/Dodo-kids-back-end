@@ -34,7 +34,6 @@ interface UpdateProductInput {
 interface ProductInput {
   name: string;
   allTotalCount: number;
-  status: ProductProtsessStatus;
   productSettings: ProductSettingInput[];
 }
 
@@ -44,7 +43,6 @@ interface FileInput {
 
 interface CreateProductGroupInput {
   name: string;
-  status: ProductProtsessStatus;
   isSended: boolean;
   files: FileInput[];
   products: ProductInput[];
@@ -102,7 +100,7 @@ export async function createProductGroup(
   return prisma.productGroup.create({
     data: {
       name: data.name,
-      status: data.status,
+      status: "Default",
       isSended: data.isSended,
       productGroupFiles: {
         create: data.files.map((file) => ({
@@ -115,21 +113,21 @@ export async function createProductGroup(
         create: data.products.map((product) => ({
           name: product.name,
           allTotalCount: product.allTotalCount,
-          status: product.status,
+          status: "Default",
           productSettings: {
             create: product.productSettings.map((setting) => ({
               totalCount: setting.totalCount,
-              status: setting.status,
+              status: "Default",
               sizeGroups: {
                 create: setting.sizeGroups.map((sizeGroup) => ({
                   size: { connect: { id: sizeGroup.sizeId } },
                   quantity: sizeGroup.quantity,
-                  status: sizeGroup.status,
+                  status: "Default",
                   colorSizes: {
                     create: sizeGroup.colorSizes.map((colorSize) => ({
                       color: { connect: { id: colorSize.colorId } },
                       quantity: colorSize.quantity,
-                      status: colorSize.status,
+                      status: "Default",
                       size: { connect: { id: sizeGroup.sizeId } },
                     })),
                   },
