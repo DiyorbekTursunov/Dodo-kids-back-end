@@ -197,6 +197,39 @@ export async function deleteProduct(id: string): Promise<void> {
   });
 }
 
+// Function to delete a ProductGroup by ID
+export async function deleteProductGroup(id: string): Promise<ProductGroup> {
+  // Check if the ProductGroup exists
+  const existingProductGroup = await prisma.productGroup.findUnique({
+    where: { id },
+  });
+
+  if (!existingProductGroup) {
+    throw new Error("ProductGroup not found");
+  }
+
+  // Delete the ProductGroup (cascades to related records)
+  return prisma.productGroup.delete({
+    where: { id },
+    include: {
+      products: {
+        include: {
+          productSettings: {
+            include: {
+              sizeGroups: {
+                include: { colorSizes: true },
+              },
+            },
+          },
+        },
+      },
+      productGroupFiles: {
+        include: { file: true },
+      },
+    },
+  });
+}
+
 export async function getAllProductGroups(): Promise<ProductGroup[]> {
   return prisma.productGroup.findMany({
     include: {

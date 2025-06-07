@@ -6,6 +6,7 @@ import {
   updateProductHandler,
   deleteProductHandler,
   getAllProductGroupsHandler,
+  deleteProductGroupHandler,
 } from '../controller/product/product.controller';
 
 const router = Router();
@@ -14,7 +15,7 @@ router.post('/', createProductGroupHandler);
 router.get('/groups', getAllProductGroupsHandler);
 router.get('/:id', getProductHandler);
 router.put('/:id', updateProductHandler);
-router.delete('/:id', deleteProductHandler);
+router.delete('/:id', deleteProductGroupHandler);
 
 
 

@@ -6,6 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   getAllProductGroups,
+  deleteProductGroup,
 } from "../../service/product/product.service";
 import { z } from "zod";
 import { ProductProtsessStatus, Prisma } from "@prisma/client";
@@ -39,6 +40,10 @@ const productSchema = z.object({
 
 const fileSchema = z.object({
   id: z.string(),
+});
+
+const deleteProductGroupSchema = z.object({
+  id: z.string().uuid(),
 });
 
 const createProductGroupSchema = z.object({
@@ -145,6 +150,35 @@ export async function deleteProductHandler(req: Request, res: Response) {
       res.status(404).json({ message: "Product not found" });
     } else {
       res.status(400).json({ message: (error as Error).message });
+    }
+  }
+}
+
+// Handler to delete a ProductGroup
+export async function deleteProductGroupHandler(req: Request, res: Response) {
+  try {
+    const { id } = deleteProductGroupSchema.parse(req.params);
+    const deletedProductGroup = await deleteProductGroup(id);
+    res.status(200).json({
+      success: true,
+      message: "ProductGroup deleted successfully",
+      data: deletedProductGroup,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors });
+    } else {
+      const err = error as Error;
+      if (err.message === "ProductGroup not found") {
+        res.status(404).json({ message: err.message });
+      } else {
+        console.error("Error deleting product group:", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to delete product group",
+          error: err.message,
+        });
+      }
     }
   }
 }
