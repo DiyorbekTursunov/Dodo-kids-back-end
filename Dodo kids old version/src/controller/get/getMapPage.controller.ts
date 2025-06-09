@@ -245,7 +245,7 @@ export const getConsolidatedCaseTrackerStatus = async (
           }
           return {
             id: process.id,
-            status: isValidProcessStatus(process.status) ? process.status : ProcessStatus.Default,
+            status: isValidProcessStatus(process.status) ? process.status : ProcessStatus.QabulQilingan,
             acceptCount: process.acceptCount,
             sentCount: process.sentCount,
             invalidCount: process.invalidCount,
@@ -256,7 +256,7 @@ export const getConsolidatedCaseTrackerStatus = async (
         }),
         statuses: pack.processes.map((process) => ({
           id: process.id,
-          status: isValidProcessStatus(process.status) ? process.status : ProcessStatus.Default,
+          status: isValidProcessStatus(process.status) ? process.status : ProcessStatus.QabulQilingan,
           date: process.date,
           processIsOver: process.processIsOver,
           acceptCount: process.acceptCount,

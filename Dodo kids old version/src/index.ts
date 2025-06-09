@@ -14,7 +14,7 @@ import {
   staticFilesMiddleware,
   serveFile,
 } from "./middleware/static.middleware"; // Add this line
-
+import outsourseCompanyRoutes from "./routes/outsourseCompany.routes";
 
 dotenv.config();
 
@@ -39,7 +39,6 @@ app.use(
 app.use("/uploads", staticFilesMiddleware);
 app.get("/uploads/:filename", serveFile as RequestHandler);
 
-
 // Health check route
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({ status: "OK", message: "Server is running" });
@@ -60,6 +59,7 @@ app.use("/api/files", fileRoutes); // Add this line
 app.use("/api/products", productRoutes);
 app.use("/api/product_pack", productPackRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/outsourse_company", outsourseCompanyRoutes);
 
 // Error handler
 app.use((err: any, _req: Request, res: Response, _next: any) => {
