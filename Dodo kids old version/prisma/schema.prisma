@@ -20,7 +20,6 @@ enum ProcessStatus {
     QabulQilingan
     Yuborilgan
     ToliqYuborilmagan
-    Default
 }
 
 // Enum for user roles

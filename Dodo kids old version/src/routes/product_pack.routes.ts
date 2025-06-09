@@ -7,7 +7,7 @@ import { sendToDepartment } from "../controller/sendToDepartment/product_pack.se
 import { getSentProductPacks } from "../controller/sendToDepartment/product_pack.send_get_all.controller";
 import { acceptProductPack } from "../controller/acceptanceToDepartment/product_pack.acceptance.controller";
 import { getAccesltenceProductPacks } from "../controller/acceptanceToDepartment/product_pack.acceptance_get_all.controller";
-import { getCaseTrackerStatus } from "../controller/get/getMapPage.controller";
+import { getConsolidatedCaseTrackerStatus } from "../controller/get/getMapPage.controller";
 import { getPandingProductPacks } from "../controller/get/getPanding.controller";
 import { getProductPackById } from "../controller/get/getDetailPage.controller";
 
@@ -26,7 +26,7 @@ router.get(
   "/status-map",
   authenticate,
   (req: Request, res: Response, next: NextFunction) => {
-    getCaseTrackerStatus(req, res).catch(next);
+    getConsolidatedCaseTrackerStatus(req, res).catch(next);
   }
 );
 

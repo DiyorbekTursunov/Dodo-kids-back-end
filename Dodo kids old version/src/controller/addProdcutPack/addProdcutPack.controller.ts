@@ -69,8 +69,7 @@ export const addWareHouse = async (req: Request, res: Response) => {
     // Create the product pack
     const productPack = await prisma.productPack.create({
       data: {
-        parent: parentId,
-        parentId,
+        parentId: parentId,
         departmentName: departmentName ?? department.name,
         totalCount,
         processIsOver: false,

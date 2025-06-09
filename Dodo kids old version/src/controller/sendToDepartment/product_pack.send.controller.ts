@@ -12,6 +12,7 @@ const sendToDepartmentSchema = z.object({
   invalidCount: z.number().int().nonnegative().optional().default(0),
   invalidReason: z.string().optional().default(""),
   employeeId: z.string().uuid(),
+  outsourseCompanyId: z.string().uuid().optional().default(""),
 });
 
 // Send Product Pack to another department
@@ -27,10 +28,15 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       invalidCount,
       invalidReason,
       employeeId,
+      outsourseCompanyId,
     } = validatedData;
 
     // Log input for debugging
-    console.log("Input IDs:", { productPackId, targetDepartmentId, employeeId });
+    console.log("Input IDs:", {
+      productPackId,
+      targetDepartmentId,
+      employeeId,
+    });
 
     // Find the source product pack
     const sourceProductPack = await prisma.productPack.findUnique({
@@ -60,7 +66,9 @@ export const sendToDepartment = async (req: Request, res: Response) => {
     });
 
     if (!employee) {
-      return res.status(404).json({ error: `Employee not found for ID: ${employeeId}` });
+      return res
+        .status(404)
+        .json({ error: `Employee not found for ID: ${employeeId}` });
     }
 
     // Find the latest status
@@ -102,7 +110,8 @@ export const sendToDepartment = async (req: Request, res: Response) => {
     const newInvalidCount = currentlyInvalidCount + Number(invalidCount);
 
     // Calculate available count
-    const availableCount = totalCount - currentlySentCount - currentlyInvalidCount;
+    const availableCount =
+      totalCount - currentlySentCount - currentlyInvalidCount;
 
     // Validate sending count
     if (Number(sendCount) + Number(invalidCount) > availableCount) {
@@ -133,6 +142,7 @@ export const sendToDepartment = async (req: Request, res: Response) => {
         residueCount: residueCount,
         invalidCount: Number(invalidCount),
         invalidReason: invalidReason || "",
+        outsourseCompanyId: outsourseCompanyId,
       },
     });
 
@@ -191,7 +201,10 @@ export const sendToDepartment = async (req: Request, res: Response) => {
       });
     }
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2003"
+    ) {
       const meta = err.meta || {};
       return res.status(400).json({
         error: "Foreign key constraint violation",

@@ -150,7 +150,7 @@ export const getAllProductPacks = async (req: Request, res: Response) => {
           product: {
             include: {
               productGroupFiles: true,
-              productPacks: true,
+            //   productPacks: true,
             },
           },
           processes: true,
