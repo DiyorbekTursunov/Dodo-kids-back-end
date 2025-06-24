@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    // ... your other options
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node", // or "Bundler" for newer setups
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+    // ... other options
+  },
+  "include": ["src", "src/custom.d.ts"] // Explicitly including it, or just "src" if it's inside src
+}

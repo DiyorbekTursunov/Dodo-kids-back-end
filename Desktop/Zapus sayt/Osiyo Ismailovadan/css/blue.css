@@ -1,0 +1,802 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+button {
+  cursor: pointer;
+}
+@font-face {
+  font-family: "Roboto Condensed";
+  src: url(../fonts/bebas-neue-bold.ttf);
+  font-display: swap;
+  font-weight: 400;
+}
+@font-face {
+  font-family: "SF Pro Text";
+  src: url("/fonts/sf-pro-display/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("/fonts/sf-pro-display/SFPRODISPLAYBOLD.OTF") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+.home {
+  position: relative;
+  padding-bottom: 20px;
+  background-color: #efefef;
+  background-image: url(../images/big-img.webp);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  width: 100%;
+  background-color: #f9f5ff;
+}
+.home-bg-loaded {
+  background-image: url(../images/Home/bg-desktop.webp);
+  background-size: cover;
+  background-position: top right;
+}
+.homeContainer {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.homeTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 688px;
+  width: 100%;
+  justify-self: flex-start;
+  margin-bottom: auto;
+}
+.homeTopBox {
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  padding: 14px 20px;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+}
+.homeTopBox-row {
+  display: flex;
+  justify-content: center;
+}
+.homeTopTitle {
+  font-family: PoppinsThin, sans-serif;
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.3;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 4px;
+}
+.homeTopText {
+  font-family: PoppinsBold, sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1.3;
+  text-align: center;
+}
+.homeTopText-blueviolet {
+  color: #2b43d5;
+}
+.descText {
+  font-family: PoppinsThin, sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  padding-top: 87px;
+  color: #2a2a2a;
+}
+.descText > span {
+  color: #2b43d5;
+}
+.homeTitle {
+  font-family: "Roboto Condensed", sans-serif;
+  font-weight: 700;
+  font-size: 80px;
+  line-height: 110%;
+  letter-spacing: 0;
+  max-width: 761px;
+  margin: 0 0 30px;
+  color: #2c0815;
+  margin-bottom: 12px;
+}
+.homep {
+  font-family: "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  opacity: 80%;
+  margin-bottom: 48px;
+}
+
+.homeTitle span {
+  color: #241ebf;
+}
+.homeText {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  /* font-family: SF Pro Text; */
+  opacity: 80%;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #2a2a2a;
+  margin-bottom: 16px;
+}
+.homeList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  list-style: none;
+  max-width: 820px;
+  margin-bottom: 50px;
+  background-color: transparent;
+}
+.homeListItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: PoppinsThin, sans-serif;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.5;
+  color: #2c0815;
+  margin-left: 6px;
+}
+.homeListItem > svg {
+  min-width: 32px;
+}
+.homeListItem > p {
+  /* font-family: SF Pro Text; */
+  font-weight: 400;
+  font-size: Font size/text-lg;
+  line-height: Line height/text-lg;
+  letter-spacing: 0%;
+  color: #535862;
+}
+.homeListItem > p > span {
+  color: #2a2a2a;
+  font-weight: 600;
+}
+.checkMarkIcon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+}
+.homeSignUpBtn {
+  max-width: 446px;
+  width: 100%;
+  padding: 10px 24px;
+  background: #ff2d55;
+  border-radius: 50px;
+  border: none;
+  font-family: "SF Pro Text", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 100%;
+  text-align: center;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: auto;
+  transition: transform 0.2s ease;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  height: 100px;
+}
+.homeSignUpBtn:hover {
+  transform: translateY(-2px);
+}
+.homeSignUpBtn:active {
+  transform: translateY(1px);
+}
+.homeSignUpBtn p {
+  position: relative;
+  z-index: 2;
+}
+.pcMentor {
+  position: absolute;
+  max-width: 549px;
+  width: 100%;
+  object-fit: cover;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+.tabletMentor {
+  display: none;
+}
+.mdHidden {
+  display: none;
+}
+.calendarIcon {
+  display: none;
+}
+.mb-0 {
+  margin-bottom: 0;
+}
+.giftBox {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 446px;
+  padding: 20px;
+  /* border: 1px solid #bcbcbc; */
+  border-radius: 16px;
+  margin-top: 20px;
+  background-color: #17034d;
+  color: #fff;
+  font-family: "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0%;
+}
+.giftImg {
+  max-width: 85px;
+  width: 100%;
+  object-fit: cover;
+}
+.gifyTitle {
+  font-family: "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0%;
+}
+.gifyTitle > span {
+  font-weight: normal;
+}
+.mdHidden {
+  display: none;
+}
+@media screen and (max-width: 900px) {
+  .tabletMentor {
+    display: block;
+    width: 51%;
+    height: auto;
+  }
+  .descText {
+    text-align: center;
+    margin-bottom: 0;
+    padding-top: 30px;
+  }
+  .mdHidden {
+    display: flex;
+  }
+  .homeContainer {
+    align-items: center;
+  }
+  .home {
+    background-image: none !important;
+  }
+  .homeTopBox:nth-child(2) {
+    display: none;
+  }
+  .homeTopBox {
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .homep {
+    text-align: center;
+    font-size: 16px;
+  }
+  .homeTopTitle {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .homeTopText {
+    font-size: 24px;
+    line-height: 36px;
+    color: #2b43d5;
+  }
+  .homeTitle {
+    max-width: 580px;
+    margin: 30px auto 60px;
+    text-align: center;
+    font-size: 48px;
+    line-height: 42px;
+  }
+  .homeSignUpBtn {
+    width: 100%;
+    max-width: none;
+    padding: 13.5px 30px;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 36px;
+    line-height: 42px;
+  }
+  .homeSignUpBtn p {
+    position: relative;
+    font-family: "SF Pro Text";
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 24px;
+    letter-spacing: 0%;
+  }
+  .homePriceInfo {
+    margin-top: 13px;
+    font-family: "SF Pro Text";
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+    text-decoration: line-through;
+    color: #2b43d5;
+  }
+  .homePriceInfo del {
+    color: #2a2a2a;
+  }
+  .maxMd_hidden {
+    display: none;
+  }
+  .homeText {
+    font-size: 20px;
+    line-height: 22px;
+    padding: 50px 0 20px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .homeList {
+    max-width: none;
+    width: 100%;
+    margin-bottom: 0;
+    padding-bottom: 30px;
+  }
+  .homeListItem {
+    font-size: 16px;
+    line-height: 16px;
+    align-items: center;
+  }
+}
+@media (max-width: 768px) {
+  .tabletMentor {
+    width: 71%;
+  }
+}
+@media (min-width: 480px) {
+  .homeListItem > br {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .giftBox {
+    margin-bottom: 24px;
+    gap: 11px;
+    width: 100%;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 100%;
+    letter-spacing: 0%;
+  }
+  .giftImg {
+    max-width: 50px;
+  }
+  .gifyTitle {
+    font-family: "SF Pro Text";
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 24px;
+    letter-spacing: 0%;
+  }
+  .calendarIcon {
+    min-width: 20px;
+    display: flex;
+  }
+  .homeTopBox-row {
+    align-items: center;
+    gap: 10px;
+  }
+  .homeContainer {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .homeTopBox {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .homeTopTitle {
+    font-size: 18px;
+    line-height: 18px;
+  }
+  .homeTitle {
+    font-size: 34px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+    max-width: 294px;
+    line-height: 32px;
+  }
+  .descText {
+    font-size: 16px;
+    color: #2b43d5;
+  }
+  .homeSignUpBtn {
+    font-size: 18px;
+    height: 70px;
+    font-weight: 500;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 11px;
+  }
+  .homeText {
+    padding-top: 0px;
+    font-size: 20px;
+    line-height: 20px;
+    padding-bottom: 12px;
+    text-align: center;
+  }
+  .homeListItem > svg {
+    min-width: 20px;
+  }
+  .checkMarkIcon {
+    min-width: 28px;
+    width: 28px;
+    min-height: 28px;
+    height: 28px;
+  }
+  .homeListItem {
+    font-size: 16px;
+    line-height: 24px;
+    align-items: center;
+  }
+}
+.homeModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.homeModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(10, 13, 18, 1);
+  opacity: 0.7;
+  /* backdrop-filter: blur(10px) !important; */
+}
+.homeFormContainer {
+  position: relative;
+  z-index: 30;
+  background-color: white;
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0 20px;
+}
+.homeFormTop {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.homeFormTopTitle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.homeFormTopTitle {
+  font-size: 16px;
+  font-weight: 600;
+  /* margin: 0 0 20px; */
+  color: #000;
+  /* font-family: "", sans-serif; */
+  /* text-align: left; */
+  margin-bottom: 4px;
+}
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.homeFormErrorText {
+  color: #e53e3e;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.HomeFormRow {
+  margin-bottom: 12px;
+}
+.HomeFormRowLabel {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 18px;
+  color: #414651;
+}
+
+.HomeFormRowInputParent {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  width: 100%;
+  border: 1px solid #bed4da;
+  background-color: #f3f7f8;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 400;
+
+  display: flex;
+  align-items: center;
+  outline: none;
+  padding-left: 14px;
+}
+
+.HomeFormRowInput {
+  width: 100%;
+  height: 100%;
+  padding-left: 8px;
+  padding: 10px 16px;
+  border: none;
+  background-color: transparent;
+    transition: border-color 0.2s;
+    outline: none;
+}
+.HomeFormRowInput:focus {
+  border-color: #241ebf;
+}
+.HomeFormRowInput::placeholder {
+  color: #aaa;
+}
+.HomeFormBtn {
+  font-family: "Roboto Condensed", sans-serif;
+  position: relative;
+  height: 70px;
+  width: 100%;
+  height: 44px;
+  cursor: pointer;
+  border-radius: 14px;
+  background: #241ebf;
+  font-size: 16px;
+  color: #fff;
+  border: none;
+  transition: all 0.3s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.giftImgBtn {
+  position: absolute;
+  top: -50%;
+  transform: translateY(35%);
+  left: 0;
+}
+@media screen and (max-width: 768px) {
+  .homeFormContainer {
+    max-width: 450px;
+    padding: 30px;
+    margin: 0 15px;
+  }
+  .homeFormTopTitle {
+    font-size: 28px;
+  }
+  .HomeFormBtn {
+    height: 60px;
+    font-size: 24px;
+  }
+  .closeButton {
+    top: 15px;
+    right: 15px;
+  }
+}
+.homeModalDescription {
+  /* display: none; */
+  color: #535862;
+  font-weight: 400;
+  margin-bottom: 20px;
+}
+@media screen and (max-width: 480px) {
+  .homeFormContainer {
+    max-width: 100%;
+    padding: 96px 20px 20px;
+    margin: 0;
+    border-radius: 6px;
+    height: 100vh;
+  }
+  .homeFormTopTitle {
+    font-size: 38px;
+    text-align: center;
+    max-width: 335px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 6px;
+  }
+  .homeModalDescription {
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 100%;
+    text-align: center;
+    max-width: 353px;
+    margin-bottom: 43px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .homeFormErrorText {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  .HomeFormRow {
+    margin-bottom: 34px;
+  }
+  .giftImgBtn {
+    position: absolute;
+    top: -50%;
+  }
+  .HomeFormRowLabel {
+    margin-bottom: 6px;
+    display: none;
+  }
+  .HomeFormRowInput::placeholder {
+    color: #a3a3a3;
+  }
+  .HomeFormRowInput {
+    padding: 0px 12px;
+    min-height: 40px;
+    border: none;
+    /* border-bottom: 1px solid #a3a3a3; */
+    background-color: transparent;
+    border-radius: 0px;
+  }
+  .HomeFormBtn {
+    height: auto;
+    font-size: 26px;
+    padding-top: 21px;
+    padding-bottom: 21px;
+    max-height: 69px;
+    margin-top: 24px;
+  }
+  .closeButton {
+    top: 10px;
+    right: 10px;
+    padding: 2px;
+  }
+  .homeFormTop {
+    /* flex-direction: column; */
+    /* align-items: flex-start; */
+    margin-bottom: 44px;
+  }
+}
+.dot-spinner {
+  --uib-size: 2.8rem;
+  --uib-speed: 0.9s;
+  --uib-color: white;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: var(--uib-size);
+  width: var(--uib-size);
+}
+.dot-spinner__dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
+}
+.dot-spinner__dot::before {
+  content: "";
+  height: 20%;
+  width: 20%;
+  border-radius: 50%;
+  background-color: white;
+  transform: scale(0);
+  opacity: 0.5;
+  animation: pulse0112 calc(var(--uib-speed) * 1.111) ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(18, 31, 53, 0.3);
+}
+.dot-spinner__dot:nth-child(2) {
+  transform: rotate(45deg);
+}
+.dot-spinner__dot:nth-child(2)::before {
+  animation-delay: calc(var(--uib-speed) * -0.875);
+}
+.dot-spinner__dot:nth-child(3) {
+  transform: rotate(90deg);
+}
+.dot-spinner__dot:nth-child(3)::before {
+  animation-delay: calc(var(--uib-speed) * -0.75);
+}
+.dot-spinner__dot:nth-child(4) {
+  transform: rotate(135deg);
+}
+.dot-spinner__dot:nth-child(4)::before {
+  animation-delay: calc(var(--uib-speed) * -0.625);
+}
+.dot-spinner__dot:nth-child(5) {
+  transform: rotate(180deg);
+}
+.dot-spinner__dot:nth-child(5)::before {
+  animation-delay: calc(var(--uib-speed) * -0.5);
+}
+.dot-spinner__dot:nth-child(6) {
+  transform: rotate(225deg);
+}
+.dot-spinner__dot:nth-child(6)::before {
+  animation-delay: calc(var(--uib-speed) * -0.375);
+}
+.dot-spinner__dot:nth-child(7) {
+  transform: rotate(270deg);
+}
+.dot-spinner__dot:nth-child(7)::before {
+  animation-delay: calc(var(--uib-speed) * -0.25);
+}
+.dot-spinner__dot:nth-child(8) {
+  transform: rotate(315deg);
+}
+.dot-spinner__dot:nth-child(8)::before {
+  animation-delay: calc(var(--uib-speed) * -0.125);
+}
+@keyframes pulse0112 {
+  0%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
